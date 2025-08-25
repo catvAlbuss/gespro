@@ -1,0 +1,1011 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" media="screen" href="./assets/css/styles.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/styles.css" />
+    <script type="text/javascript" src="../js/tabulator_base/load_headers.js" defer></script>
+    <script type="text/javascript" src="../js/tabulator_base/change_assets.js" defer></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <div class="header_dummy"></div>
+    <p class="indice">1. CALCULO DE LA DEMANDA DIARIA</p>
+    <div class="dot_tables"></div>
+    <div class="page_break"></div>
+    <div class="header_dummy"></div>
+    <p class="indice">2. CALCULO DEL ALMACENAMIENTO</p>
+    <p>El sistema proyectado será de una combinación de CISTERNA + TANQUE ELEVADO</p>
+    <p class="sub_indice">2.1. CISTERNA</p>
+    <p class="sub_sub_indice">2.1.1. CALCULO DE VOLUMEN DE LA CISTERNA</p>
+    <p style="width: 100%" class="text_center border_dotted"><b>VOL. DE CISTERNA = 3/4 x CONSUMO DIARIO TOTAL</b></p>
+    <div style="width: 75%; margin: auto">
+      <div style="width: 40%; border-right: none" class="text_right inline_block border_dotted">Vol. De Cisterna =</div
+      ><div style="width: 35%; border-left: none" class="inline_block text_left border_dotted"
+        ><span class="volDeCisterna" style="margin-left: 10px">-</span></div
+      >
+    </div>
+    <br />
+    <div style="width: 75%; margin: auto">
+      <div style="width: 40%; border-right: none" class="text_right inline_block border_dotted">Vol. Total mínimo =</div
+      ><div style="width: 35%; border-left: none" class="inline_block text_left border_dotted"
+        ><span class="volTotalMinimo" style="margin-left: 10px">-</span></div
+      >
+    </div>
+    <br />
+    <div style="width: 75%; margin: auto">
+      <div style="width: 40%; border-right: none" class="text_right inline_block border_dotted">Altura de agua min. =</div
+      ><div style="width: 35%; border-left: none" class="inline_block text_left border_dotted"
+        ><span class="alturaDeAguaMin" style="margin-left: 10px">-</span></div
+      >
+    </div>
+    <p>Cisterna de Concreto de cuyas dimensiones serán:</p>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Largo (L) =</div><div style="width: 20%" class="cisternaLargo inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Ancho (A) =</div><div style="width: 20%" class="cisternaAncho inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Altura agua (H) =</div
+        ><div style="width: 20%" class="cisternaAltura inline_block bold" data-toggle="popover">-</div>
+      </div>
+    </div>
+    <br />
+    <div style="width: 100%" class="bold">
+      <p style="width: 60%; margin: auto" class="bg_yellow text_center border_hard">
+        VOLUMEN DE CISTERNA =
+        <span class="volumenCisterna">-</span>
+      </p>
+      <a id="obtenerEternit" class="justify-center inline-flex items-center px-5 py-1 -mt-14 text-sm font-medium text-center text-white bg-red-600 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-red-600 hover:bg-red-950">Eternit cisterna</a>
+    </div>
+    
+    <p class="sub_sub_indice">2.1.2. DIMENSIONES DE LA CISTERNA</p>
+    <table class="table_border_dotted" style="width: 100%">
+      <tr>
+        <td style="width: 40%">ANCHO</td>
+        <td style="width: 60%">Ancho de la Cisterna</td>
+      </tr>
+      <tr>
+        <td style="width: 40%">LARGO</td>
+        <td style="width: 60%">Largo de la Cisterna</td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE AGUA</td>
+        <td style="width: 60%">Altura de agua de la Cisterna</td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE TUB. REBOSE</td>
+        <td style="width: 60%">
+          La distancia vertical entre los ejes del tubo de rebose y el máximo nivel de agua será igual al diámetro de aquel y nunca inferior a 0,10 m
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE TUB. DE INGRESO</td>
+        <td style="width: 60%">
+          La distancia vertical entre los ejes de tubos de rebose y entrada de agua será igual al doble del diámetro del primero y en ningún caso menor de 0,15
+          m
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE NIVEL DE TECHO</td>
+        <td style="width: 60%">
+          La distancia vertical entre el techo del depósito y el eje del tubo de entrada de agua, dependerá del diámetro de este, no pudiendo ser menor de 0,20
+          m
+        </td>
+      </tr>
+    </table>
+    <div class="page_break"></div>
+    <p>Cisterna cuyas dimensiones serán:</p>
+    <div>nivel de losa superior-armada</div>
+    <div class="cisterna_alm">
+      <div>
+        <div style="width: 300px; text-align: center; vertical-align: bottom" class="inline_block bold">
+          <div style="padding: 0px 10px; border-bottom: none" class="inline_block bg_sky border_hard"
+            >Nivel =<span class="cisternaNivelDelTecho">-</span></div
+          ></div
+        ><div style="vertical-align: bottom; margin-left: 5%; position: relative" class="inline_block bold">
+          <div style="position: absolute; border: 1px solid rgb(83, 83, 83); top: 18px; height: 100px"></div>
+          <img src="nivel.png" alt="" style="vertical-align: bottom" class="inline_block" /><div
+            style="padding-right: 20px; margin-left: 2px"
+            class="border_dotted inline_block"
+            >NTN =<span class="cisternaNivelDeTerrenoNatural">-</span></div
+          >
+        </div>
+      </div>
+      <div>
+        <div style="width: 30px; height: 300px; position: relative;" class="inline_block">
+          <div style="border-bottom: 2px solid black; position: absolute; top: 0px; width: 30px;"></div>
+          <div style="border-top: 2px solid black; position: absolute; top: 298px; width: 30px;"></div>
+          <div style="border-left: 2px solid black; position: absolute; top: 0px; width: 30px; height: 300px; left: 50%;"></div>
+          <div style="border-left: 2px solid black; position: absolute; top: 0px; width: 30px; height: 300px; left: 50%;">2.48m
+            
+          </div>
+          </div
+        ><div style="height: 300px; z-index: -1" class="inline_block">
+          <div style="position: relative; height: 294px; width: 294px; background-color: rgb(190, 187, 187); border: 3px solid black">
+            <div style="z-index: 3; position: absolute; border: 1px solid rgb(83, 83, 83); top: 97px; left: 0px; width: 400px"></div>
+            <div style="position: absolute; top: 20px; left: 20px; background-color: white; width: 248px; height: 248px; border: 3px solid black">
+              <div style="position: relative">
+                <div style="width: 248px; height: 44px; border-bottom: 1px dashed black; position: relative">
+                  <div
+                    style="position: absolute; bottom: -1px; right: -50px; height: 15px; width: 60px; background-color: coral; border: 3px solid black"
+                  ></div>
+                </div>
+                <div style="width: 248px; height: 44px; border-bottom: 1px dashed black; position: relative">
+                  <div
+                    style="position: absolute; bottom: -1px; right: -50px; height: 15px; width: 60px; background-color: lightgreen; border: 3px solid black"
+                  ></div>
+                </div>
+                <div style="width: 248px; height: 30px"></div>
+                <div style="width: 248px; height: 126px; border-top: 2px solid black; background-color: aliceblue"> </div>
+                <div></div></div></div></div></div
+        ><div style="height: 300px; width: calc(100% - 330px)" class="inline_block">
+          <div style="position: relative; height: 25px; border-bottom: 0.5px dotted red"
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="cisternaNivelHTecho">-</span></div
+              ></div
+            ></div
+          >
+          <div style="position: relative; height: 44.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >H. techo (Ht) =<span class="cisternaHTecho bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="cisternaNivelHIngreso">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 44.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >H. ingreso (Hi) =<span class="cisternaHIngreso bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="cisternaNivelHReboseSuperior">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 29.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >H. rebose (Hr) =<span class="cisternaHRebose bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block text_right"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="cisternaNivelHReboseInferior">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 128px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >Altura de agua (Ha) =<span class="cisternaAlturaDeAgua bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="cisternaNivelBase">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 22px; border-bottom: 0.5px dotted red"> </div>
+        </div>
+      </div>
+    </div>
+    <br />
+    <p>Cisterna de Concreto de cuyas dimensiones serán:</p>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Largo (L) =</div><div style="width: 20%" class="cisternaLargo inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Ancho (A) =</div><div style="width: 20%" class="cisternaAncho inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%; position: relative">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Altura Util de Agua (H) =</div
+        ><div style="width: 20%" class="cisternaAlturaDeAgua inline_block bold">-</div>
+        <span style="position: absolute">Diametro de rebose según el RNE es de <span class="cisternaDiametroRebose">-</span></span>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Borde Libre (bl) =</div
+        ><div style="width: 20%" class="cisternaBordeLibre inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Altura total (HT) =</div
+        ><div style="width: 20%" class="cisternaAlturaTotal inline_block bold">-</div>
+      </div>
+    </div>
+
+    <p class="sub_indice">2.2. TANQUE ELEVADO</p>
+    <p class="sub_sub_indice">2.2.1. CALCULO DE VOLUMEN DEL TANQUE ELEVADO</p>
+    <p style="width: 100%" class="text_center border_dotted"><b>VOL. DE TANQUE ELEVADO = 1/3 x CONSUMO DIARIO TOTAL</b></p>
+    <div style="width: 75%; margin: auto">
+      <div style="width: 40%; border-right: none" class="text_right inline_block border_dotted">Vol. De T.E. =</div
+      ><div style="width: 35%; border-left: none" class="inline_block text_left border_dotted"
+        ><span class="volDeTanque" style="margin-left: 10px">-</span></div
+      >
+    </div>
+    <br />
+    <div style="width: 100%"
+      ><div style="width: 75%; margin: auto">
+        <div style="width: 40%; border-right: none" class="text_right inline_block border_dotted">Vol. Total (Calculado + Reserva) =</div
+        ><div style="width: 35%; border-left: none" class="inline_block text_left border_dotted"
+          ><span class="volTotalCalculadoReserva" style="margin-left: 10px">-</span></div
+        >
+        <span style="position: absolute; margin-left: 10px"
+          >Vol. Reserva (25%)<br />
+          se asume volumen de reserva por la necesidad por tener una altura minima de 1.60m, según RNE IS.010</span
+        >
+      </div></div
+    >
+    <br />
+    <div style="width: 75%; margin: auto">
+      <div style="width: 40%; border-right: none" class="text_right inline_block border_dotted">Altura de agua min. =</div
+      ><div style="width: 35%; border-left: none" class="inline_block text_left border_dotted"
+        ><span class="tanqueAlturaDeAguaMin" style="margin-left: 10px">-</span></div
+      >
+    </div>
+    <br />
+    <p>Tanque Elevado de cuyas dimensiones serán:</p>
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Largo (L) =</div><div style="width: 20%" class="tanqueLargo inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Ancho (A) =</div><div style="width: 20%" class="tanqueAncho inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto; position: relative">
+        <div style="width: 50%" class="text_right inline_block">Altura agua (H) =</div
+        ><div style="width: 20%" class="inline_block">
+          <span class="tanqueAlturaAgua bold" data-toggle="popover">-</span>
+          <img style="position: absolute; top: -70px; margin-left: 60px;" src="altura_agua.png" alt="" />
+        </div>
+      </div>
+    </div>
+    <br />
+    <div style="width: 100%" class="bold">
+      <p style="width: 60%; margin: auto" class="bg_yellow text_center border_hard">
+        VOLUMEN DE TANQUE ELEVADO =
+        <span class="volumenTanque">-</span>
+      </p>
+      <a id="obtenerEternittanque" class="justify-center inline-flex items-center px-5 py-1 -mt-14 text-sm font-medium text-center text-white bg-red-600 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-red-600 hover:bg-red-950">Eternit Tanque</a>
+    </div>
+    <p class="sub_sub_indice">2.2.2. DIMENSIONES DEL TANQUE ELEVADO</p>
+    <table class="table_border_dotted" style="width: 100%">
+      <tr>
+        <td style="width: 40%">ANCHO</td>
+        <td style="width: 60%">Ancho del Tanque Elevado</td>
+      </tr>
+      <tr>
+        <td style="width: 40%">LARGO</td>
+        <td style="width: 60%">Largo del Tanque Elevado</td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE AGUA</td>
+        <td style="width: 60%">Altura de agua del Tanque Elevado</td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE TUB. REBOSE</td>
+        <td style="width: 60%">
+          La distancia vertical entre los ejes del tubo de rebose y el máximo nivel de agua será igual al diámetro de aquel y nunca inferior a 0,10 m
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE TUB. DE INGRESO</td>
+        <td style="width: 60%">
+          La distancia vertical entre los ejes de tubos de rebose y entrada de agua será igual al doble del diámetro del primero y en ningún caso menor de 0,15
+          m
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 40%">ALTURA DE NIVEL DE TECHO</td>
+        <td style="width: 60%">
+          La distancia vertical entre el techo del depósito y el eje del tubo de entrada de agua, dependerá del diámetro de este, no pudiendo ser menor de 0,20
+          m
+        </td>
+      </tr>
+    </table>
+    <p>Tanque elevado cuyas dimensiones serán:</p>
+    <div class="tanque_alm">
+      <div>
+        <div style="width: 300px; text-align: center" class="inline_block bold">
+          <div style="padding: 0px 10px; border-bottom: none" class="inline_block bg_sky border_hard font-11"
+            >Nivel =<span class="tanqueNivelDelTecho">-</span></div
+          ></div
+        >
+      </div>
+      <div>
+        <div style="height: 300px" class="inline_block">
+          <div style="position: relative; height: 294px; width: 294px; background-color: rgb(190, 187, 187); border: 3px solid black">
+            <div style="position: absolute; top: 20px; left: 20px; background-color: white; width: 248px; height: 248px; border: 3px solid black">
+              <div style="position: relative">
+                <div style="width: 248px; height: 44px; border-bottom: 1px dashed black; position: relative">
+                  <div
+                    style="position: absolute; bottom: -1px; right: -50px; height: 15px; width: 60px; background-color: coral; border: 3px solid black"
+                  ></div>
+                </div>
+                <div style="width: 248px; height: 44px; border-bottom: 1px dashed black; position: relative">
+                  <div
+                    style="position: absolute; bottom: -1px; right: -50px; height: 15px; width: 60px; background-color: lightgreen; border: 3px solid black"
+                  ></div>
+                </div>
+                <div style="width: 248px; height: 30px"></div>
+                <div style="width: 248px; height: 126px; border-top: 2px solid black; background-color: aliceblue">
+                  <div style="margin-left: 10px; width: 238px; height: 102px; border-bottom: 1px dashed black; position: relative">
+                    <div
+                      style="position: absolute; bottom: -1px; right: -50px; height: 15px; width: 60px; background-color: lightblue; border: 3px solid black"
+                    ></div>
+                  </div>
+                </div>
+                <div></div></div></div></div></div
+        ><div style="height: 300px; width: calc(100% - 306px)" class="inline_block">
+          <div style="position: relative; height: 25px; border-bottom: 0.5px dotted red"
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="tanqueNivelHTecho">-</span></div
+              ></div
+            ></div
+          >
+          <div style="position: relative; height: 44.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >H. techo (Ht) =<span class="tanqueHTecho bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="tanqueNivelHIngreso">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 44.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >H. ingreso (Hi) =<span class="tanqueHIngreso bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="tanqueNivelHReboseSuperior">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 29.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >H. rebose (Hr) =<span class="tanqueHRebose bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block text_right"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="tanqueNivelHReboseInferior">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 103.5px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >Altura de agua (Ha) =<span class="tanqueAlturaDeAgua bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="tanqueAlturaLibreSuperior">-</span></div
+              ></div
+            >
+          </div>
+          <div style="position: relative; height: 22px; border-bottom: 0.5px dotted red">
+            <div style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); width: 40%" class="inline_block text_right"
+              >Altura Libre (HL) =<span class="tanqueAlturaDeAgua bold">-</span></div
+            ><div style="position: absolute; top: 100%; right: 0%; transform: translate(0%, -100%)" class="inline_block"
+              ><img src="nivel.png" alt="" class="inline_block" /><div
+                style="padding-right: 20px; margin-left: 2px"
+                class="border_dotted inline_block"
+                >Nivel =<span class="tanqueAlturaLibre">-</span></div
+              ></div
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    <br />
+    <p>Tanque Elevado de Concreto de cuyas dimensiones serán:</p>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Largo (L) =</div><div style="width: 20%" class="tanqueLargo inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Ancho (A) =</div><div style="width: 20%" class="tanqueAncho inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Altura del Agua (H) =</div
+        ><div style="width: 20%" class="tanqueAlturaDelAgua inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%; position: relative">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Altura de Limpieza (hl) =</div
+        ><div style="width: 20%" class="tanqueAlturaDeLimpieza inline_block bold">-</div>
+        <span style="position: absolute">Diametro de rebose según el RNE es de <span class="tanqueDiametroRebose">-</span> </span>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Borde Libre (bl) =</div
+        ><div style="width: 20%" class="tanqueBordeLibre inline_block bold">-</div>
+      </div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 80%; margin: auto">
+        <div style="width: 50%" class="text_right inline_block">Altura total (HT) =</div
+        ><div style="width: 20%" class="tanqueAlturaTotal inline_block bold">-</div>
+      </div>
+    </div>
+
+    <div class="page_break"></div>
+    <div class="header_dummy"></div>
+    <p class="indice">3. CALCULO DE LA RED DE ALIMENTACION</p>
+    <p class="sub_indice">3.1. CAUDAL DE ENTRADA</p>
+    <table style="width: 60%">
+      <tr>
+        <td style="width: 60%" class="text_right">Volumen de la Cisterna =</td>
+        <td class="caudalDeEntradaVolumenDeLaCisterna bold">-</td>
+      </tr>
+      <tr>
+        <td style="width: 60%" class="text_right">Tiempo de Llenado =</td>
+        <td class="caudalDeEntradaTiempoDeLlenado bold">-</td>
+      </tr>
+    </table>
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_dotted bold">
+        <div style="width: 70%" class="text_right inline_block">Q llenado =</div><div style="width: 20%" class="caudalDeEntradaQLlenado inline_block">-</div>
+      </div>
+    </div>
+    <p class="sub_indice">3.2. CARGA DISPONIBLE</p>
+    <p>Datos de la FACTIBILIDAD DE SERVICIO</p>
+    <div style="width: 80%">
+      <div style="width: 60%" class="text_left inline_block">Nivel del terreno donde la cnx.=</div
+      ><div style="width: 40%" class="text_left inline_block cargaDisponibleNivelDelTerrenoCNX">-</div>
+    </div>
+    <div style="width: 80%">
+      <div style="width: 60%" class="text_left inline_block">Nivel de la tuberia de cnx.=</div
+      ><div style="width: 40%" class="text_left inline_block cargaDisponibleNivelDeLaTuberiaCNX">-</div>
+    </div>
+    <div style="width: 80%">
+      <div style="width: 60%" class="text_left inline_block">Nivel de tuberia de ingreso a cist. =</div
+      ><div style="width: 40%" class="text_left inline_block cargaDisponibleNivelDeIngreso">-</div>
+    </div>
+    <br />
+    <table class="table_border_dotted font-11" style="width: 70%">
+      <tr>
+        <td style="width: 80%; border-right: none">Presion en la CONEXIÓN PUBLICA =</td>
+        <td style="width: 20%; border-left: none" class="cargaDisponiblePresionPublica bold">-</td>
+      </tr>
+      <tr>
+        <td style="width: 80%; border-right: none">Presion de salida en tub. de ingreso =</td>
+        <td style="width: 20%; border-left: none" class="cargaDisponiblePresionSalidaIngreso bold">-</td>
+      </tr>
+      <tr>
+        <td style="width: 80%; border-right: none">Altura estatica entre tub red publica y la cist =</td>
+        <td style="width: 20%; border-left: none" class="alturaEstaticaTubRedPublicaCist bold">-</td>
+      </tr>
+    </table>
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_dotted bold">
+        <div style="width: 70%; display: inline-block; vertical-align: middle" class="text_right">Carga Disponible (Hd 1) =</div
+        ><div style="width: 20%; display: inline-block; vertical-align: middle" class="cargaDisponibleHd1">-</div>
+      </div>
+    </div>
+    <br />
+    <p class="sub_indice">3.3. PERDIDA DE CARGA: TRAMO RED PUBLICA - MEDIDOR</p>
+    <div style="width: 100%">
+      <div style="width: 40%" class="inline_block">Diametro de la Conexión Domiciliaria =</div
+      ><div style="width: 20%" class="text_center inline_block perdidaCargaDiametroConexion bold">-</div>
+    </div>
+    <div style="width: 100%">
+      <div style="width: 40%" class="inline_block">Presenta MICROMEDICION =</div
+      ><div style="width: 20%" class="bg_sky text_center inline_block perdidaCargaMicromedicion bold">-</div>
+    </div>
+    <br />
+    <div>
+      <div style="width: 263px; font-size: 18px" class="text_center">Curva De Perdida De Presión</div>
+      <div style="position: relative" class="inline_block">
+        <div class="curvaDePresionAxes" style="position: absolute; width: 263px; height: 280px">
+          <div style="position: absolute; width: 263px; border-bottom: 1.5px solid #00b0f0; top: 10px"></div>
+          <div style="position: absolute; height: 280px; border-left: 1.5px solid #00b0f0; left: 10px"></div>
+        </div>
+        <img src="curva_de_perdida_de_presion.jpg" height="280px" alt="" /></div
+      ><div class="inline_block" style="height: 280px; margin-left: 15%; position: relative">
+        <table class="table_curva_de_presion" style="width: 210px; border-collapse: collapse; position: absolute; top: 50%; transform: translateY(-50%)">
+          <tr class="row_border_dotted table_curva_de_presion_highlight_row"
+            ><td width="50px" style="width: 50px" class="text_center">15</td><td width="150px" style="width: 150px" class="text_right">1/2 pulg.</td></tr
+          >
+          <tr class="row_border_dotted"><td class="text_center">20</td><td class="text_right">3/4 pulg.</td></tr>
+          <tr class="row_border_dotted"
+            ><td class="text_center">25</td><td class="text_right">1<span style="color: white"> 7/7 </span>pulg.</td></tr
+          >
+          <tr class="row_border_dotted"><td class="text_center">32</td><td class="text_right">1 1/4 pulg.</td></tr>
+          <tr class="row_border_dotted"><td class="text_center">40</td><td class="text_right">1 1/2 pulg.</td></tr>
+          <tr class="row_border_dotted"
+            ><td class="text_center">50</td><td class="text_right">2<span style="color: white"> 7/7 </span>pulg.</td></tr
+          >
+          <tr class="row_border_dotted"><td style="border: none" class="text_center">&nbsp;</td><td style="border: none" class="text_right"></td></tr>
+          <tr class="row_border_dotted bold"><td class="text_center">Q =</td><td class="text_right">1.2834375</td></tr>
+          <tr class="row_border_dotted"><td style="border: none" class="text_center">&nbsp;</td><td style="border: none" class="text_right"></td></tr>
+          <tr class="row_border_dotted bold"><td class="text_center">Hf med. =</td><td class="text_right">1.2834375</td></tr>
+        </table>
+      </div>
+    </div>
+    <div id="tramoRedPublicaMedidorLAccesorios"> </div>
+    <table class="table_border_dotted" style="width: 70%">
+      <tr>
+        <td style="width: 80%; border-right: none">Carga Disponible =</td>
+        <td style="width: 20%; border-left: none" class="perdidaCargaCargaDisponible bold">-</td>
+      </tr>
+      <tr>
+        <td style="width: 80%; border-right: none">Perdida de Carga en medidor =</td>
+        <td style="width: 20%; border-left: none" class="perdidaCargaCargaMedidor bold">-</td>
+      </tr>
+      <tr>
+        <td style="width: 80%; border-right: none">Perdida de carga entre la Red Publica y la Conexion =</td>
+        <td style="width: 20%; border-left: none" class="perdidaCargaRedPublicaConexion bold">-</td>
+      </tr>
+    </table>
+    <div style="margin-left: 8%">
+      <div>
+        <div class="inline_block">
+          <div class="text_right">Hd</div>
+          <div class="text_right">Long. tubería</div>
+        </div>
+        <div style="width: 30%" class="inline_block"
+          ><div
+            ><div style="width: 30%" class="inline_block text_center">=</div
+            ><div style="width: 30%" class="inline_block text_center perdidaCargaHd1">-</div></div
+          >
+          <div
+            ><div style="width: 30%" class="inline_block text_center">=</div
+            ><div style="width: 30%" class="inline_block text_center perdidaCargaLongTub">-</div></div
+          >
+        </div>
+      </div>
+      <div class="perdida_de_carga_analisis_tuberia">
+        <br />
+        <div style="width: 30%" class="bold">Análisis para la tubería de 3/4"Ø</div>
+        <div style="width: 30%; border-bottom: 1px solid black" class="">Longitud equivalente p/tub. 3/4"Ø</div>
+        <div><div style="width: 22%" class="inline_block">01 codos 3/4" x 90º</div><div style="width: 8%" class="inline_block text_right">0.777</div></div>
+        <div><div style="width: 22%" class="inline_block">01 codos 3/4" x 90º</div><div style="width: 8%" class="inline_block text_right">0.777</div></div>
+        <div>
+          <div style="width: 22%" class="inline_block">2 válvula de compuerta 3/4"</div><div style="width: 8%" class="inline_block text_right">0.777</div>
+        </div>
+        <div>
+          <div style="width: 15%; margin-left: 7%; border-bottom: 1px solid black" class="inline_block">01 codos 3/4" x 90º</div
+          ><div style="width: 8%; border-bottom: 1px solid black" class="inline_block text_right">0.777</div>
+        </div>
+        <div>
+          <div style="width: 15%; margin-left: 7%" class="inline_block bold">Ltotal 1</div
+          ><div style="width: 8%" class="inline_block text_right bold">0.777</div>
+        </div>
+        <br />
+        <div style="width: 30%" class="bold">Análisis para la tubería de 3/4"Ø</div>
+        <div style="width: 30%; border-bottom: 1px solid black" class="">Longitud equivalente p/tub. 3/4"Ø</div>
+        <div><div style="width: 22%" class="inline_block">01 codos 3/4" x 90º</div><div style="width: 8%" class="inline_block text_right">0.777</div></div>
+        <div><div style="width: 22%" class="inline_block">01 codos 3/4" x 90º</div><div style="width: 8%" class="inline_block text_right">0.777</div></div>
+        <div>
+          <div style="width: 22%" class="inline_block">2 válvula de compuerta 3/4"</div><div style="width: 8%" class="inline_block text_right">0.777</div>
+        </div>
+        <div>
+          <div style="width: 15%; margin-left: 7%; border-bottom: 1px solid black" class="inline_block">01 codos 3/4" x 90º</div
+          ><div style="width: 8%; border-bottom: 1px solid black" class="inline_block text_right">0.777</div>
+        </div>
+        <div>
+          <div style="width: 15%; margin-left: 7%" class="inline_block bold">Ltotal 1</div
+          ><div style="width: 8%" class="inline_block text_right bold">0.777</div>
+        </div>
+        <br />
+        <div style="width: 30%" class="bold">Análisis para la tubería de 3/4"Ø</div>
+        <div style="width: 30%; border-bottom: 1px solid black" class="">Longitud equivalente p/tub. 3/4"Ø</div>
+        <div><div style="width: 22%" class="inline_block">01 codos 3/4" x 90º</div><div style="width: 8%" class="inline_block text_right">0.777</div></div>
+        <div><div style="width: 22%" class="inline_block">01 codos 3/4" x 90º</div><div style="width: 8%" class="inline_block text_right">0.777</div></div>
+        <div>
+          <div style="width: 22%" class="inline_block">2 válvula de compuerta 3/4"</div><div style="width: 8%" class="inline_block text_right">0.777</div>
+        </div>
+        <div>
+          <div style="width: 15%; margin-left: 7%; border-bottom: 1px solid black" class="inline_block">01 codos 3/4" x 90º</div
+          ><div style="width: 8%; border-bottom: 1px solid black" class="inline_block text_right">0.777</div>
+        </div>
+        <div>
+          <div style="width: 15%; margin-left: 7%" class="inline_block bold">Ltotal 1</div
+          ><div style="width: 8%" class="inline_block text_right bold">0.777</div>
+        </div>
+      </div>
+      <br />
+      <div>C = 0.0001 ; Coeficiente de fricción de la ecuación Flamant</div>
+      <div>C= 140 para la ecuación de HWt</div>
+      <div>Determinamos la perdida de carga total</div>
+      <br />
+      <table class="text_center perdida_de_carga_total">
+        <thead>
+          <tr>
+            <th>Caudal (lps)</th>
+            <th>D (mm)</th>
+            <th>V (m/s)</th>
+            <th>Hf (m)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0.36</td>
+            <td>19.05</td>
+            <td>1.25</td>
+            <td>0.21</td>
+            <td>SI</td>
+          </tr>
+          <tr>
+            <td>0.36</td>
+            <td>25.4</td>
+            <td>0.70</td>
+            <td>0.06</td>
+            <td>SI</td>
+          </tr>
+          <tr>
+            <td>0.36</td>
+            <td>31.8</td>
+            <td>0.45</td>
+            <td>0.02</td>
+            <td>SI</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br />
+    <div style="width: 100%" class="font-11">
+      <div style="width: 75%; color: #44546a" class="inline_block">Por lo tanto el diámetro de las tuberías de Alimentación es </div
+      ><div style="width: 10%" class="perdidaCargaDiametroTubAlim inline_block text_center border bold">-</div>
+    </div>
+    <br />
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_dotted bold">
+        <div style="width: 70%; display: inline-block; vertical-align: middle" class="text_right">Carga Disponible (Hd 2) =</div
+        ><div style="width: 20%; display: inline-block; vertical-align: middle" class="cargaDisponibleHd2">-</div>
+      </div>
+    </div>
+    <p class="sub_indice">3.4. PERDIDA DE CARGA: MEDIDOR - CISTERNA</p>
+    <div class="perdida_de_carga_l_accesorios_cisterna" id="perdida_de_carga_l_accesorios_cisterna"></div>
+    <br />
+    <table class="table_border_dotted" style="width: 70%">
+      <tr>
+        <td style="width: 80%; border-right: none">Carga Disponible (Hd 2) =</td>
+        <td style="width: 20%; border-left: none" class="perdidaCargaCargaDisponibleHd2 bold">-</td>
+      </tr>
+      <tr>
+        <td style="width: 80%; border-right: none">Medidor - Cisterna =</td>
+        <td style="width: 20%; border-left: none" class="perdidaCargaMedidorCisterna bold">-</td>
+      </tr>
+    </table>
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_dotted bold">
+        <div style="width: 70%; display: inline-block; vertical-align: middle" class="text_right">Carga Disponible (Hd 3) =</div
+        ><div style="width: 20%; display: inline-block; vertical-align: middle" class="cargaDisponibleHd3">-</div>
+      </div>
+    </div>
+    <p class="sub_indice">3.5. RESULTADOS</p>
+    <div style="margin-left: 55px; padding-left: 2px; width: 60%" class="bg_yellow border_hard bold">
+      <div style="width: 60%" class="inline_block">Q llenado =</div><div class="inline_block resultadosQllenado">-</div>
+    </div>
+    <br />
+    <div style="margin-left: 55px; padding-left: 2px; width: 60%" class="bg_yellow border_hard bold">
+      <div style="width: 60%" class="inline_block">Diametro (Tramo Red Publica - Medidor) = </div><div class="inline_block resultadosDiametroMedidor">-</div>
+    </div>
+    <br />
+    <div style="margin-left: 55px; padding-left: 2px; width: 60%" class="bg_yellow border_hard bold">
+      <div style="width: 60%" class="inline_block">Diametro (Medidor - Cisterna) = </div><div class="inline_block resultadosDiametroCisterna">-</div>
+    </div>
+    <br />
+    <div class="page_break"></div>
+    <div class="header_dummy"></div>
+    <p class="indice">4. CALCULO DE LA MAXIMA DEMANDA SIMULTANEA</p>
+    <div style="margin-left: 55px">
+      <div><b>COSIDERACIONES NORMATIVAS</b></div>
+      <div>* NORMA IS.010</div>
+      <div>* NORMA TECNICA A.120</div>
+      <div style="margin-left: 55px">
+        <div class="inline_block"><b>URINARIO</b></div
+        ><div style="width: 60%" class="text_center inline_block"
+          >Los mecanismo de descarga deben ser de palanca o de presion de gran superficie para facilitar su utilizacion.</div
+        ><div style="vertical-align: bottom" class="inline_block">(Con tanque)</div>
+      </div>
+      <br />
+      <table style="width: 95%" class="font-10 table_border normativas">
+        <thead class="bg_yellow">
+          <tr>
+            <th colspan="5">ANEXO N° 02</th>
+          </tr>
+          <tr>
+            <th>Aparato Sanitario</th>
+            <th>TIPO</th>
+            <th>Total</th>
+            <th>AF</th>
+            <th>AC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div>Inodoro</div></td>
+            <td><div>Con Tanque - Descarga reducida</div></td>
+            <td><div>2.5</div></td>
+            <td><div>2.5</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr class="highlight">
+            <td><div>Inodoro</div></td>
+            <td><div>Con Tanque</div></td>
+            <td><div>5</div></td>
+            <td><div>5</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Inodoro</div></td>
+            <td><div>C/ Válvula semiautomática y automática</div></td>
+            <td><div>8</div></td>
+            <td><div>8</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Inodoro</div></td>
+            <td><div>C/ Válvula semiaut. y autom. descarga reducida</div></td>
+            <td><div>4</div></td>
+            <td><div>4</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr class="highlight">
+            <td><div>Lavatorio</div></td>
+            <td><div>Corriente</div></td>
+            <td><div>2</div></td>
+            <td><div>1.5</div></td>
+            <td><div>1.5</div></td>
+          </tr>
+          <tr>
+            <td><div>Lavatorio</div></td>
+            <td><div>Múltiple</div></td>
+            <td><div>2(*)</div></td>
+            <td><div>1.5</div></td>
+            <td><div>1.5</div></td>
+          </tr>
+          <tr>
+            <td><div>Lavadero</div></td>
+            <td><div>Hotel restaurante</div></td>
+            <td><div>4</div></td>
+            <td><div>3</div></td>
+            <td><div>3</div></td>
+          </tr>
+          <tr class="highlight">
+            <td><div>Lavadero</div></td>
+            <td><div>-</div></td>
+            <td><div>3</div></td>
+            <td><div>2</div></td>
+            <td><div>2</div></td>
+          </tr>
+          <tr>
+            <td><div>Ducha</div></td>
+            <td><div>-</div></td>
+            <td><div>4</div></td>
+            <td><div>3</div></td>
+            <td><div>3</div></td>
+          </tr>
+          <tr>
+            <td><div>Tina</div></td>
+            <td><div>-</div></td>
+            <td><div>6</div></td>
+            <td><div>3</div></td>
+            <td><div>3</div></td>
+          </tr>
+          <tr class="highlight">
+            <td><div>Urinario</div></td>
+            <td><div>Con Tanque</div></td>
+            <td><div>3</div></td>
+            <td><div>3</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Urinario</div></td>
+            <td><div>C/ Válvula semiautomática y automática</div></td>
+            <td><div>5</div></td>
+            <td><div>5</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Urinario</div></td>
+            <td><div>C/ Válvula semiaut. y autom. descarga reducida</div></td>
+            <td><div>2.5</div></td>
+            <td><div>2.5</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Urinario</div></td>
+            <td><div>Múltiple</div></td>
+            <td><div>3</div></td>
+            <td><div>3</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Bebedero</div></td>
+            <td><div>Simple</div></td>
+            <td><div>1</div></td>
+            <td><div>1</div></td>
+            <td><div>-</div></td>
+          </tr>
+          <tr>
+            <td><div>Bebedero</div></td>
+            <td><div>Múltiple (UG por cada salida)</div></td>
+            <td><div>1(*)</div></td>
+            <td><div>1(*)</div></td>
+            <td><div>-</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br />
+    <div class="accesorios_niveles"></div>
+    <div class="mds_tables"> </div>
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_hard bg_yellow bold">
+        <div
+          style="width: calc(60% - 2px); background-color: white; border-bottom: 2px solid black; border-right: 2px solid black"
+          class="text_right inline_block"
+          >MAXIMA DEMANDA SIMULTANEA =</div
+        ><div style="width: 40%; background-color: white; border-bottom: 2px solid black" class="inline_block text_center calculoDeLaMaximaDemandaMaximaDemanda"
+          >-</div
+        >
+        <div style="width: calc(60% - 2px); border-right: 2px solid black" class="text_right inline_block">Q MDS =</div
+        ><div style="width: 40%" class="inline_block text_center calculoDeLaMaximaDemandaQMDS">-</div>
+      </div>
+      <br />
+      <div style="width: 50%; margin: auto" class="bold">
+        <div style="width: calc(30% - 4px); margin-left: 30%" class="inline_block text_left border_hard bg_yellow">Q MDS TOTAL</div
+        ><div style="width: calc(40% - 2px); border-left: none" class="inline_block text_center border_hard bg_yellow calculoDeLaMaximaDemandaQMDSTotal">-</div>
+      </div>
+    </div>
+    <br />
+    <div class="page_break"></div>
+    <div class="header_dummy"></div>
+    <p class="indice">5. CALCULO DEL SISTEMA DE BOMBEO AL TANQUE ELEVADO</p>
+    <p class="sub_indice">5.1. CAUDAL DE IMPULSION</p>
+    <p>
+      En el inciso d) del ITEM 2.5. ELEVACION, el caudal de bombeo debe ser equivalente a la máxima demanda simultánea y en ningún caso inferior a la necesaria
+      para llenar el tanque elevado en dos horas.
+    </p>
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Volumen del Tanque Elevado =</div
+      ><div class="inline_block caudalDeImpulsionVolumenTanque">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Tiempo de llenado del Tanque Elevado =</div
+      ><div class="inline_block caudalDeImpulsionTiempoLLenado">-</div></div
+    >
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_dotted">
+        <div style="width: 60%" class="text_right inline_block">Q llenado =</div
+        ><div style="width: 30%" class="inline_block text_center caudalDeImpulsionQLlenado">-</div>
+      </div>
+    </div>
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_dotted">
+        <div style="width: 60%" class="text_right inline_block">Q MDS =</div
+        ><div style="width: 30%" class="inline_block text_center caudalDeImpulsionQMDS">-</div>
+      </div>
+    </div>
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_hard bg_yellow bold">
+        <div style="width: 60%" class="text_right inline_block">Q impul =</div
+        ><div style="width: 30%" class="inline_block text_center caudalDeImpulsionQimpul">-</div>
+      </div>
+    </div>
+    <p class="sub_indice">5.2. PERDIDA DE CARGA</p>
+    <div style="width: 65%" class="border_dotted">
+      <div style="width: 40%" class="inline_block text_center">Diametro tub. Succión</div><div style="width: 10%" class="inline_block text_right">Ø=</div
+      ><div style="width: 40%" class="inline_block text_center perdidaCargaDiametroSuccion">-</div>
+    </div>
+    <br />
+    <div class="succion_l_accesorios" id="succion_l_accesorios"></div>
+    <br />
+    <div style="width: 65%" class="border_dotted">
+      <div style="width: 40%" class="inline_block text_center">Diametro tub.Impulsion</div><div style="width: 10%" class="inline_block text_right">Ø=</div
+      ><div style="width: 40%" class="inline_block text_center perdidaCargaDiametroImpulsion">-</div>
+    </div>
+    <br />
+    <div class="impulsion_l_accesorios" id="impulsion_l_accesorios"></div>
+    <p class="sub_indice">5.3. ALTURA DINAMICA TOTAL - HDT</p>
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Nivel de Fondo del Tanque Elevado =</div
+      ><div class="inline_block alturaDinamicaNivelDeFondoDelTanque">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Nivel de Agua del Tanque Elevado =</div
+      ><div class="inline_block alturaDinamicaNivelDeAguaTAnque">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Nivel de Fondo de Cisterna =</div
+      ><div class="inline_block alturaDinamicaNivelFondoCisterna">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Presion de Salida =</div><div class="inline_block alturaDinamicaTotalPresionSalida">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Perdida de carga Tub. Succion =</div
+      ><div class="inline_block alturaDinamicaPerdidaCargaSuccion">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Perdida de carga Tub. Impulsion =</div
+      ><div class="inline_block alturaDinamicaPerdidaCargaImpulsion">-</div></div
+    >
+    <br />
+    <div style="width: 100%">
+      <div style="width: 50%; margin: auto" class="border_hard bg_yellow bold">
+        <div style="width: 60%" class="text_right inline_block">HDT =</div><div style="width: 30%" class="inline_block text_center alturaDinamicaHDT">-</div>
+      </div>
+    </div>
+    <p class="sub_indice">5.4. CALCULO DEL SISTEMA DE BOMBEO</p>
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Caudal de Impulsion =</div
+      ><div style="width: 30%; border-bottom: 1px solid black" class="inline_block border_hard bg_yellow calculoDelSistemaCaudalImpulsion">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Altura Dinamica Total =</div
+      ><div style="width: 30%; border-top: 1px solid black" class="inline_block border_hard bg_yellow calculoDelSIstemaAlturaDinamica">-</div></div
+    >
+    <div
+      ><div style="width: 35%" class="inline_block text_right">Eficiencia =</div
+      ><div style="width: 20%; background-color: yellow" class="inline_block calculoDelSistemaEficiencia">-</div></div
+    >
+    <br />
+    <div
+      ><div style="width: 35%" class="inline_block text_right">POTENCIA =</div
+      ><div style="width: 30%; border-bottom: 1px dotted black" class="inline_block text_center calculoDelSistemaPotenciaD">-</div></div
+    >
+    <div><div style="width: 35%" class="inline_block"></div><div style="width: 30%" class="inline_block text_center calculoDelSistemaPotenciad">-</div></div>
+    <div style="width: 100%; position: relative">
+      <div style="width: 50%; margin: auto" class="border_hard bg_yellow bold">
+        <div style="width: 60%" class="text_right inline_block">POTENCIA (POT) =</div
+        ><div style="width: 15%" class="inline_block text_center calculoDelSistemaPOT">-</div
+        ><div style="width: 15%" class="inline_block text_center"><img src="arrow.png" alt="" /></div
+        ><div style="width: 10%" class="inline_block text_right bg_beige calculoDelSistemaPOTROUND">-</div
+        ><div style="border: 1px solid green; position: absolute; top: -100px; padding: 5px" class="inline_block text_center"
+          >De acuerdo a la existencia en el mercado con los diámetros más similares a la de succión e impulsión requeridos se asume la potencia es de
+          <span class="calculoDelSistemaPOTHP">-</span>HP</div
+        >
+      </div>
+    </div>
+  </body>
+</html>

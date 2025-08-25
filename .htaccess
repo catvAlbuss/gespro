@@ -1,0 +1,8 @@
+# Redirigir todo el tráfico hacia el directorio public
+RewriteEngine On
+
+# Evitar que se muestre la carpeta /public en la URL
+RewriteCond %{REQUEST_URI} !^/public/
+
+# Redirigir todo el tráfico al subdirectorio 'public'
+RewriteRule ^(.*)$ /public/$1 [L,QSA]

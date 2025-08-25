@@ -1,0 +1,179 @@
+/* @page {
+  margin-top: 130px;
+}
+#header {
+  position: fixed;
+  left: 0px; top: -130px; right: 0px;
+} */
+* {
+  font-size: 9;
+}
+.page_break {
+  page-break-before: always;
+}
+table.table_header,
+table.table_header th,
+table.table_header td {
+  border: 2px solid black;
+  border-collapse: collapse;
+}
+table.table_border,
+table.table_border th,
+table.table_border td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+table.table_border_dotted,
+table.table_border_dotted th,
+table.table_border_dotted td {
+  border: 1px dotted black;
+  border-collapse: collapse;
+}
+table.normativas tr td:nth-child(n + 3) {
+  text-align: center;
+}
+tr.highlight td,
+tr.highlight th {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+tr.highlight div {
+  padding-left: 4px;
+}
+tr.highlight td:nth-last-child(1) {
+  padding-right: 4px;
+}
+tr.highlight td:nth-child(1) {
+  padding-left: 4px;
+}
+tr.highlight td:nth-last-child(1) div {
+  border-right: 1px solid red;
+}
+tr.highlight td:nth-child(1) div {
+  border-left: 1px solid red;
+}
+tr.highlight div {
+  border-top: 1px solid red; /* Inner border color */
+  border-bottom: 1px solid red; /* Inner border color */
+  margin: -2px; /* Remove margin to align the inner border with cell border */
+}
+.row_border_dotted td {
+  border: 1px dotted black;
+}
+.row_border td {
+  border: 1px solid black;
+}
+table.perdida_de_carga_total {
+  border-collapse: collapse;
+}
+table.perdida_de_carga_total td,
+table.perdida_de_carga_total th {
+  border: 1px solid black;
+}
+table.perdida_de_carga_total td:last-child,
+table.perdida_de_carga_total th:last-child {
+  border: none;
+  width: 35px;
+}
+.table_curva_de_presion_highlight_row {
+  color: red;
+  font-weight: bold;
+  background-color: rgb(221, 235, 247);
+}
+.table_curva_de_presion_highlight_row span {
+  color: rgb(221, 235, 247);
+}
+.border_hard {
+  border: 2px solid black;
+}
+.border {
+  border: 1px solid black;
+}
+.bg_green {
+  background-color: #c6e0b4;
+}
+.bg_yellow {
+  background-color: rgb(255, 255, 204);
+}
+.bg_beige {
+  background-color: rgb(255, 240, 209);
+}
+.bg_sky {
+  background-color: rgb(221, 235, 247);
+}
+.bg_grey {
+  background-color: #d9d9d9;
+}
+.color_red {
+  color: red;
+}
+.bold {
+  font-weight: bold;
+}
+.indice {
+  background-color: #c6e0b4;
+  font-weight: bold;
+  border: 2px solid black;
+  padding: 1px;
+}
+.sub_indice {
+  background-color: #d9d9d9;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 1px;
+}
+.sub_sub_indice {
+  background-color: #fff2cc;
+  font-weight: bold;
+  border: 1px solid black;
+  padding: 1px;
+}
+.border_dotted {
+  border: 1px dotted;
+}
+th,
+td {
+  padding: 2px;
+}
+.text_left {
+  text-align: left;
+}
+.text_center {
+  text-align: center;
+}
+.text_right {
+  text-align: right;
+}
+.page_break {
+  page-break-before: always;
+}
+.font-9 {
+  font-size: 9;
+}
+.font-10 {
+  font-size: 10;
+}
+.font-11 {
+  font-size: 11;
+}
+.font-12 {
+  font-size: 12;
+}
+.font-13 {
+  font-size: 13;
+}
+.font-14 {
+  font-size: 14;
+}
+.font-15 {
+  font-size: 15;
+}
+.font-16 {
+  font-size: 16;
+}
+.inline_block {
+  display: inline-block;
+  vertical-align: top;
+}

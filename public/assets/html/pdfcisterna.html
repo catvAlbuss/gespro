@@ -1,0 +1,98 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" media="screen" href="./assets/css/styles.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/pdfcisternastyle.css" />
+    <script type="text/javascript" src="../js/tabulator_base/change_assets.js" defer></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Cisternas calc</title>
+</head>
+<style>
+    * {
+        background-color: white;
+        margin-left: 1%;
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    .titleapp {
+        color: black;
+        margin: auto;
+        align-content: center;
+        text-align: center;
+        margin-top: 5%;
+        font-size: x-large;
+    }
+
+    .subtitle {
+        color: black;
+        margin-left: 20%;
+        font-size: larger;
+    }
+
+    .inputtitle {
+        color: black;
+        margin-left: 23%;
+    }
+
+    .answerfinaly {
+        color: black;
+        margin-left: 35%;
+    }
+
+    .resultadoFinal {
+        text-align: center;
+        margin-left: 5%;
+    }
+
+    .img_cisterna {
+        margin-top: -5%;
+        /* Ajusta el margen superior según lo necesites */
+        height: 500px;
+        /* Puedes ajustar la altura según el diseño */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Centra los elementos horizontalmente */
+        justify-content: center;
+        /* Centra los elementos verticalmente */
+        text-align: center;
+        /* Centra el texto dentro del div */
+    }
+
+    .img_cisterna img {
+        max-width: 100%;
+        /* Asegura que la imagen no exceda el contenedor */
+        max-height: 100%;
+        /* La imagen no excederá la altura del contenedor */
+        object-fit: contain;
+        /* La imagen se ajustará dentro del contenedor sin recortarse */
+    }
+</style>
+
+<body>
+    <h2 class="titleapp">CALCULO DE VOLUMEN DE LA CISTERNA</h2>
+    <h4 class="subtitle">VOL. DE CISTERNA = 3/4 * CONSUMO DIARIO TOTAL (<span class="consumoDiarioTotal">-</span>)</h4>
+    <h4 class="inputtitle">Vol. De Cisterna = <span class="volDeCisterna">-</span> m³</h4>
+    <h4 class="inputtitle">Vol. Min de Cisterna = <span class="volTotalMinimo">-</span> m³</h4>
+    <h4 class="inputtitle">Altura de agua min = <span class="alturaDeAguaMin">-</span> m</h4>
+
+    <h4 class="subtitle">Las dimenciones de la cisterna son: </h4>
+
+    <h4 class="inputtitle">Largo (L) = <span class="cisternaLargo">-</span> m</h4>
+    <h4 class="inputtitle">Ancho (A) = <span class="cisternaAncho">-</span> m</h4>
+    <h4 class="inputtitle">Altura agua (H) = <span class="cisternaAltura">-</span> m</h4>
+
+    <h4 class="answerfinaly">VOLUMEN DE CISTERNA = <span class="volumenCisterna">-</span> m³</h4>
+
+    <h4 class="subtitle">CISTERNA RECOMENDADO PARA = <span class="volumenCisternalitros"></span> Lt</h4>
+    <br>
+    <br>
+    <br>
+    <div class="img_cisterna">
+        <h3 class="cisternaNombre"></h3>
+        <h3 class="cisternaCapacidad"></h3>
+        <img class="img_cisterna_pro" alt="Cisterna Image">
+    </div>
+</body>
+
+</html>

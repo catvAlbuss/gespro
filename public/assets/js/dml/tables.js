@@ -1,0 +1,487 @@
+import { createSpreeadSheetTable } from "./table.js";
+
+const aforo_total_de_acuerdo_al_n_de_personas_model = {
+  data: [{}, {}],
+  id: "#aforo_total_de_acuerdo_al_n_de_personas",
+  spareRow: true,
+  config: {
+    columnDefaults: {
+      hozAlign: "center",
+      headerHozAlign: "center",
+      headerWordWrap: true,
+      resizable: false,
+      headerSort: false,
+    },
+    layout: "fitColumns",
+    columns: [
+      {
+        title: "AMBIENTE",
+        field: "ambiente",
+        editor: "input",
+      },
+      {
+        title: "ÁREA DE AMBIENTE m2",
+        field: "area_de_ambiente",
+        editor: "number",
+      },
+      {
+        title: "RUTA DE ESCAPE",
+        field: "ruta_de_escape",
+        editor: "input",
+      },
+      {
+        title: "AFORO REAL",
+        columns: [
+          {
+            title: "PERSONAL",
+            field: "afr_personal",
+            editor: "input",
+          },
+          {
+            title: "ALUMNOS",
+            field: "afr_alumnos",
+            editor: "input",
+          },
+          {
+            title: "AFORO TOTAL POR AMBIENTE EDUCACION",
+            field: "afr_aforo_total_por_ambiente_educacion",
+            editor: "input",
+          },
+        ],
+      },
+      {
+        title: "INDICE DE OCUPACIÓN SEGÚN RNE M2",
+        field: "indice_de_ocupacion_segun_rne_m2",
+        editor: "number",
+      },
+      {
+        title: "AFORO R.N. E",
+        columns: [
+          {
+            title: "PERSONAL",
+            field: "afrne_personal",
+            editor: "input",
+          },
+          {
+            title: "ALUMNOS",
+            field: "afrne_alumnos",
+            editor: "input",
+          },
+          {
+            title: "AFORO AMBIENTE TOTAL R.N. E",
+            field: "aforo_ambiente_total_rn_e",
+            editor: "input",
+          },
+        ],
+      },
+    ]
+  },
+};
+
+/* const cuadro_de_rutas_de_evacuacion = new Tabulator(
+  "#cuadro_de_rutas_de_evacuacion",
+  {
+    data: [
+      {
+        zona: "Zona C",
+        ambiente: "Biblioteca",
+        n_ruta: 3,
+        recorrido: 35,
+        zona_segura: "Estacionamiento Norte",
+        personal: 2,
+        alumnos: 40,
+        aforo_por_ambiente: 45,
+      },
+      {
+        zona: "Zona D",
+        ambiente: "Auditorio",
+        n_ruta: 4,
+        recorrido: 120,
+        zona_segura: "Plaza Central",
+        personal: 8,
+        alumnos: 150,
+        aforo_por_ambiente: 200,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Oficina Administrativa",
+        n_ruta: 1,
+        recorrido: 65,
+        zona_segura: "Patio Principal",
+        personal: 10,
+        alumnos: 0,
+        aforo_por_ambiente: 12,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Taller de Arte",
+        n_ruta: 2,
+        recorrido: 95,
+        zona_segura: "Cancha Deportiva",
+        personal: 4,
+        alumnos: 22,
+        aforo_por_ambiente: 28,
+      },
+      {
+        zona: "Zona C",
+        ambiente: "Cafetería",
+        n_ruta: 3,
+        recorrido: 20,
+        zona_segura: "Estacionamiento Norte",
+        personal: 6,
+        alumnos: 30,
+        aforo_por_ambiente: 50,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Sala de Conferencias",
+        n_ruta: 1,
+        recorrido: 45,
+        zona_segura: "Patio Principal",
+        personal: 8,
+        alumnos: 35,
+        aforo_por_ambiente: 50,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Laboratorio de Química",
+        n_ruta: 2,
+        recorrido: 75,
+        zona_segura: "Cancha Deportiva",
+        personal: 4,
+        alumnos: 20,
+        aforo_por_ambiente: 25,
+      },
+      {
+        zona: "Zona C",
+        ambiente: "Sala de Música",
+        n_ruta: 3,
+        recorrido: 60,
+        zona_segura: "Estacionamiento Norte",
+        personal: 3,
+        alumnos: 15,
+        aforo_por_ambiente: 20,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Oficina de Dirección",
+        n_ruta: 1,
+        recorrido: 55,
+        zona_segura: "Patio Principal",
+        personal: 5,
+        alumnos: 0,
+        aforo_por_ambiente: 6,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Sala de Informática",
+        n_ruta: 2,
+        recorrido: 85,
+        zona_segura: "Cancha Deportiva",
+        personal: 2,
+        alumnos: 30,
+        aforo_por_ambiente: 35,
+      },
+      {
+        zona: "Zona C",
+        ambiente: "Gimnasio",
+        n_ruta: 3,
+        recorrido: 100,
+        zona_segura: "Estacionamiento Norte",
+        personal: 6,
+        alumnos: 50,
+        aforo_por_ambiente: 75,
+      },
+      {
+        zona: "Zona D",
+        ambiente: "Sala de profesores",
+        n_ruta: 4,
+        recorrido: 48,
+        zona_segura: "Plaza Central",
+        personal: 15,
+        alumnos: 0,
+        aforo_por_ambiente: 20,
+      },
+      {
+        zona: "Zona E",
+        ambiente: "Enfermería",
+        n_ruta: 5,
+        recorrido: 22,
+        zona_segura: "Entrada Principal",
+        personal: 2,
+        alumnos: 0,
+        aforo_por_ambiente: 4,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Aula 101",
+        n_ruta: 1,
+        recorrido: 52,
+        zona_segura: "Patio Principal",
+        personal: 1,
+        alumnos: 30,
+        aforo_por_ambiente: 35,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Aula 205",
+        n_ruta: 2,
+        recorrido: 88,
+        zona_segura: "Cancha Deportiva",
+        personal: 1,
+        alumnos: 28,
+        aforo_por_ambiente: 32,
+      },
+      {
+        zona: "Zona C",
+        ambiente: "Aula 302",
+        n_ruta: 3,
+        recorrido: 63,
+        zona_segura: "Estacionamiento Norte",
+        personal: 1,
+        alumnos: 35,
+        aforo_por_ambiente: 40,
+      },
+      {
+        zona: "Zona D",
+        ambiente: "Sala de profesores",
+        n_ruta: 4,
+        recorrido: 48,
+        zona_segura: "Plaza Central",
+        personal: 15,
+        alumnos: 0,
+        aforo_por_ambiente: 20,
+      },
+      {
+        zona: "Zona E",
+        ambiente: "Enfermería",
+        n_ruta: 5,
+        recorrido: 22,
+        zona_segura: "Entrada Principal",
+        personal: 2,
+        alumnos: 0,
+        aforo_por_ambiente: 4,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Aula 101",
+        n_ruta: 1,
+        recorrido: 52,
+        zona_segura: "Patio Principal",
+        personal: 1,
+        alumnos: 30,
+        aforo_por_ambiente: 35,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Aula 205",
+        n_ruta: 2,
+        recorrido: 88,
+        zona_segura: "Cancha Deportiva",
+        personal: 1,
+        alumnos: 28,
+        aforo_por_ambiente: 32,
+      },
+      {
+        zona: "Zona C",
+        ambiente: "Aula 302",
+        n_ruta: 3,
+        recorrido: 63,
+        zona_segura: "Estacionamiento Norte",
+        personal: 1,
+        alumnos: 35,
+        aforo_por_ambiente: 40,
+      },
+      {
+        zona: "Zona D",
+        ambiente: "Aula 403",
+        n_ruta: 4,
+        recorrido: 55,
+        zona_segura: "Plaza Central",
+        personal: 1,
+        alumnos: 25,
+        aforo_por_ambiente: 30,
+      },
+      {
+        zona: "Zona E",
+        ambiente: "Laboratorio de Computación",
+        n_ruta: 5,
+        recorrido: 38,
+        zona_segura: "Entrada Principal",
+        personal: 2,
+        alumnos: 18,
+        aforo_por_ambiente: 22,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Aula 102",
+        n_ruta: 1,
+        recorrido: 58,
+        zona_segura: "Patio Principal",
+        personal: 1,
+        alumnos: 32,
+        aforo_por_ambiente: 36,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Aula 201",
+        n_ruta: 2,
+        recorrido: 72,
+        zona_segura: "Cancha Deportiva",
+        personal: 1,
+        alumnos: 26,
+        aforo_por_ambiente: 30,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Sala de Reuniones",
+        n_ruta: 1,
+        recorrido: 50,
+        zona_segura: "Patio Principal",
+        personal: 5,
+        alumnos: 25,
+        aforo_por_ambiente: 30,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Laboratorio",
+        n_ruta: 2,
+        recorrido: 80,
+        zona_segura: "Cancha Deportiva",
+        personal: 3,
+        alumnos: 18,
+        aforo_por_ambiente: 21,
+      },
+      {
+        zona: "Zona C",
+        ambiente: "Biblioteca",
+        n_ruta: 3,
+        recorrido: 35,
+        zona_segura: "Estacionamiento Norte",
+        personal: 2,
+        alumnos: 40,
+        aforo_por_ambiente: 45,
+      },
+      {
+        zona: "Zona D",
+        ambiente: "Auditorio",
+        n_ruta: 4,
+        recorrido: 120,
+        zona_segura: "Plaza Central",
+        personal: 8,
+        alumnos: 150,
+        aforo_por_ambiente: 200,
+      },
+      {
+        zona: "Zona A",
+        ambiente: "Oficina Administrativa",
+        n_ruta: 1,
+        recorrido: 65,
+        zona_segura: "Patio Principal",
+        personal: 10,
+        alumnos: 0,
+        aforo_por_ambiente: 12,
+      },
+      {
+        zona: "Zona B",
+        ambiente: "Taller de Arte",
+        n_ruta: 2,
+        recorrido: 95,
+        zona_segura: "Cancha Deportiva",
+        personal: 4,
+        alumnos: 22,
+        aforo_por_ambiente: 28,
+      },
+    ],
+    columnDefaults: {
+      hozAlign: "center",
+      headerHozAlign: "center",
+      headerWordWrap: true,
+      resizable: false,
+    },
+    movableRows: true,
+    rowHeader: {
+      headerSort: false,
+      resizable: false,
+      minWidth: 30,
+      width: 30,
+      rowHandle: true,
+      formatter: "handle",
+    },
+    groupBy: ["zona", "n_ruta"],
+    layout: "fitColumns",
+    groupHeader: [
+      function (value, count, data, group) {
+        //value - the value all members of this group share
+        //count - the number of rows in this group
+        //data - an array of all the row data objects in this group
+        //group - the group component for the group
+        const aforo_total = data.reduce(
+          (accumulator, row) => accumulator + row.aforo_por_ambiente,
+          0
+        );
+        return (
+          value +
+          "<span style='margin-left:10px;'>AFORO TOTAL: " +
+          aforo_total +
+          "</span>"
+        );
+      },
+      function (value, count, data) {
+        //generate header contents for color groups
+        return "RUTA: " + value;
+      },
+    ],
+    columns: [
+      {
+        title: "CUADRO DE RUTAS DE EVACUACIÓN",
+        columns: [
+          {
+            title: "ZONA",
+            field: "zona",
+          },
+          {
+            title: "AMBIENTE",
+            field: "ambiente",
+            editor: "input",
+          },
+          {
+            title: "N° DE RUTA",
+            field: "n_ruta",
+          },
+          {
+            title: "RECORRIDO",
+            field: "recorrido",
+            editor: "number",
+          },
+          {
+            title: "ZONA SEGURA",
+            field: "zona_segura",
+            editor: "input",
+          },
+          {
+            title: "PERSONAL",
+            field: "personal",
+            editor: "number",
+          },
+          {
+            title: "ALUMNOS",
+            field: "alumnos",
+            editor: "number",
+          },
+          {
+            title: "AFORO POR AMBIENTE",
+            field: "aforo_por_ambiente",
+            editor: "number",
+          },
+        ],
+      },
+    ],
+  }
+); */
+
+export var tables = {
+  aforo_total_de_acuerdo_al_n_de_personas: function (component) {
+    createSpreeadSheetTable(aforo_total_de_acuerdo_al_n_de_personas_model);
+  }
+};
