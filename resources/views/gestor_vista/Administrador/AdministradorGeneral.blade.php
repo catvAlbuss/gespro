@@ -1,51 +1,54 @@
 @inject('empresas', 'App\Models\Empresa')
+
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Eres Administrador') }}
+        <h2 class="font-semibold text-2xl text-gray-900 dark:text-gray-100 leading-tight flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 3h18v2H3V3zm2 4h14v14H5V7zm4 2v10h2V9H9zm4 0v10h2V9h-2z"/>
+            </svg>
+            {{ __('Gestión de Empresas') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="container mx-auto w-full">
-            <div class="flex flex-wrap">
-                <div class="w-full md:w-1/3">
-                    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Notificaciones</h3>
-                        <div class="overflow-auto"></div>
-                    </div>
-                </div>
-                <div class="w-full md:w-2/3 px-4 mt-4 md:mt-0">
-                    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Empreas Activas / Inactivos</h3>
-                        <div class="overflow-auto">
-                            <div class="p-4 md:p-5 space-y-4">
-                                <div class="overflow-x-auto grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                                    @foreach ($empresas::select('id', 'razonSocial', 'estadoempresa')->get() as $empresa)
-                                        <div>
-                                            <a href="{{ route('gestoradmon', ['id' => $empresa->id, 'razonSocial' => $empresa->razonSocial]) }}"
-                                                class="flex flex-col items-center gap-3 px-8 py-10 rounded-3xl shadow-main
-                                                    {{ $empresa->estadoempresa == 'ACTIVO' ? 'hover:bg-green-700 dark:hover:bg-green-700' : 'hover:bg-red-700 dark::hover:bg-red-700' }}
-                                                    {{ $empresa->estadoempresa == 'ACTIVO' ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600' }} 
-                                                  dark:border-gray-700">
-                                                <h5
-                                                    class="mb-2 text-sm text-center font-bold tracking-tight text-gray-900 dark:text-white">
-                                                    {{ $empresa->razonSocial }}</h5>
-                                                <p class="font-normal text-center text-gray-700 dark:text-gray-200">
-                                                    {{ $empresa->estadoempresa }}</p>
-                                            </a>
-                                        </div>
-                                    @endforeach
-                                </div>
+    <div class="">
+        <div class="container mx-auto px-4">
+            <div class="bg-white dark:bg-gray-900 shadow-xl rounded-2xl p-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach ($empresas::select('id', 'razonSocial', 'estadoempresa')->get() as $empresa)
+                        <a href="{{ route('gestoradmon', ['id' => $empresa->id, 'razonSocial' => $empresa->razonSocial]) }}"
+                            class="relative group flex flex-col items-center justify-center p-6 rounded-2xl shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl
+                                {{ $empresa->estadoempresa == 'ACTIVO' 
+                                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white' }}">
+
+                            <!-- Estado Badge -->
+                            <span class="absolute top-3 right-3 text-xs px-3 py-1 rounded-full 
+                                {{ $empresa->estadoempresa == 'ACTIVO' 
+                                    ? 'bg-white/20 text-green-100 border border-green-200' 
+                                    : 'bg-white/20 text-red-100 border border-red-200' }}">
+                                {{ $empresa->estadoempresa }}
+                            </span>
+
+                            <!-- Icono según estado -->
+                            <div class="w-14 h-14 flex items-center justify-center rounded-full mb-4 
+                                {{ $empresa->estadoempresa == 'ACTIVO' ? 'bg-white/20' : 'bg-white/20' }}">
+                                @if ($empresa->estadoempresa == 'ACTIVO')
+                                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9 16.2l-3.5-3.6-1.4 1.4L9 19 20 7.9 18.6 6.5z"/>
+                                    </svg>
+                                @else
+                                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M6 6l12 12M6 18L18 6"/>
+                                    </svg>
+                                @endif
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full md:w-3/3 px-4 py-4 mt-4 md:mt-0">
-                    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Calendario</h3>
-                        <div class="overflow-auto"></div>
-                    </div>
+
+                            <!-- Nombre empresa -->
+                            <h5 class="text-lg font-bold text-center">
+                                {{ $empresa->razonSocial }}
+                            </h5>
+                        </a>
+                    @endforeach
                 </div>
             </div>
         </div>

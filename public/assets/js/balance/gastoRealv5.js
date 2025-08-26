@@ -234,64 +234,472 @@ class GastoReal {
         };
         this.initializeEventListeners();
         this.loadData();
+        //this.loadDataBalances();
     }
 
     init() {
-        // Create container for both tables
+        // Main container
         const container = document.getElementById("Tabla_Balance_Real");
 
-        // Create containers for each table
-        const ingresosContainer = document.createElement("div");
-        ingresosContainer.id = "tabla-ingresos";
-        ingresosContainer.className = "tabulator-container mb-4";
+        // Función para crear secciones con encabezado y contenido colapsable
+        const createSection = (id, titulo, extraClasses = "") => {
+            // Wrapper
+            const section = document.createElement("div");
+            section.className = `mb-4 border rounded-lg shadow bg-white ${extraClasses}`;
 
-        const gastosContainer = document.createElement("div");
-        gastosContainer.id = "tabla-gastos";
-        gastosContainer.className = "tabulator-container mb-4";
+            // Header con botón expandir/contraer
+            const header = document.createElement("div");
+            header.className = "flex items-center justify-between px-4 py-2 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-t-lg";
+            header.innerHTML = `
+            <h3 class="font-semibold text-gray-700">${titulo}</h3>
+            <button class="toggle-btn text-sm text-blue-600 hover:underline">Contraer</button>
+        `;
 
-        const estadoContainer = document.createElement("div");
-        estadoContainer.id = "tabla-estado";
-        estadoContainer.className = "tabulator-container mb-4";
+            // Contenido
+            const content = document.createElement("div");
+            content.id = id;
+            content.className = "tabulator-container px-2 py-2";
 
-        const resumenContainer = document.createElement("div");
-        resumenContainer.id = "tabla-resumen";
-        resumenContainer.className = "tabulator-container mb-4";
+            // Lógica expandir/contraer
+            header.addEventListener("click", () => {
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                    header.querySelector(".toggle-btn").innerText = "Contraer";
+                } else {
+                    content.style.display = "none";
+                    header.querySelector(".toggle-btn").innerText = "Expandir";
+                }
+            });
 
-        // Append containers to main container
-        container.appendChild(ingresosContainer);
-        container.appendChild(gastosContainer);
-        container.appendChild(estadoContainer);
-        container.appendChild(resumenContainer);
+            // Añadir al wrapper
+            section.appendChild(header);
+            section.appendChild(content);
 
-        // Crear contenedor para el gráfico
-        const graficoContainer = document.createElement("div");
-        graficoContainer.id = "grafico-resumen";
-        graficoContainer.className = "overflow-x-auto mb-4";
-        graficoContainer.style.height = "400px"; // Altura fija para el gráfico
+            return section;
+        };
 
-        // Agregar el contenedor del gráfico después de las tablas
-        container.appendChild(graficoContainer);
+        // Crear las secciones para las tablas
+        const ingresosSection = createSection("tabla-ingresos", "Ingresos Reales");
+        const gastosSection = createSection("tabla-gastos", "Gastos Reales");
+        const estadoSection = createSection("tabla-estado", "Estado de Cuenta");
+        const resumenSection = createSection("tabla-resumen", "Resumen General");
 
-        // Configure and initialize tables
+        // Agregar las secciones al contenedor principal
+        container.appendChild(ingresosSection);
+        container.appendChild(gastosSection);
+        container.appendChild(estadoSection);
+        container.appendChild(resumenSection);
+
+        // Sección del gráfico con misma lógica
+        const graficoSection = document.createElement("div");
+        graficoSection.className = "mb-4 border rounded-lg shadow bg-white";
+
+        const graficoHeader = document.createElement("div");
+        graficoHeader.className = "flex items-center justify-between px-4 py-2 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-t-lg";
+        graficoHeader.innerHTML = `
+        <h3 class="font-semibold text-gray-700">Gráfico Resumen</h3>
+        <button class="toggle-btn text-sm text-blue-600 hover:underline">Contraer</button>
+    `;
+
+        const graficoContent = document.createElement("div");
+        graficoContent.id = "grafico-resumen";
+        graficoContent.className = "overflow-x-auto p-2";
+        graficoContent.style.height = "400px"; // Altura fija para el gráfico
+
+        // Expandir/contraer gráfico
+        graficoHeader.addEventListener("click", () => {
+            if (graficoContent.style.display === "none") {
+                graficoContent.style.display = "block";
+                graficoHeader.querySelector(".toggle-btn").innerText = "Contraer";
+            } else {
+                graficoContent.style.display = "none";
+                graficoHeader.querySelector(".toggle-btn").innerText = "Expandir";
+            }
+        });
+
+        graficoSection.appendChild(graficoHeader);
+        graficoSection.appendChild(graficoContent);
+        container.appendChild(graficoSection);
+
+        // Inicializar tablas
         this.configTable();
 
-        // Add event listeners for calculations
+        // Eventos de cálculo
         this.setupCalculationEvents();
 
         // Inicializar gráfico
         this.graficoResumen();
     }
 
+    // Mover loadDataBalances como método de la clase (SOLUCIÓN PRINCIPAL)
+    loadDataBalances(nombre_balance) {
+        console.log("Buscando balance:", nombre_balance);
+
+        // Obtener datos actuales de ambas tablas
+        const ingresosData = this.ingresoTable.getData();
+        const gastosData = this.gastoTable.getData();
+
+        $.ajax({
+            url: "/obtener-listado-balance",
+            type: "POST",
+            data: JSON.stringify({ nombre_balance }),
+            contentType: "application/json",
+            dataType: "json",
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+            },
+            success: (response) => { // Usar arrow function para mantener contexto
+                console.log("Balance encontrado:", response);
+
+                // PROCESAR INGRESOS - Solo nodos padre
+                if (response.ingresos_financiamiento) {
+                    console.log("Procesando ingresos de financiamiento:", response.ingresos_financiamiento);
+
+                    // Extraer solo los nodos padre
+                    const ingresosParent = this.extractParentNodes(response.ingresos_financiamiento);
+
+                    // Buscar la fila específica en ingresos por datos_bal
+                    console.log(ingresosData);
+                    const ingresoTargetRow = this.findRowByDatosBal(ingresosData, "INGRESOS DE FINANCIAMIENTO");
+
+                    console.log(ingresoTargetRow);
+                    if (ingresoTargetRow) {
+                        console.log("Fila de INGRESOS DE FINANCIAMIENTO encontrada:", ingresoTargetRow);
+
+                        // Limpiar children existentes y agregar nuevos datos
+                        ingresoTargetRow.children = ingresosParent;
+
+                        // Actualizar la tabla con setData
+                        this.ingresoTable.setData(ingresosData).then(() => {
+                            console.log("Ingresos padre insertados correctamente");
+
+                            // Expandir la sección actualizada
+                            this.expandRowByDatosBal(this.ingresoTable, "INGRESOS DE FINANCIAMIENTO");
+                        });
+                    } else {
+                        console.warn("No se encontró la fila 'INGRESOS DE FINANCIAMIENTO' en la tabla de ingresos");
+                    }
+                }
+
+                // PROCESAR GASTOS - Estructura completa
+                if (response.gastos_financiamiento) {
+                    console.log("Procesando gastos de financiamiento:", response.gastos_financiamiento);
+
+                    // Buscar la fila específica en gastos por datos_bal
+                    const gastoTargetRow = this.findRowByDatosBal(gastosData, "Gastos de financiamiento");
+
+                    if (gastoTargetRow) {
+                        console.log("Fila de 'Gastos de financiamiento' encontrada:", gastoTargetRow);
+
+                        // Limpiar children existentes y agregar nueva estructura completa
+                        gastoTargetRow.children = [response.gastos_financiamiento];
+
+                        // Actualizar la tabla con setData
+                        this.gastoTable.setData(gastosData).then(() => {
+                            console.log("Gastos completos insertados correctamente");
+
+                            // Expandir la sección actualizada y sus primeros 2 niveles
+                            this.expandRowByDatosBal(this.gastoTable, "Gastos de financiamiento", 2);
+                        });
+                    } else {
+                        console.warn("No se encontró la fila 'Gastos de financiamiento' en la tabla de gastos");
+                    }
+                }
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Datos insertados",
+                    text: "Se cargaron las estructuras de Ingresos y Gastos de Financiamiento",
+                });
+            },
+            error: (xhr) => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: xhr.responseJSON?.message || "No se encontró el balance",
+                });
+            }
+        });
+    }
+
+    // Buscar fila en los datos de la tabla por el campo datos_bal
+    findRowByDatosBal(data, targetValue) {
+        const searchInData = (items) => {
+            for (let item of items) {
+                if (item.datos_bal && this.normalizeText(item.datos_bal) === this.normalizeText(targetValue)) {
+                    return item;
+                }
+
+                if (item.children && Array.isArray(item.children)) {
+                    const found = searchInData(item.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        return searchInData(data);
+    }
+
+    // Método principal para insertar datos en sección de financiamiento
+    insertIntoFinancingSection(table, currentData, newData, sectionName) {
+        console.log(`Insertando datos en sección: ${sectionName}`);
+
+        // Buscar la fila padre de financiamiento
+        const financingParentRow = this.findFinancingParentRow(currentData, sectionName);
+
+        if (!financingParentRow) {
+            console.warn(`No se encontró la sección: ${sectionName}`);
+            return;
+        }
+
+        console.log(`Sección encontrada:`, financingParentRow);
+
+        // Limpiar datos existentes en la sección de financiamiento
+        this.clearFinancingSectionData(financingParentRow);
+
+        // Insertar nuevos datos
+        this.insertNewFinancingData(financingParentRow, newData);
+
+        // Actualizar la tabla con los datos modificados
+        table.replaceData(currentData).then(() => {
+            console.log(`Datos de ${sectionName} actualizados correctamente`);
+
+            // Expandir la sección recién actualizada
+            this.expandFinancingSection(table, sectionName);
+        });
+    }
+
+    // Buscar la fila padre de financiamiento en los datos
+    findFinancingParentRow(data, sectionName) {
+        const searchInData = (items) => {
+            for (let item of items) {
+                // Buscar por diferentes campos posibles
+                if (this.matchesFinancingSection(item, sectionName)) {
+                    return item;
+                }
+
+                // Búsqueda recursiva en children
+                if (item.children && Array.isArray(item.children)) {
+                    const found = searchInData(item.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        return searchInData(data);
+    }
+
+    // Verificar si una fila coincide con la sección de financiamiento
+    matchesFinancingSection(item, sectionName) {
+        const fieldsToCheck = ['datos_bal', 'nombre', 'descripcion', 'title', 'label'];
+
+        return fieldsToCheck.some(field => {
+            if (item[field]) {
+                const fieldValue = item[field].toString().toLowerCase();
+                const searchValue = sectionName.toLowerCase();
+
+                // Coincidencia exacta o contiene el texto
+                return fieldValue.includes(searchValue) ||
+                    fieldValue.includes(searchValue.replace(/\s+/g, '')) ||
+                    this.normalizeText(fieldValue).includes(this.normalizeText(searchValue));
+            }
+            return false;
+        });
+    }
+
+    // Normalizar texto para comparaciones más flexibles
+    normalizeText(text) {
+        return text.toLowerCase()
+            .replace(/[áàäâ]/g, 'a')
+            .replace(/[éèëê]/g, 'e')
+            .replace(/[íìïî]/g, 'i')
+            .replace(/[óòöô]/g, 'o')
+            .replace(/[úùüû]/g, 'u')
+            .replace(/ñ/g, 'n')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    // Limpiar datos existentes en la sección de financiamiento
+    clearFinancingSectionData(financingParentRow) {
+        // Limpiar children existentes pero mantener la estructura del padre
+        if (financingParentRow.children) {
+            financingParentRow.children = [];
+        }
+
+        console.log("Datos de financiamiento limpiados");
+    }
+
+    // Insertar nuevos datos de financiamiento
+    insertNewFinancingData(financingParentRow, newData) {
+        if (!financingParentRow.children) {
+            financingParentRow.children = [];
+        }
+
+        // Agregar nuevos datos como children
+        financingParentRow.children.push(...newData);
+
+        console.log("Nuevos datos de financiamiento insertados:", newData);
+    }
+
+    // Expandir la sección de financiamiento después de la actualización
+    expandFinancingSection(table, sectionName) {
+        // Esperar un poco para que la tabla se actualice
+        setTimeout(() => {
+            const rows = table.getRows();
+
+            rows.forEach(row => {
+                const rowData = row.getData();
+
+                if (this.matchesFinancingSection(rowData, sectionName)) {
+                    // Expandir esta fila y sus primeros niveles
+                    row.treeExpand().then(() => {
+                        console.log(`Sección ${sectionName} expandida`);
+
+                        // Expandir también los primeros niveles de children
+                        const childRows = row.getTreeChildren();
+                        childRows.forEach(childRow => {
+                            if (this.hasChildren(childRow.getData())) {
+                                childRow.treeExpand();
+                            }
+                        });
+                    });
+                }
+            });
+        }, 100);
+    }
+
+    extractParentNodes(data) {
+        const result = [];
+
+        const processNode = (node) => {
+            // Crear copia del nodo sin children
+            const parentNode = {
+                ...node,
+                children: undefined
+            };
+
+            result.push(parentNode);
+
+            // Si tiene hijos, procesarlos recursivamente
+            if (node.children && Array.isArray(node.children)) {
+                node.children.forEach(child => processNode(child));
+            }
+        };
+
+        if (Array.isArray(data)) {
+            data.forEach(item => processNode(item));
+        } else {
+            processNode(data);
+        }
+
+        return result;
+    }
+
+    // Función auxiliar para verificar si un nodo tiene hijos
+    hasChildren(rowData) {
+        return rowData.children && Array.isArray(rowData.children) && rowData.children.length > 0;
+    }
+
+    // Función auxiliar para expandir niveles específicos del árbol
+    expandTreeLevels(table, maxLevel) {
+        const expandLevel = (rows, currentLevel) => {
+            if (currentLevel >= maxLevel) return;
+
+            rows.forEach(row => {
+                const rowData = row.getData();
+
+                if (this.hasChildren(rowData)) {
+                    row.treeExpand().then(() => {
+                        // Expandir siguiente nivel
+                        const childRows = row.getTreeChildren();
+                        expandLevel(childRows, currentLevel + 1);
+                    });
+                }
+            });
+        };
+
+        // Comenzar desde el nivel raíz
+        const rootRows = table.getRows().filter(row => row.getTreeParent() === false);
+        expandLevel(rootRows, 0);
+    }
+
+    // Método alternativo para cargar datos de forma incremental
+    loadIncrementalData(tableInstance, newData) {
+        return new Promise((resolve, reject) => {
+            try {
+                tableInstance.updateOrAddData(newData, "id").then(() => {
+                    console.log("Datos cargados incrementalmente");
+                    resolve();
+                }).catch(reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    // Método para limpiar y recargar datos
+    clearAndReloadData(tableInstance, newData) {
+        return new Promise((resolve, reject) => {
+            try {
+                tableInstance.clearData().then(() => {
+                    return tableInstance.setData(newData);
+                }).then(() => {
+                    console.log("Datos recargados completamente");
+                    resolve();
+                }).catch(reject);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    // Función para manejar la expansión automática basada en criterios
+    autoExpandBasedOnCriteria(table, criteria = {}) {
+        const {
+            expandAll = false,
+            expandLevels = 1,
+            expandByField = null,
+            expandByValue = null
+        } = criteria;
+
+        if (expandAll) {
+            table.getRows().forEach(row => {
+                if (this.hasChildren(row.getData())) {
+                    row.treeExpand();
+                }
+            });
+            return;
+        }
+
+        if (expandLevels > 0) {
+            this.expandTreeLevels(table, expandLevels);
+            return;
+        }
+
+        if (expandByField && expandByValue) {
+            table.getRows().forEach(row => {
+                const rowData = row.getData();
+                if (rowData[expandByField] === expandByValue && this.hasChildren(rowData)) {
+                    row.treeExpand();
+                }
+            });
+        }
+    }
+
     configTable() {
+        const self = this;
         const TableConfig = {
             colors: {
                 hierarchyLevels: {
-                    0: '#800080', // Purple - Nivel raíz (INGRESOS G...)
-                    1: '#FF0000', // Red - Primer nivel (PROYECTO...)
-                    2: '#0000FF', // Blue - Segundo nivel (MUROS, Cobertur...)
-                    3: '#008000', // Green - Tercer nivel (Pago 1, Pago 2...)
-                    4: '#000000', // Black - Cuarto nivel y más profundos
-                    5: '#666666'  // Gray - Niveles muy profundos
+                    0: '#800080', // Purple - Nivel raíz
+                    1: '#FF0000', // Red
+                    2: '#0000FF', // Blue
+                    3: '#008000', // Green
+                    4: '#000000', // Black
+                    5: '#666666'  // Gray
                 },
                 backgrounds: {
                     0: '#f8f4ff', // Light purple
@@ -304,99 +712,263 @@ class GastoReal {
             },
 
             utils: {
-                // Obtiene el nivel de profundidad usando la API nativa de Tabulator
+                // 🔹 Método robusto para obtener nivel del árbol en Tabulator 6.x
                 getTreeLevel: function (row) {
-                    if (!row || typeof row.getTreeLevel !== 'function') {
+                    // Verificaciones de seguridad
+                    if (!row) {
+                        console.warn('TableConfig: row is null or undefined');
                         return 0;
                     }
-                    return row.getTreeLevel();
+
+                    // Verificar si el método existe (compatibilidad v6)
+                    if (typeof row.getTreeParent !== 'function') {
+                        console.warn('TableConfig: getTreeParent method not available');
+                        return 0;
+                    }
+
+                    let level = 0;
+                    let parent = row.getTreeParent();
+
+                    // Protección contra bucles infinitos
+                    const maxDepth = 50;
+                    while (parent && level < maxDepth) {
+                        level++;
+                        parent = parent.getTreeParent();
+                    }
+
+                    return level;
                 },
 
-                // Verifica si una fila tiene hijos
+                // 🔹 Verificar si tiene hijos con validaciones mejoradas
                 hasChildren: function (row) {
-                    if (!row || typeof row.getTreeChildren !== 'function') {
+                    if (!row) return false;
+
+                    // Verificar múltiples métodos según la versión
+                    if (typeof row.getTreeChildren === 'function') {
+                        const children = row.getTreeChildren();
+                        return children && Array.isArray(children) && children.length > 0;
+                    }
+
+                    // Fallback para versiones anteriores o diferentes configuraciones
+                    if (row._row && row._row.modules && row._row.modules.tree) {
+                        return row._row.modules.tree.children && row._row.modules.tree.children.length > 0;
+                    }
+
+                    return false;
+                },
+
+                // 🔹 Verificar nietos con manejo de errores
+                hasGrandchildren: function (row) {
+                    try {
+                        if (!this.hasChildren(row)) return false;
+
+                        const children = row.getTreeChildren();
+                        if (!Array.isArray(children)) return false;
+
+                        return children.some(child => {
+                            try {
+                                return this.hasChildren(child);
+                            } catch (e) {
+                                console.warn('Error checking grandchildren:', e);
+                                return false;
+                            }
+                        });
+                    } catch (error) {
+                        console.warn('Error in hasGrandchildren:', error);
                         return false;
                     }
-                    const children = row.getTreeChildren();
-                    return children && children.length > 0;
                 },
 
-                // Verifica si algún hijo tiene sus propios hijos
-                hasGrandchildren: function (row) {
-                    if (!this.hasChildren(row)) return false;
-
-                    const children = row.getTreeChildren();
-                    return children.some(child => this.hasChildren(child));
-                },
-
-                // Lógica principal para determinar el color
+                // 🔹 Obtener color jerárquico con manejo de errores
                 getHierarchyColor: function (row, rowData) {
-                    // Si es fila de descripción
-                    if (rowData && rowData.isDescriptionRow) {
-                        return '#666666';
-                    }
+                    try {
+                        // Verificar fila de descripción
+                        if (rowData && rowData.isDescriptionRow) {
+                            return '#666666';
+                        }
 
-                    const level = this.getTreeLevel(row);
+                        const level = this.getTreeLevel(row);
 
-                    // Lógica especial para niveles específicos según tus reglas
-                    switch (level) {
-                        case 0:
-                            return TableConfig.colors.hierarchyLevels[0]; // Purple
-                        case 1:
-                            return TableConfig.colors.hierarchyLevels[1]; // Red
-                        case 2:
-                            // Blue para segundo nivel, pero puede cambiar según hijos
-                            return TableConfig.colors.hierarchyLevels[2];
-                        case 3:
-                            // Verde si tiene hijos, negro si no
-                            return this.hasChildren(row) ?
-                                TableConfig.colors.hierarchyLevels[3] :
-                                TableConfig.colors.hierarchyLevels[4];
-                        case 4:
-                            // Para cuarto nivel, revisar si el padre tiene otros hijos con descendientes
-                            return TableConfig.colors.hierarchyLevels[4];
-                        default:
-                            return TableConfig.colors.hierarchyLevels[5];
+                        // Validar que el nivel sea un número
+                        if (typeof level !== 'number' || level < 0) {
+                            console.warn('Invalid tree level:', level);
+                            return TableConfig.colors.hierarchyLevels[0];
+                        }
+
+                        switch (level) {
+                            case 0:
+                                return TableConfig.colors.hierarchyLevels[0];
+                            case 1:
+                                return TableConfig.colors.hierarchyLevels[1];
+                            case 2:
+                                return TableConfig.colors.hierarchyLevels[2];
+                            case 3:
+                                return this.hasChildren(row)
+                                    ? TableConfig.colors.hierarchyLevels[3]
+                                    : TableConfig.colors.hierarchyLevels[4];
+                            case 4:
+                                return TableConfig.colors.hierarchyLevels[4];
+                            default:
+                                return TableConfig.colors.hierarchyLevels[5];
+                        }
+                    } catch (error) {
+                        //console.error('Error getting hierarchy color:', error);
+                        return TableConfig.colors.hierarchyLevels[0]; // Color por defecto
                     }
                 },
 
-                // Color de fondo basado en el nivel
+                // 🔹 Obtener color de fondo con validaciones
                 getBackgroundColor: function (row) {
-                    const level = this.getTreeLevel(row);
-                    return TableConfig.colors.backgrounds[level] ||
-                        TableConfig.colors.backgrounds[4];
+                    try {
+                        const level = this.getTreeLevel(row);
+
+                        if (typeof level !== 'number' || level < 0) {
+                            return TableConfig.colors.backgrounds[0];
+                        }
+
+                        return TableConfig.colors.backgrounds[level] || TableConfig.colors.backgrounds[4];
+                    } catch (error) {
+                        console.error('Error getting background color:', error);
+                        return TableConfig.colors.backgrounds[0];
+                    }
+                },
+
+                // 🔹 Método de depuración para identificar problemas
+                debugRowInfo: function (row) {
+                    if (!row) {
+                        console.log('DEBUG: Row is null/undefined');
+                        return;
+                    }
+
+                    console.log('DEBUG Row Info:', {
+                        hasGetTreeParent: typeof row.getTreeParent === 'function',
+                        hasGetTreeChildren: typeof row.getTreeChildren === 'function',
+                        level: this.getTreeLevel(row),
+                        hasChildren: this.hasChildren(row),
+                        rowData: row.getData ? row.getData() : 'No getData method'
+                    });
                 }
             }
         };
+
+        // 🔹 Verificación de compatibilidad al cargar
+        if (typeof window !== 'undefined' && window.Tabulator) {
+            console.log('Tabulator version detected:', window.Tabulator.prototype.constructor.version || 'Unknown');
+
+            // Test básico de compatibilidad
+            const testCompatibility = function () {
+                console.log('TableConfig loaded successfully for Tabulator 6.x');
+            };
+
+            // Ejecutar test cuando DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', testCompatibility);
+            } else {
+                testCompatibility();
+            }
+        }
+
+        // function loadDataBalances(nombre_balance) {
+        //     console.log("Buscando balance:", nombre_balance);
+
+        //     $.ajax({
+        //         url: "/obtener-listado-balance",
+        //         type: "POST",
+        //         data: JSON.stringify({ nombre_balance }),
+        //         contentType: "application/json",
+        //         dataType: "json",
+        //         headers: {
+        //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+        //         },
+        //         success: (response) => {
+        //             console.log("Balance encontrado:", response);
+
+        //             // PROCESAR INGRESOS - Solo nodos padre
+        //             if (response.ingresos_financiamiento) {
+        //                 console.log(response.ingresos_financiamiento);
+        //                 const ingresosParent = this.extractParentNodes(response.ingresos_financiamiento);
+
+        //                 // Insertar datos en tabla de ingresos
+        //                 this.ingresoTable.replaceData(ingresosParent).then(() => {
+        //                     console.log("Ingresos padre insertados:", ingresosParent);
+
+        //                     // Opcional: Expandir primer nivel automáticamente
+        //                     this.ingresoTable.getRows().forEach(row => {
+        //                         if (this.hasChildren(row.getData())) {
+        //                             row.treeExpand();
+        //                         }
+        //                     });
+        //                 });
+        //             }
+
+        //             // PROCESAR GASTOS - Estructura completa
+        //             if (response.gastos_financiamiento) {
+        //                 // Insertar datos completos en tabla de gastos
+        //                 this.gastoTable.replaceData([response.gastos_financiamiento]).then(() => {
+        //                     console.log("Gastos completos insertados:", response.gastos_financiamiento);
+
+        //                     // Expandir automáticamente los primeros 2 niveles
+        //                     this.expandTreeLevels(this.gastoTable, 2);
+        //                 });
+        //             }
+
+        //             Swal.fire({
+        //                 icon: "success",
+        //                 title: "Datos insertados",
+        //                 text: "Se cargaron las estructuras de Ingresos y Gastos de Financiamiento",
+        //             });
+        //         },
+        //         error: (xhr) => {
+        //             Swal.fire({
+        //                 icon: "error",
+        //                 title: "Error",
+        //                 text: xhr.responseJSON?.message || "No se encontró el balance",
+        //             });
+        //         }
+        //     });
+        // }
 
         // Column definitions for both tables
         const columnas = [
             {
                 title: "Concepto",
-                field: "datos_bal", // o el campo que contenga el nombre/concepto
+                field: "datos_bal",
                 editor: "input",
-                width: 100, // Ancho fijo para mejor rendimiento
+                width: 100,
                 headerSort: false,
-              
                 responsive: 0,
                 formatter: function (cell, formatterParams, onRendered) {
-                    const row = cell.getRow();
                     const rowData = cell.getData();
                     const value = cell.getValue();
+                    const color = TableConfig.utils.getHierarchyColor(cell.getRow(), rowData);
 
-                    // Obtener color usando la nueva lógica
-                    const color = TableConfig.utils.getHierarchyColor(row, rowData);
-
-                    // Determinar si debe ser negrita
                     const isBold = (rowData.descripcion &&
                         rowData.descripcion !== "Descripcion" &&
                         !rowData.isDescriptionRow) ||
-                        TableConfig.utils.hasChildren(row);
+                        TableConfig.utils.hasChildren(rowData);
 
-                    // Crear el HTML con estilos
-                    return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">
-                        ${value || ''}
-                    </span>`;
+                    return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">${value || ''}</span>`;
+                },
+                cellClick: function (e, cell) {
+                    const rowData = cell.getData();
+                    console.log("Fila seleccionada:", rowData);
+                    if (rowData.datos_bal === "Gastos de financiamiento") {
+                        // Lanzamos SweetAlert2 con input
+                        Swal.fire({
+                            title: "Buscar Balance",
+                            text: `Coloca el nombre del balance para buscarlo (ejemplo: ${rowData.datos_bal})`,
+                            input: "text",
+                            inputValue: rowData.datos_bal, // valor inicial = texto de la fila
+                            showCancelButton: true,
+                            confirmButtonText: "Buscar",
+                            cancelButtonText: "Cancelar",
+                        }).then((result) => {
+                            if (result.isConfirmed && result.value) {
+                                // Llamamos a la función con el valor ingresado
+                                self.loadDataBalances(result.value);
+                            }
+                        });
+                    }
                 }
             },
             {
@@ -469,6 +1041,51 @@ class GastoReal {
                 title: "Reg",
                 field: "registro",
                 editor: "input",
+            },
+            {
+                title: "Imagen",
+                field: "imagen",
+                width: 80,
+                minWidth: 60,
+                headerSort: false,
+                responsive: 0,
+                resizable: false,
+                formatter: function (cell) {
+                    const value = cell.getValue();
+                    if (!value) {
+                        return '<button class="upload-btn" title="Subir imagen">📷</button>';
+                    }
+                    return `<img src="${value}" alt="Imagen" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;" onclick="openImageModal('${value}')">`;
+                },
+                cellClick: function (e, cell) {
+                    e.stopPropagation();
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.onchange = function (event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            // Validación de tamaño (máximo 2MB)
+                            if (file.size > 2 * 1024 * 1024) {
+                                alert('La imagen es muy grande. Máximo 2MB.');
+                                return;
+                            }
+
+                            const reader = new FileReader();
+                            reader.onload = function (e) {
+                                // Actualizar celda sin perder posición
+                                cell.setValue(e.target.result);
+
+                                // Mantener fila seleccionada y visible
+                                const row = cell.getRow();
+                                row.select();
+                                row.scrollTo();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    fileInput.click();
+                }
             },
             {
                 title: "ENERO",
@@ -655,7 +1272,7 @@ class GastoReal {
 
         // Configuration for Ingresos table
         this.ingresoTable = new Tabulator("#tabla-ingresos", {
-            height: "500px",
+            height: "auto",
             virtualDom: true,
             renderVerticalBuffer: 800,
             layout: "fitColumns",
@@ -674,7 +1291,8 @@ class GastoReal {
                 columns: true
             },
 
-            columns: columnas,
+            columns: columnas
+                .filter(col => col.title !== "Imagen"), // 👈 Ocultamos Imagen
 
             // Row formatter mejorado para DataTree
             rowFormatter: function (row) {
@@ -722,7 +1340,7 @@ class GastoReal {
         // Configuration for Gastos table
         this.gastoTable = new Tabulator("#tabla-gastos", {
             // --- Renderizado y Rendimiento Visual ---
-            height: "500px", // ¡Importante! Usar una altura fija en píxeles para que el Virtual DOM funcione correctamente. "100%" requiere un contenedor padre con altura definida.
+            height: "auto", // ¡Importante! Usar una altura fija en píxeles para que el Virtual DOM funcione correctamente. "100%" requiere un contenedor padre con altura definida.
             virtualDom: true, // Esencial para el rendimiento. Mantenlo en true.
             renderVerticalBuffer: 800, // Aumenta el búfer para un scroll más suave en tablas con muchas filas. 800px es un buen punto de partida.
             layout: "fitColumns", // 'fitColumns' suele ser más rápido que 'fitDataTable'. Para un rendimiento máximo, define anchos fijos en cada columna.
@@ -730,7 +1348,7 @@ class GastoReal {
             // --- Configuración del Árbol de Datos (Data Tree) ---
             dataTree: true, // Habilita la vista de árbol.
             dataTreeChildField: "children", // Campo que contiene los hijos.
-            dataTreeStartExpanded: true, // ¡Cambio clave! No expandir todo al inicio. Esto mejora drásticamente el tiempo de carga inicial. El usuario expandirá lo que necesite.
+            dataTreeStartExpanded: [true, true], // ¡Cambio clave! No expandir todo al inicio. Esto mejora drásticamente el tiempo de carga inicial. El usuario expandirá lo que necesite.
 
             // --- Cálculos ---
             // Habilita los cálculos en las columnas y en los grupos del árbol.
@@ -744,13 +1362,12 @@ class GastoReal {
             data: this.dataGenerales.gastos,
         });
 
-
         // Estados
         this.estadoTable = new Tabulator("#tabla-estado", {
             layout: "fitDataTable",
             maxHeight: "100%",
             columns: columnas.filter(col => {
-                return col.title !== "act" && col.title !== "Reg";
+                return col.title !== "act" && col.title !== "Reg" && col.title !== "Imagen";
             }).map(col => ({
                 ...col,
                 editable: false,
@@ -765,7 +1382,6 @@ class GastoReal {
                     return {};  // Mantén los estilos por defecto para otras celdas
                 }
             })),
-            data: this.dataGenerales.ingresos,
         });
 
         // Resumen
@@ -773,7 +1389,7 @@ class GastoReal {
             layout: "fitDataTable",
             maxHeight: "100%",
             columns: columnas.filter(col => {
-                return col.title !== "act" && col.title !== "Reg";
+                return col.title !== "act" && col.title !== "Reg" && col.title !== "Imagen";
             }).map(col => ({
                 ...col,
                 editable: false,
@@ -788,7 +1404,6 @@ class GastoReal {
                     return {};  // Mantén los estilos por defecto para otras celdas
                 }
             })),
-            data: this.dataGenerales.resumen // Inicializar con datos
         });
 
         // Calcular datos iniciales
@@ -923,16 +1538,27 @@ class GastoReal {
     findValueInChildren(data, labelToFind, month) {
         if (!Array.isArray(data)) return 0;
 
+        const searchLabel = (labelToFind || "").toLowerCase().trim();
+
         for (const item of data) {
-            if (item.datos_bal === labelToFind) {
-                return Number(item[month] || 0);
+            const currentLabel = (item.datos_bal || "").toLowerCase().trim();
+
+            // Si coincide exactamente con el label buscado
+            if (currentLabel === searchLabel) {
+                return Number(item[month]) || 0;
             }
-            if (item._children) {
-                const value = this.findValueInChildren(item._children, labelToFind, month);
-                if (value !== 0) return value;
+
+            // Buscar recursivamente en hijos
+            const children = item.children || item._children;
+            if (Array.isArray(children) && children.length > 0) {
+                const value = this.findValueInChildren(children, labelToFind, month);
+                if (value !== 0) {
+                    return value;
+                }
             }
         }
-        return 0;
+
+        return 0; // No encontrado
     }
 
     calculateResumen() {
@@ -1381,6 +2007,51 @@ class GastoReal {
         });
     }
 
+    // loadDataBalances(nombre_balance) {
+    //     console.log("datos de la fila :", nombre_balance);
+    //     $.ajax({
+    //         url: "/obtener-listado-balance",
+    //         type: "POST",
+    //         data: JSON.stringify({ nombre_balance }),
+    //         contentType: "application/json",
+    //         dataType: "json",
+    //         headers: {
+    //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+    //         },
+    //         success: (response) => {
+    //             console.log("Balance encontrado:", response);
+
+    //             // if (response.status === "success" && response.data) {
+
+    //             //     // Cargar los datos en las tablas
+    //             //     this.ingresoTable.setData(this.dataGenerales.ingresos);
+    //             //     this.gastoTable.setData(this.dataGenerales.gastos);
+    //             //     this.estadoTable.setData(this.dataGenerales.estado);
+    //             //     this.resumenTable.setData(this.dataGenerales.resumen);
+
+    //             //     // Actualizar cálculos y gráficos
+    //             //     this.calculateEstado();
+    //             //     this.calculateResumen();
+    //             //     this.graficoResumen();
+    //             // } else {
+    //             //     Swal.fire({
+    //             //         icon: "error",
+    //             //         title: "Error",
+    //             //         text: "No se encontraron datos para este balance."
+    //             //     });
+    //             // }
+    //         },
+    //         error: (xhr, status, error) => {
+    //             console.error("Error al cargar datos:", error);
+    //             Swal.fire({
+    //                 icon: "error",
+    //                 title: "Error",
+    //                 text: "No se pudieron cargar los datos del balance."
+    //             });
+    //         }
+    //     });
+    // }
+
     saveData() {
         const id_contabilidad = $("#id_contabilidad").val();
         const requestData = {
@@ -1444,52 +2115,6 @@ class GastoReal {
             }
         });
     }
-}
-
-// Agregar función de validación de orden jerárquico
-function validateHierarchicalOrder(item) {
-    const parts = item.split('.');
-    return parts.every((part, index) => {
-        // Verificar que cada parte sea un número de dos dígitos
-        return /^\d{2}$/.test(part) &&
-            // Verificar que el número esté en el rango correcto
-            parseInt(part) > 0 &&
-            parseInt(part) <= 99;
-    });
-}
-
-function getNextNumber(children, parentItem = '') {
-    // Filtrar solo las filas numeradas y ordenarlas
-    const numeratedItems = children
-        .filter(child => {
-            const data = child.getData();
-            return data.item && !data.isDescriptionRow;
-        })
-        .map(child => child.getData().item)
-        .sort((a, b) => {
-            const partsA = a.split('.');
-            const partsB = b.split('.');
-            // Comparar cada nivel de la jerarquía
-            for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-                const numA = parseInt(partsA[i] || '0');
-                const numB = parseInt(partsB[i] || '0');
-                if (numA !== numB) return numA - numB;
-            }
-            return 0;
-        });
-
-    // Si no hay items numerados, empezar desde 01
-    if (numeratedItems.length === 0) {
-        return `${parentItem}${parentItem ? '.' : ''}01`;
-    }
-
-    // Obtener el último número usado en este nivel
-    const lastItem = numeratedItems[numeratedItems.length - 1];
-    const lastNumber = parseInt(lastItem.split('.').pop());
-
-    // Generar el siguiente número
-    const nextNumber = (lastNumber + 1).toString().padStart(2, '0');
-    return `${parentItem}${parentItem ? '.' : ''}${nextNumber}`;
 }
 
 export default GastoReal;

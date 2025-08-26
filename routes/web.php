@@ -189,7 +189,7 @@ Route::resource('empresas', EmpresaController::class);
 
 //CONTABILIDAD Y BALANCES
 Route::resource('contabilidads', ContabilidadController::class);
-Route::get('gestor-contabilidad/{empresaId}', [ContabilidadController::class, 'index'])->name('gestor-contabilidad');
+Route::get('gestor-contabilidad-bal/{empresaId}', [ContabilidadController::class, 'index'])->name('gestor-contabilidad-bal');
 Route::get('redirect-to-balance/{id}', [ContabilidadController::class, 'redirectWithData'])->name('redirectToBalance');
 
 Route::post('empresas/obtener-data', [EmpresaController::class, 'obtenerDataEmpresa'])->name('empresas.obtenerDataEmpresa');
@@ -214,6 +214,8 @@ Route::get('/gestor-balance/{id}', [ContabilidadController::class, 'show'])->nam
 Route::post('/actualizar-balance-real', [ContabilidadController::class, 'updatebalancereal']);
 
 Route::post('/obtener-balance-real', [ContabilidadController::class, 'obtenerBalance']);
+Route::post('/obtener-listado-balance', [ContabilidadController::class, 'listarBalancesFinan']);
+Route::post('/obtener-resumen-balances', [ContabilidadController::class, 'getResumBalances']);
 
 Route::post('/actualizar-balance-programado', [ContabilidadController::class, 'updatebalanceprogramado']);
 Route::post('/obtener-balance-programado', [ContabilidadController::class, 'obtenerBalanceProgramado']);

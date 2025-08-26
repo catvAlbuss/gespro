@@ -86,8 +86,8 @@ class GastoProgramado {
                     abr: 0,
                     ago: 0,
                     dic: 0,
-                    ene: 1214.00,
-                    feb: -500.00,
+                    ene: 0,
+                    feb: 0,
                     jul: 0,
                     jun: 0,
                     mar: 0,
@@ -95,7 +95,7 @@ class GastoProgramado {
                     nov: 0,
                     oct: 0,
                     sep: 0,
-                    total: 714.00,
+                    total: 0,
                     registro: "126",
                     _children: [
                         {
@@ -121,8 +121,8 @@ class GastoProgramado {
                             abr: 0,
                             ago: 0,
                             dic: 0,
-                            ene: 1214.00,
-                            feb: -500.00,
+                            ene: 0,
+                            feb: 0,
                             jul: 0,
                             jun: 0,
                             mar: 0,
@@ -130,7 +130,7 @@ class GastoProgramado {
                             nov: 0,
                             oct: 0,
                             sep: 0,
-                            total: 714.00,
+                            total: 0,
                             registro: "123",
                             _children: [
                                 {
@@ -138,7 +138,7 @@ class GastoProgramado {
                                     abr: 0,
                                     ago: 0,
                                     dic: 0,
-                                    ene: 12,
+                                    ene: 0,
                                     feb: 0,
                                     jul: 0,
                                     jun: 0,
@@ -156,8 +156,8 @@ class GastoProgramado {
                                     abr: 0,
                                     ago: 0,
                                     dic: 0,
-                                    ene: 1200,
-                                    feb: -500,
+                                    ene: 0,
+                                    feb: 0,
                                     jul: 0,
                                     jun: 0,
                                     mar: 0,
@@ -174,7 +174,7 @@ class GastoProgramado {
                                     abr: 0,
                                     ago: 0,
                                     dic: 0,
-                                    ene: 2,
+                                    ene: 0,
                                     feb: 0,
                                     jul: 0,
                                     jun: 0,
@@ -240,33 +240,59 @@ class GastoProgramado {
         // Create container for both tables
         const container = document.getElementById("table_balance_programado");
 
-        // Create containers for each table
-        const ingresosContainer = document.createElement("div");
-        ingresosContainer.id = "tabla-ingresos-programado";
-        ingresosContainer.className = "tabulator-container mb-4";
+        // Función para crear secciones con título y contenido colapsable
+        const createSection = (id, titulo) => {
+            // Wrapper
+            const section = document.createElement("div");
+            section.className = "mb-4 border rounded-lg shadow bg-white";
 
-        const gastosContainer = document.createElement("div");
-        gastosContainer.id = "tabla-gastos-programado";
-        gastosContainer.className = "tabulator-container mb-4";
+            // Header con botón
+            const header = document.createElement("div");
+            header.className = "flex items-center justify-between px-4 py-2 cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-t-lg";
+            header.innerHTML = `
+            <h3 class="font-semibold text-gray-700">${titulo}</h3>
+            <button class="toggle-btn text-sm text-blue-600 hover:underline">Contraer</button>
+        `;
 
-        const estadoContainer = document.createElement("div");
-        estadoContainer.id = "tabla-estado-programado";
-        estadoContainer.className = "tabulator-container mb-4";
+            // Contenido (donde va Tabulator)
+            const content = document.createElement("div");
+            content.id = id;
+            content.className = "tabulator-container px-2 py-2";
 
-        const resumenContainer = document.createElement("div");
-        resumenContainer.id = "tabla-resumen-programado";
-        resumenContainer.className = "tabulator-container mb-4";
+            // Acción de colapsar/expandir
+            header.addEventListener("click", () => {
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                    header.querySelector(".toggle-btn").innerText = "Contraer";
+                } else {
+                    content.style.display = "none";
+                    header.querySelector(".toggle-btn").innerText = "Expandir";
+                }
+            });
 
-        // Append containers to main container
-        container.appendChild(ingresosContainer);
-        container.appendChild(gastosContainer);
-        container.appendChild(estadoContainer);
-        container.appendChild(resumenContainer);
+            // Añadir al wrapper
+            section.appendChild(header);
+            section.appendChild(content);
 
-        // Configure and initialize tables
+            return section;
+        };
+
+        // Crear las secciones
+        const ingresosSection = createSection("tabla-ingresos-programado", "Ingresos Programados");
+        const gastosSection = createSection("tabla-gastos-programado", "Gastos Programados");
+        const estadoSection = createSection("tabla-estado-programado", "Estado de Cuenta");
+        const resumenSection = createSection("tabla-resumen-programado", "Resumen General");
+
+        // Append to main container
+        container.appendChild(ingresosSection);
+        container.appendChild(gastosSection);
+        container.appendChild(estadoSection);
+        container.appendChild(resumenSection);
+
+        // Configurar e inicializar tablas
         this.configTable();
 
-        // Add event listeners for calculations
+        // Eventos de cálculo
         this.setupCalculationEvents();
 
         // Inicializar gráfico
@@ -274,6 +300,182 @@ class GastoProgramado {
     }
 
     configTable() {
+        const TableConfig = {
+            colors: {
+                hierarchyLevels: {
+                    0: '#800080', // Purple - Nivel raíz
+                    1: '#FF0000', // Red
+                    2: '#0000FF', // Blue
+                    3: '#008000', // Green
+                    4: '#000000', // Black
+                    5: '#666666'  // Gray
+                },
+                backgrounds: {
+                    0: '#f8f4ff', // Light purple
+                    1: '#fff4f4', // Light red
+                    2: '#f4f4ff', // Light blue
+                    3: '#f4fff4', // Light green
+                    4: '#ffffff', // White
+                    5: '#f9f9f9'  // Light gray
+                }
+            },
+
+            utils: {
+                // 🔹 Método robusto para obtener nivel del árbol en Tabulator 6.x
+                getTreeLevel: function (row) {
+                    // Verificaciones de seguridad
+                    if (!row) {
+                        console.warn('TableConfig: row is null or undefined');
+                        return 0;
+                    }
+
+                    // Verificar si el método existe (compatibilidad v6)
+                    if (typeof row.getTreeParent !== 'function') {
+                        console.warn('TableConfig: getTreeParent method not available');
+                        return 0;
+                    }
+
+                    let level = 0;
+                    let parent = row.getTreeParent();
+
+                    // Protección contra bucles infinitos
+                    const maxDepth = 50;
+                    while (parent && level < maxDepth) {
+                        level++;
+                        parent = parent.getTreeParent();
+                    }
+
+                    return level;
+                },
+
+                // 🔹 Verificar si tiene hijos con validaciones mejoradas
+                hasChildren: function (row) {
+                    if (!row) return false;
+
+                    // Verificar múltiples métodos según la versión
+                    if (typeof row.getTreeChildren === 'function') {
+                        const children = row.getTreeChildren();
+                        return children && Array.isArray(children) && children.length > 0;
+                    }
+
+                    // Fallback para versiones anteriores o diferentes configuraciones
+                    if (row._row && row._row.modules && row._row.modules.tree) {
+                        return row._row.modules.tree.children && row._row.modules.tree.children.length > 0;
+                    }
+
+                    return false;
+                },
+
+                // 🔹 Verificar nietos con manejo de errores
+                hasGrandchildren: function (row) {
+                    try {
+                        if (!this.hasChildren(row)) return false;
+
+                        const children = row.getTreeChildren();
+                        if (!Array.isArray(children)) return false;
+
+                        return children.some(child => {
+                            try {
+                                return this.hasChildren(child);
+                            } catch (e) {
+                                console.warn('Error checking grandchildren:', e);
+                                return false;
+                            }
+                        });
+                    } catch (error) {
+                        console.warn('Error in hasGrandchildren:', error);
+                        return false;
+                    }
+                },
+
+                // 🔹 Obtener color jerárquico con manejo de errores
+                getHierarchyColor: function (row, rowData) {
+                    try {
+                        // Verificar fila de descripción
+                        if (rowData && rowData.isDescriptionRow) {
+                            return '#666666';
+                        }
+
+                        const level = this.getTreeLevel(row);
+
+                        // Validar que el nivel sea un número
+                        if (typeof level !== 'number' || level < 0) {
+                            console.warn('Invalid tree level:', level);
+                            return TableConfig.colors.hierarchyLevels[0];
+                        }
+
+                        switch (level) {
+                            case 0:
+                                return TableConfig.colors.hierarchyLevels[0];
+                            case 1:
+                                return TableConfig.colors.hierarchyLevels[1];
+                            case 2:
+                                return TableConfig.colors.hierarchyLevels[2];
+                            case 3:
+                                return this.hasChildren(row)
+                                    ? TableConfig.colors.hierarchyLevels[3]
+                                    : TableConfig.colors.hierarchyLevels[4];
+                            case 4:
+                                return TableConfig.colors.hierarchyLevels[4];
+                            default:
+                                return TableConfig.colors.hierarchyLevels[5];
+                        }
+                    } catch (error) {
+                        //console.error('Error getting hierarchy color:', error);
+                        return TableConfig.colors.hierarchyLevels[0]; // Color por defecto
+                    }
+                },
+
+                // 🔹 Obtener color de fondo con validaciones
+                getBackgroundColor: function (row) {
+                    try {
+                        const level = this.getTreeLevel(row);
+
+                        if (typeof level !== 'number' || level < 0) {
+                            return TableConfig.colors.backgrounds[0];
+                        }
+
+                        return TableConfig.colors.backgrounds[level] || TableConfig.colors.backgrounds[4];
+                    } catch (error) {
+                        console.error('Error getting background color:', error);
+                        return TableConfig.colors.backgrounds[0];
+                    }
+                },
+
+                // 🔹 Método de depuración para identificar problemas
+                debugRowInfo: function (row) {
+                    if (!row) {
+                        console.log('DEBUG: Row is null/undefined');
+                        return;
+                    }
+
+                    console.log('DEBUG Row Info:', {
+                        hasGetTreeParent: typeof row.getTreeParent === 'function',
+                        hasGetTreeChildren: typeof row.getTreeChildren === 'function',
+                        level: this.getTreeLevel(row),
+                        hasChildren: this.hasChildren(row),
+                        rowData: row.getData ? row.getData() : 'No getData method'
+                    });
+                }
+            }
+        };
+
+        // 🔹 Verificación de compatibilidad al cargar
+        if (typeof window !== 'undefined' && window.Tabulator) {
+            console.log('Tabulator version detected:', window.Tabulator.prototype.constructor.version || 'Unknown');
+
+            // Test básico de compatibilidad
+            const testCompatibility = function () {
+                console.log('TableConfig loaded successfully for Tabulator 6.x');
+            };
+
+            // Ejecutar test cuando DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', testCompatibility);
+            } else {
+                testCompatibility();
+            }
+        }
         // Column definitions for both tables
         const columnas = [
             {
@@ -282,9 +484,86 @@ class GastoProgramado {
                 editor: "input",
                 width: 150,
                 headerSort: false,
-                resizable: false,
                 responsive: 0,
+                formatter: function (cell, formatterParams, onRendered) {
+                    const rowData = cell.getData();
+                    const value = cell.getValue();
+                    const color = TableConfig.utils.getHierarchyColor(cell.getRow(), rowData);
+
+                    const isBold = (rowData.descripcion &&
+                        rowData.descripcion !== "Descripcion" &&
+                        !rowData.isDescriptionRow) ||
+                        TableConfig.utils.hasChildren(rowData);
+
+                    return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">${value || ''}</span>`;
+                },
                 frozen: true
+            },
+            {
+                title: "action",
+                width: 60,
+                headerSort: false,
+                formatter: () => `
+                    <button class="add-row-pro text-green-600 hover:scale-125">➕</button>
+                    <button class="delete-row-pro text-red-600 hover:scale-125">🗑️</button>
+                `,
+                cellClick: function (e, cell) {
+                    const row = cell.getRow();
+                    const target = e.target;
+
+                    const action = target.classList.contains('add-row-pro') ? 'add' :
+                        target.classList.contains('delete-row-pro') ? 'delete' : null;
+
+                    if (!action) return;
+
+                    try {
+                        const parentRowPro = row;
+                        const parentDataPro = parentRowPro.getData();
+                        const parentItemPro = parentDataPro.item || "";
+                        const parentChildren = parentRowPro.getTreeChildren() || [];
+
+                        if (action === 'add') {
+                            const nextNumber = (parentChildren.length + 1).toString().padStart(2, '0');
+                            const newItem = parentItemPro ? `${parentItemPro}.${nextNumber}` : nextNumber;
+
+                            const newRow = {
+                                id: Date.now(),
+                                item: newItem,
+                                datos_bal: "Nuevo Item",
+                                registro: 0,
+                                total: 0,
+                                ene: 0, feb: 0, mar: 0, abr: 0, may: 0, jun: 0,
+                                jul: 0, ago: 0, sep: 0, oct: 0, nov: 0, dic: 0,
+                                children: []
+                            };
+
+                            parentRowPro.addTreeChild(newRow);
+                        }
+
+                        if (action === 'delete') {
+                            const parent = row.getTreeParent();
+                            row.delete();
+
+                            // Si hay un padre, renumerar hijos hermanos
+                            if (parent) {
+                                const siblings = parent.getTreeChildren().filter(s => {
+                                    const sData = s.getData();
+                                    return sData.item && !sData.isDescriptionRow;
+                                });
+
+                                siblings.forEach((sibling, index) => {
+                                    const sData = sibling.getData();
+                                    const base = (sData.item || "").split(".").slice(0, -1).join(".");
+                                    const newNum = (index + 1).toString().padStart(2, '0');
+                                    const newItem = base ? `${base}.${newNum}` : newNum;
+                                    sibling.update({ item: newItem });
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error al procesar acción:", error);
+                    }
+                }
             },
             {
                 title: "REGISTRO",
@@ -477,131 +756,54 @@ class GastoProgramado {
                 bottomCalcFormatter: "money",
                 bottomCalcFormatterParams: { precision: 2 }
             },
-            {
-                title: "accion",
-                width: 60,
-                headerSort: false,
-                formatter: function () {
-                    return `<button class="add-row">➕</button> <button class="delete-row">🗑️</button>`;
-                },
-                cellClick: function (e, cell) {
-                    const row = cell.getRow();
-                    const action = e.target.className;
-
-                    if (action === "add-row") {
-                        try {
-                            const parentData = row.getData();
-                            const children = row.getTreeChildren();
-
-                            // Obtener el siguiente número en orden
-                            const nextItem = getNextNumber(children, parentData.item);
-
-                            // Validar el orden jerárquico
-                            if (!validateHierarchicalOrder(nextItem)) {
-                                console.error('Error: Orden jerárquico inválido');
-                                return;
-                            }
-
-                            // Crear la nueva fila
-                            const newRow = {
-                                id: Date.now(),
-                                datos_bal: "Nuevo Item",
-                                registro: 0,
-                                total: 0,
-                                ene: 0, feb: 0, mar: 0, abr: 0, may: 0, jun: 0,
-                                jul: 0, ago: 0, sep: 0, oct: 0, nov: 0, dic: 0,
-                                children: []
-                            };
-
-                            // Insertar la nueva fila manteniendo el orden
-                            row.addTreeChild(newRow);
-
-                            // Reordenar los hijos después de insertar
-                            const sortedChildren = children
-                                .map(child => child.getData())
-                                .sort((a, b) => {
-                                    if (!a.item) return 1;
-                                    if (!b.item) return -1;
-                                    return a.item.localeCompare(b.item);
-                                });
-
-                            // Actualizar el orden en la tabla
-                            children.forEach((child, index) => {
-                                if (sortedChildren[index]) {
-                                    child.update(sortedChildren[index]);
-                                }
-                            });
-
-                        } catch (error) {
-                            console.error('Error al agregar fila:', error);
-                        }
-
-                    } else if (action === "delete-row") {
-                        const deletedRow = row.getData();
-
-                        if (deletedRow.item && !deletedRow.isDescriptionRow) {
-                            const parent = row.getTreeParent();
-                            if (parent) {
-                                // Obtener y reordenar hermanos numerados
-                                const siblings = parent.getTreeChildren()
-                                    .filter(child => {
-                                        const childData = child.getData();
-                                        return childData.item && !childData.isDescriptionRow;
-                                    });
-
-                                // Eliminar la fila actual
-                                row.delete();
-
-                                // Renumerar los hermanos restantes
-                                siblings.forEach((sibling, index) => {
-                                    if (sibling.getData().id !== deletedRow.id) {
-                                        const baseItem = deletedRow.item.split('.').slice(0, -1).join('.');
-                                        const newNumber = (index + 1).toString().padStart(2, '0');
-                                        sibling.update({
-                                            item: `${baseItem}.${newNumber}`
-                                        });
-                                    }
-                                });
-                            }
-                        } else {
-                            row.delete();
-                        }
-                    }
-                }
-            }
         ];
 
         // Configuration for Ingresos table
         this.ingresoTable = new Tabulator("#tabla-ingresos-programado", {
-            dataTree: true,
-            dataTreeStartExpanded: true, // Cambiado a false para mejorar rendimiento inicial
-            layout: "fitColumns",
-            maxHeight: "100%",
-            renderVerticalBuffer: 500,  // Mejora rendimiento
-            progressiveLoad: "load", // Carga progresiva para mejorar rendimiento
-            progressiveLoadDelay: 200, // Pequeño retraso para mejor UI
-            ajaxContentType: "json",
-            dataTreeChildField: "_children", // 🔹 Define la clave de los hijos en los datos
-            //pagination: true, // 🔹 Activa paginación
-            paginationMode: "remote", // 🔹 Controla los datos desde el servidor
-            paginationSize: 100, // 🔹 Reduce la cantidad de datos en memoria
+            // --- Renderizado y Rendimiento Visual ---
+            height: "auto", // ¡Importante! Usar una altura fija en píxeles para que el Virtual DOM funcione correctamente. "100%" requiere un contenedor padre con altura definida.
+            virtualDom: true, // Esencial para el rendimiento. Mantenlo en true.
+            renderVerticalBuffer: 800, // Aumenta el búfer para un scroll más suave en tablas con muchas filas. 800px es un buen punto de partida.
+            layout: "fitColumns", // 'fitColumns' suele ser más rápido que 'fitDataTable'. Para un rendimiento máximo, define anchos fijos en cada columna.
+
+            // --- Configuración del Árbol de Datos (Data Tree) ---
+            dataTree: true, // Habilita la vista de árbol.
+            dataTreeChildField: "_children", // Campo que contiene los hijos.
+            dataTreeStartExpanded: [true, true], // ¡Cambio clave! No expandir todo al inicio. Esto mejora drásticamente el tiempo de carga inicial. El usuario expandirá lo que necesite.
+
+            // --- Cálculos ---
+            // Habilita los cálculos en las columnas y en los grupos del árbol.
+            columnCalcs: "both", // 'true' calcula solo el total. 'both' calcula para grupos y el total general.
+
+            // --- Módulo de Persistencia ---
+            persistence: {
+                tree: true, // ¡Magia! Guarda el estado de expansión del árbol
+            },
             columns: columnas,
             data: this.dataGenerales.ingresos,
         });
 
         // Configuration for Gastos table
         this.gastoTable = new Tabulator("#tabla-gastos-programado", {
-            dataTree: true,
-            dataTreeStartExpanded: true,
-            layout: "fitColumns",
-            maxHeight: "100%",
-            renderVerticalBuffer: 500,
-            progressiveLoad: "load",
-            progressiveLoadDelay: 200,
-            ajaxContentType: "json",
-            dataTreeChildField: "_children",
-            paginationMode: "remote",
-            paginationSize: 100,
+            // --- Renderizado y Rendimiento Visual ---
+            height: "auto", // ¡Importante! Usar una altura fija en píxeles para que el Virtual DOM funcione correctamente. "100%" requiere un contenedor padre con altura definida.
+            virtualDom: true, // Esencial para el rendimiento. Mantenlo en true.
+            renderVerticalBuffer: 800, // Aumenta el búfer para un scroll más suave en tablas con muchas filas. 800px es un buen punto de partida.
+            layout: "fitColumns", // 'fitColumns' suele ser más rápido que 'fitDataTable'. Para un rendimiento máximo, define anchos fijos en cada columna.
+
+            // --- Configuración del Árbol de Datos (Data Tree) ---
+            dataTree: true, // Habilita la vista de árbol.
+            dataTreeChildField: "_children", // Campo que contiene los hijos.
+            dataTreeStartExpanded: [true, true], // ¡Cambio clave! No expandir todo al inicio. Esto mejora drásticamente el tiempo de carga inicial. El usuario expandirá lo que necesite.
+
+            // --- Cálculos ---
+            // Habilita los cálculos en las columnas y en los grupos del árbol.
+            columnCalcs: "both", // 'true' calcula solo el total. 'both' calcula para grupos y el total general.
+
+            // --- Módulo de Persistencia ---
+            persistence: {
+                tree: true, // ¡Magia! Guarda el estado de expansión del árbol
+            },
             columns: columnas,
             data: this.dataGenerales.gastos,
         });
@@ -610,47 +812,53 @@ class GastoProgramado {
         this.estadoTable = new Tabulator("#tabla-estado-programado", {
             layout: "fitDataTable",
             maxHeight: "100%",
-            columns: columnas.filter(col => {
-                return col.title !== "accion" && col.title !== "REGISTRO";
-            }).map(col => ({
-                ...col,
-                editable: false,
-                width: col.field === "datos_bal" ? 295 : col.width,
-                responsive: 0,
-                frozen: col.field === "datos_bal",
-                cellStyle: (cell) => {
-                    // Ajusta el padding según sea necesario
-                    if (cell.getColumn().getField() === "datos_bal") {
-                        return { padding: "10px" };  // Aplica padding a la celda
+            columns: columnas.filter(col => col.title !== "accion" && col.title !== "REGISTRO")
+                .map(col => ({
+                    ...col,
+                    editable: false,
+                    width: col.field === "datos_bal" ? 295 : col.width,
+                    responsive: 0,
+                    frozen: col.field === "datos_bal",
+                    formatter: (cell) => {
+                        let value = cell.getValue();
+                        let el = document.createElement("div");
+                        el.textContent = value;
+
+                        if (cell.getColumn().getField() === "datos_bal") {
+                            el.style.padding = "10px";
+                        }
+                        return el;
                     }
-                    return {};  // Mantén los estilos por defecto para otras celdas
-                }
-            })),
+                })),
             data: this.dataGenerales.ingresos,
         });
+
 
         // Resumen
         this.resumenTable = new Tabulator("#tabla-resumen-programado", {
             layout: "fitDataTable",
             maxHeight: "100%",
-            columns: columnas.filter(col => {
-                return col.title !== "accion" && col.title !== "REGISTRO";
-            }).map(col => ({
-                ...col,
-                editable: false,
-                width: col.field === "datos_bal" ? 295 : col.width,
-                responsive: 0,
-                frozen: col.field === "datos_bal",
-                cellStyle: (cell) => {
-                    // Ajusta el padding según sea necesario
-                    if (cell.getColumn().getField() === "datos_bal") {
-                        return { padding: "10px" };  // Aplica padding a la celda
+            columns: columnas.filter(col => col.title !== "accion" && col.title !== "REGISTRO")
+                .map(col => ({
+                    ...col,
+                    editable: false,
+                    width: col.field === "datos_bal" ? 295 : col.width,
+                    responsive: 0,
+                    frozen: col.field === "datos_bal",
+                    formatter: (cell) => {
+                        let value = cell.getValue();
+                        let el = document.createElement("div");
+                        el.textContent = value;
+
+                        if (cell.getColumn().getField() === "datos_bal") {
+                            el.style.padding = "10px";
+                        }
+                        return el;
                     }
-                    return {};  // Mantén los estilos por defecto para otras celdas
-                }
-            })),
-            data: this.dataGenerales.resumen // Inicializar con datos
+                })),
+            data: this.dataGenerales.resumen,
         });
+
 
         // Calcular datos iniciales
         this.calculateEstado();
@@ -983,7 +1191,7 @@ class GastoProgramado {
     }
 
     initializeEventListeners() {
-        $('#guardar').on('click', () => this.saveData());
+        $('#guardar_balance_programado').on('click', () => this.saveData());
     }
 
     loadData() {
@@ -1083,8 +1291,8 @@ class GastoProgramado {
                                 abr: 0,
                                 ago: 0,
                                 dic: 0,
-                                ene: 1214.00,
-                                feb: -500.00,
+                                ene: 0,
+                                feb: 0,
                                 jul: 0,
                                 jun: 0,
                                 mar: 0,
@@ -1092,7 +1300,7 @@ class GastoProgramado {
                                 nov: 0,
                                 oct: 0,
                                 sep: 0,
-                                total: 714.00,
+                                total: 0,
                                 registro: "126",
                                 _children: [
                                     {
@@ -1118,8 +1326,8 @@ class GastoProgramado {
                                         abr: 0,
                                         ago: 0,
                                         dic: 0,
-                                        ene: 1214.00,
-                                        feb: -500.00,
+                                        ene: 0,
+                                        feb: 0,
                                         jul: 0,
                                         jun: 0,
                                         mar: 0,
@@ -1127,7 +1335,7 @@ class GastoProgramado {
                                         nov: 0,
                                         oct: 0,
                                         sep: 0,
-                                        total: 714.00,
+                                        total: 0,
                                         registro: "123",
                                         _children: [
                                             {
@@ -1135,7 +1343,7 @@ class GastoProgramado {
                                                 abr: 0,
                                                 ago: 0,
                                                 dic: 0,
-                                                ene: 12,
+                                                ene: 0,
                                                 feb: 0,
                                                 jul: 0,
                                                 jun: 0,
@@ -1153,8 +1361,8 @@ class GastoProgramado {
                                                 abr: 0,
                                                 ago: 0,
                                                 dic: 0,
-                                                ene: 1200,
-                                                feb: -500,
+                                                ene: 0,
+                                                feb: 0,
                                                 jul: 0,
                                                 jun: 0,
                                                 mar: 0,
@@ -1245,15 +1453,16 @@ class GastoProgramado {
         const id_contabilidad = $("#id_contabilidad").val();
         const requestData = {
             id_contabilidad: id_contabilidad,  // Asegúrate de enviar el ID correcto
-            rowData: JSON.stringify({
+            rowDatapro: JSON.stringify({
                 ingresos: this.ingresoTable.getData(),
                 gastos: this.gastoTable.getData(),
                 estado: this.estadoTable.getData(),
                 resumen: this.resumenTable.getData()
             })
         };
-        const dataActualizar = JSON.stringify(requestData);
 
+        const dataActualizar = JSON.stringify(requestData);
+        console.log(dataActualizar);
         Swal.fire({
             title: '¿Guardar cambios?',
             text: "Se actualizarán los datos del balance",
@@ -1275,6 +1484,7 @@ class GastoProgramado {
                         "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
                     },
                     success: (response) => {
+                        console.log(response);
                         if (response.status === 'success') {  // ✅ Ahora verifica correctamente
                             Swal.fire({
                                 icon: 'success',
@@ -1302,52 +1512,6 @@ class GastoProgramado {
             }
         });
     }
-}
-
-// Agregar función de validación de orden jerárquico
-function validateHierarchicalOrder(item) {
-    const parts = item.split('.');
-    return parts.every((part, index) => {
-        // Verificar que cada parte sea un número de dos dígitos
-        return /^\d{2}$/.test(part) &&
-            // Verificar que el número esté en el rango correcto
-            parseInt(part) > 0 &&
-            parseInt(part) <= 99;
-    });
-}
-
-function getNextNumber(children, parentItem = '') {
-    // Filtrar solo las filas numeradas y ordenarlas
-    const numeratedItems = children
-        .filter(child => {
-            const data = child.getData();
-            return data.item && !data.isDescriptionRow;
-        })
-        .map(child => child.getData().item)
-        .sort((a, b) => {
-            const partsA = a.split('.');
-            const partsB = b.split('.');
-            // Comparar cada nivel de la jerarquía
-            for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-                const numA = parseInt(partsA[i] || '0');
-                const numB = parseInt(partsB[i] || '0');
-                if (numA !== numB) return numA - numB;
-            }
-            return 0;
-        });
-
-    // Si no hay items numerados, empezar desde 01
-    if (numeratedItems.length === 0) {
-        return `${parentItem}${parentItem ? '.' : ''}01`;
-    }
-
-    // Obtener el último número usado en este nivel
-    const lastItem = numeratedItems[numeratedItems.length - 1];
-    const lastNumber = parseInt(lastItem.split('.').pop());
-
-    // Generar el siguiente número
-    const nextNumber = (lastNumber + 1).toString().padStart(2, '0');
-    return `${parentItem}${parentItem ? '.' : ''}${nextNumber}`;
 }
 
 export default GastoProgramado;

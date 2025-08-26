@@ -1,53 +1,205 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="es">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CONSTRUYE HCO - Empresa Constructora</title>
+    <link rel="icon" type="image/x-icon" href="/storage/avatar_empresa/logo_gespro.png">
 
-    <title>CONSTRUYEHCO</title>
-    <link rel="icon" type="image/x-icon" href="{{ url('/storage/avatar_empresa/logo_gespro.png') }}">
-    <!-- Fonts -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'corporate-blue': '#003366',
+                        'corporate-yellow': '#FFC107',
+                        'corporate-red': '#C62828',
+                        'corporate-orange': '#FF6F00',
+                        'corporate-green': '#388E3C',
+                        'corporate-cyan': '#00BCD4',
+                        'corporate-dark': '#1a1a1a'
+                    },
+                    fontFamily: {
+                        'arial': ['Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        .custom-shape-divider {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(0, 51, 102, 0.9) 0%, rgba(0, 188, 212, 0.8) 50%, rgba(255, 193, 7, 0.9) 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 51, 102, 0.15);
+        }
+
+        .animate-typing {
             overflow: hidden;
-            line-height: 0;
-            transform: rotate(180deg);
+            border-right: 3px solid #FFC107;
+            white-space: nowrap;
+            animation: typing 4s steps(30, end), blink-caret 0.75s step-end infinite;
         }
 
-        .custom-shape-divider svg {
-            position: relative;
-            display: block;
-            width: calc(100% + 1.3px);
-            height: 150px;
+        @keyframes typing {
+            from {
+                width: 0
+            }
+
+            to {
+                width: 100%
+            }
         }
 
-        .custom-shape-divider .shape-fill {
-            fill: #FFFFFF;
+        @keyframes blink-caret {
+
+            from,
+            to {
+                border-color: transparent
+            }
+
+            50% {
+                border-color: #FFC107
+            }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 1s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 1s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 
-<body class="font-sans antialiased dark:bg-black dark:text-white/50">
-    <header class="fixed w-full z-50 bg-gray-900 shadow-lg">
-        <nav class="bg-gray-900 border-gray-700 py-2.5">
-            <div class="flex flex-wrap items-center justify-between max-w-screen-xl px-4 mx-auto">
-                <a href="#" class="flex items-center">
-                    <img src="{{ asset('/storage/avatar_empresa/logo_gespro.png') }}" class="h-12 mr-3 sm:h-14"
-                        alt="Gespro Logo" />
-                    <span class="self-center text-2xl font-extrabold whitespace-nowrap text-white">CONSTRYE HCO</span>
-                </a>
-                <div class="flex items-center lg:order-2">
+<body class="bg-white text-black">
+    <!-- Navbar -->
+    <nav x-data="{
+        isOpen: false,
+        scrolled: false,
+        init() {
+            window.addEventListener('scroll', () => {
+                this.scrolled = window.scrollY > 50;
+            });
+        }
+    }" :class="scrolled ? 'bg-white shadow-lg' : 'bg-transparent'"
+        class="fixed w-full z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 lg:h-20">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img class="h-10 w-10 lg:h-12 lg:w-12" src="/storage/avatar_empresa/logo_gespro.png"
+                            alt="CONSTRUYE HCO">
+                        <span :class="scrolled ? 'text-corporate-blue' : 'text-white'"
+                            class="ml-2 text-xl lg:text-2xl font-bold transition-colors duration-300">CONSTRUYE
+                            HCO</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="#inicio"
+                        :class="scrolled ? 'text-corporate-blue hover:text-corporate-orange' :
+                            'text-white hover:text-corporate-yellow'"
+                        class="px-3 py-2 text-sm font-medium transition-colors duration-300">Inicio</a>
+                    <a href="#nosotros"
+                        :class="scrolled ? 'text-corporate-blue hover:text-corporate-orange' :
+                            'text-white hover:text-corporate-yellow'"
+                        class="px-3 py-2 text-sm font-medium transition-colors duration-300">Nosotros</a>
+                    <a href="#servicios"
+                        :class="scrolled ? 'text-corporate-blue hover:text-corporate-orange' :
+                            'text-white hover:text-corporate-yellow'"
+                        class="px-3 py-2 text-sm font-medium transition-colors duration-300">Servicios</a>
+                    <a href="#proyectos"
+                        :class="scrolled ? 'text-corporate-blue hover:text-corporate-orange' :
+                            'text-white hover:text-corporate-yellow'"
+                        class="px-3 py-2 text-sm font-medium transition-colors duration-300">Proyectos</a>
+                    <a href="#contacto"
+                        :class="scrolled ? 'text-corporate-blue hover:text-corporate-orange' :
+                            'text-white hover:text-corporate-yellow'"
+                        class="px-3 py-2 text-sm font-medium transition-colors duration-300">Contacto</a>
                     @if (Route::has('login'))
                         @auth
                             <a href="{{ url('/dashboard') }}"
-                                class="text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 sm:mr-2 lg:mr-0 dark:focus:ring-blue-900">
+                                class="bg-corporate-orange hover:bg-corporate-red text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105">
                                 Dashboard
                             </a>
                         @else
@@ -57,763 +209,365 @@
                             </a>
                         @endauth
                     @endif
-                    <button data-collapse-toggle="mobile-menu-2" type="button"
-                        class="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-                        aria-controls="mobile-menu-2" aria-expanded="false">
-                        <span class="sr-only">Open main menu</span>
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                clip-rule="evenodd"></path>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="lg:hidden flex items-center">
+                    <button @click="isOpen = !isOpen" :class="scrolled ? 'text-corporate-blue' : 'text-white'"
+                        class="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 focus:outline-none transition-colors duration-300">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path :class="{ 'hidden': isOpen, 'inline-flex': !isOpen }" stroke-linecap="round"
+                                stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            <path :class="{ 'hidden': !isOpen, 'inline-flex': isOpen }" stroke-linecap="round"
+                                stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-                <div class="items-center justify-between hidden w-full lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
-                    <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
-                        <li>
-                            <a href="#"
-                                class="block py-2 pl-3 pr-4 text-blue-600 rounded lg:bg-transparent lg:text-blue-600 lg:p-0 dark:text-white"
-                                aria-current="page">Inicio</a>
-                        </li>
-                        <li>
-                            <a href="#"
-                                class="block py-2 pl-3 pr-4 text-gray-400 border-b border-gray-700 hover:bg-gray-700 lg:hover:bg-transparent lg:border-0 lg:hover:text-blue-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">
-                                Proyectos
+            </div>
+
+            <!-- Mobile Menu -->
+            <div x-show="isOpen" x-transition class="lg:hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-lg mt-2">
+                    <a href="#inicio"
+                        class="block px-3 py-2 text-corporate-blue hover:text-corporate-orange font-medium">Inicio</a>
+                    <a href="#nosotros"
+                        class="block px-3 py-2 text-corporate-blue hover:text-corporate-orange font-medium">Nosotros</a>
+                    <a href="#servicios"
+                        class="block px-3 py-2 text-corporate-blue hover:text-corporate-orange font-medium">Servicios</a>
+                    <a href="#proyectos"
+                        class="block px-3 py-2 text-corporate-blue hover:text-corporate-orange font-medium">Proyectos</a>
+                    <a href="#contacto"
+                        class="block px-3 py-2 text-corporate-blue hover:text-corporate-orange font-medium">Contacto</a>
+                    @if (Route::has('login'))
+                        @auth
+                            <a href="{{ url('/dashboard') }}"
+                                class="bg-corporate-orange hover:bg-corporate-red text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105">
+                                Dashboard
                             </a>
-                        </li>
-                        <li>
-                            <a href="#"
-                                class="block py-2 pl-3 pr-4 text-gray-400 border-b border-gray-700 hover:bg-gray-700 lg:hover:bg-transparent lg:border-0 lg:hover:text-blue-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">
-                                Servicios
+                        @else
+                            <a href="{{ route('login') }}"
+                                class="text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 sm:mr-2 lg:mr-0 dark:focus:ring-blue-900">
+                                Login
                             </a>
-                        </li>
-                        <li>
-                            <a href="#"
-                                class="block py-2 pl-3 pr-4 text-gray-400 border-b border-gray-700 hover:bg-gray-700 lg:hover:bg-transparent lg:border-0 lg:hover:text-blue-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">
-                                Contacto
-                            </a>
-                        </li>
-                    </ul>
+                        @endauth
+                    @endif
                 </div>
             </div>
-        </nav>
-    </header>
+        </div>
+    </nav>
 
-    <section class="bg-white dark:bg-gray-900 text-gray-950 dark:text-white py-32 md:py-40">
-        <div class="grid max-w-screen-xl px-4 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
-            <div class="mr-auto place-self-center lg:col-span-7 animate-fadeIn">
-                <h1
-                    class="max-w-2xl mb-4 text-5xl font-extrabold leading-none tracking-tight md:text-6xl xl:text-7xl animate-pulse">
-                    CONSTRUYE HCO
+    <!-- Hero Section -->
+    <section id="inicio" class="relative h-screen overflow-hidden">
+        <!-- Carousel Background -->
+        <div x-data="{
+            current: 0,
+            images: [
+                '/storage/avatar_gespro/07.jpg',
+                '/storage/avatar_gespro/03.jpg',
+                '/storage/avatar_gespro/proyectoV.jpg',
+                '/storage/avatar_gespro/04.jpg',
+                '/storage/avatar_gespro/adventista.jpg'
+            ],
+            init() {
+                setInterval(() => {
+                    this.current = (this.current + 1) % this.images.length;
+                }, 5000);
+            }
+        }" class="absolute inset-0">
+            <template x-for="(image, index) in images" :key="index">
+                <div x-show="current === index" x-transition:enter="transition ease-out duration-1000"
+                    x-transition:enter-start="opacity-0 transform scale-110"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-1000" x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0" class="absolute inset-0">
+                    <img :src="image" class="w-full h-full object-cover" loading="lazy">
+                    <div class="absolute inset-0 hero-gradient"></div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Hero Content -->
+        <div class="relative z-10 flex items-center justify-center h-full px-4">
+            <div class="text-center text-white max-w-4xl mx-auto">
+                <h1 x-data="{
+                    phrases: [
+                        'CONSTRUYE TUS SUEÑOS',
+                        'INNOVACIÓN EN CONSTRUCCIÓN',
+                        'CALIDAD GARANTIZADA',
+                        'PROYECTOS DE EXCELENCIA'
+                    ],
+                    current: 0,
+                    init() {
+                        setInterval(() => {
+                            this.current = (this.current + 1) % this.phrases.length;
+                        }, 4000);
+                    }
+                }" class="text-2xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                    <span x-text="phrases[current]" class="animate-typing inline-block"></span>
                 </h1>
-                <p class="max-w-3xl mb-6 font-semibold lg:mb-8 md:text-lg lg:text-xl animate-pulse">
-                    Servicios expertos de consultoría de construción para hacer realidad su visión
+
+                <p class="text-lg md:text-xl lg:text-2xl mb-8 opacity-90 slide-in-left">
+                    Servicios expertos de consultoría de construcción para hacer realidad su visión
                 </p>
-                <div class="space-y-4 sm:flex sm:space-y-0 sm:space-x-4">
-                    <a href="#"
-                        class="inline-flex items-center justify-center w-full px-5 py-3 text-sm font-medium text-center text-white bg-blue-500 rounded-lg sm:w-auto hover:bg-blue-600 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 animate-bounce">
-                        Contactenos
-                    </a>
-                </div>
-            </div>
-            <div class="hidden lg:-mt-24 lg:col-span-5 lg:flex animate-fadeInRight">
-                <div id="indicators-carousel" class="relative w-full" data-carousel="slide">
-                    <!-- Carousel wrapper -->
-                    <div class="relative h-56 overflow-hidden rounded-lg md:h-96">
-                        <!-- Item 1 -->
-                        <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
-                            <img src="{{ asset('/storage/avatar_gespro/07.jpg') }}"
-                                class="absolute block w-full h-full object-contain -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                                alt="...">
-                        </div>
-                        <!-- Item 2 -->
-                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                            <img src="{{ asset('/storage/avatar_gespro/03.jpg') }}"
-                                class="absolute block w-full h-full object-contain -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                                alt="...">
-                        </div>
-                        <!-- Item 3 -->
-                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                            <img src="{{ asset('/storage/avatar_gespro/proyectoV.jpg') }}"
-                                class="absolute block w-full h-full object-contain -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                                alt="...">
-                        </div>
-                        <!-- Item 4 -->
-                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                            <img src="{{ asset('/storage/avatar_gespro/04.jpg') }}"
-                                class="absolute block w-full h-full object-contain -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                                alt="...">
-                        </div>
-                        <!-- Item 5 -->
-                        <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                            <img src="{{ asset('/storage/avatar_gespro/07.jpg') }}"
-                                class="absolute block w-full h-full object-contain -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                                alt="...">
-                        </div>
-                    </div>
-                    <!-- Slider indicators -->
-                    <div class="absolute z-30 flex -translate-x-1/2 space-x-3 rtl:space-x-reverse bottom-5 left-1/2">
-                        <button type="button" class="w-3 h-3 rounded-full" aria-current="true" aria-label="Slide 1"
-                            data-carousel-slide-to="0"></button>
-                        <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 2"
-                            data-carousel-slide-to="1"></button>
-                        <button type="button" class="w-3 h-3 rounded-full" aria-current="false"
-                            aria-label="Slide 3" data-carousel-slide-to="2"></button>
-                        <button type="button" class="w-3 h-3 rounded-full" aria-current="false"
-                            aria-label="Slide 4" data-carousel-slide-to="3"></button>
-                        <button type="button" class="w-3 h-3 rounded-full" aria-current="false"
-                            aria-label="Slide 5" data-carousel-slide-to="4"></button>
-                    </div>
-                    <!-- Slider controls -->
-                    <button type="button"
-                        class="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
-                        data-carousel-prev>
-                        <span
-                            class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
-                            <svg class="w-4 h-4 text-white dark:text-gray-800 rtl:rotate-180" aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="M5 1 1 5l4 4" />
-                            </svg>
-                            <span class="sr-only">Previous</span>
-                        </span>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center slide-in-right">
+                    <button
+                        class="bg-corporate-yellow hover:bg-corporate-orange text-corporate-dark px-8 py-4 rounded-lg text-lg font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                        Nuestros Proyectos
                     </button>
-                    <button type="button"
-                        class="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
-                        data-carousel-next>
-                        <span
-                            class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
-                            <svg class="w-4 h-4 text-white dark:text-gray-800 rtl:rotate-180" aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m1 9 4-4-4-4" />
-                            </svg>
-                            <span class="sr-only">Next</span>
-                        </span>
+                    <button
+                        class="border-2 border-white text-white hover:bg-white hover:text-corporate-blue px-8 py-4 rounded-lg text-lg font-bold transition-all duration-300">
+                        Contáctanos
                     </button>
                 </div>
             </div>
-            {{-- <div class="hidden lg:mt-0 lg:col-span-5 lg:flex animate-fadeInRight">
-                <div class="grid grid-cols-3 gap-4">
-                    <div
-                        class="col-span-2 row-span-2 animate-zoomIn duration-500 hover:scale-105 hover:shadow-xl rounded-tl-3xl rounded-br-3xl">
-                        <img src="{{ asset('/storage/avatar_gespro/07.jpg') }}" alt="Imagen 1"
-                            class="w-full h-auto rounded-tl-3xl rounded-br-3xl shadow-lg">
-                    </div>
-                    <div class="animate-slideInLeft duration-500 hover:scale-105 hover:shadow-xl rounded-tr-3xl">
-                        <img src="{{ asset('/storage/avatar_gespro/03.jpg') }}" alt="Imagen 2"
-                            class="w-full h-auto rounded-tr-3xl shadow-lg">
-                    </div>
-                    <div class="animate-slideInRight duration-500 hover:scale-105 hover:shadow-xl rounded-bl-3xl">
-                        <img src="{{ asset('/storage/avatar_gespro/proyectoV.jpg') }}" alt="Imagen 3"
-                            class="w-full h-auto rounded-bl-3xl shadow-lg">
-                    </div>
-                    <div class="animate-zoomIn duration-500 hover:scale-105 hover:shadow-xl rounded-br-3xl">
-                        <img src="{{ asset('/storage/avatar_gespro/04.jpg') }}" alt="Imagen 4"
-                            class="w-full h-auto rounded-br-3xl shadow-lg">
-                    </div>
-                    <div
-                        class="col-span-2 row-span-2 animate-zoomIn duration-500 hover:scale-105 hover:shadow-xl rounded-tl-3xl rounded-br-3xl">
-                        <img src="{{ asset('/storage/avatar_gespro/07.jpg') }}" alt="Imagen 1"
-                            class="w-full h-auto rounded-tl-3xl rounded-br-3xl shadow-lg">
-                    </div>
-                    <div class="animate-slideInLeft duration-500 hover:scale-105 hover:shadow-xl rounded-tr-3xl">
-                        <img src="{{ asset('/storage/avatar_gespro/03.jpg') }}" alt="Imagen 2"
-                            class="w-full h-auto rounded-tr-3xl shadow-lg">
-                    </div>
-                </div>
-            </div> --}}
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white floating">
+            <svg class="w-6 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
+                </path>
+            </svg>
         </div>
     </section>
 
-    <div class="custom-shape-divider">
-        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"
-            class="w-10 h-10 mb-2 text-blue-600 md:w-12 md:h-12 dark:text-blue-500" viewBox="0 0 1200 120"
-            preserveAspectRatio="none">
-            <path
-                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-                opacity=".25" class="shape-fill"></path>
-            <path
-                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-                opacity=".5" class="shape-fill"></path>
-            <path
-                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-                class="shape-fill"></path>
-        </svg>
-    </div>
-
-    <section class="bg-white dark:bg-gray-900">
-        <div
-            class="items-center max-w-screen-xl px-4 py-12 mx-auto lg:grid lg:grid-cols-4 lg:gap-16 xl:gap-24 lg:py-24 lg:px-6">
-            <div class="col-span-2 mb-8">
-                <p class="text-lg font-medium text-blue-600 dark:text-blue-500">Juntos Costruimos tus sueños</p>
-                <h2 class="mt-3 mb-4 text-3xl font-extrabold tracking-tight text-gray-900 md:text-3xl dark:text-white">
-                    NOSOTROS</h2>
-                <p class="font-light text-gray-500 sm:text-xl dark:text-gray-400">Somos una empresa especializada en la
-                    creación, ejecución y supervisión de proyectos de infraestructura, tanto públicos como privados,
-                    comprometida con ofrecer un trabajo de máxima calidad...</p>
-            </div>
-            <div class="col-span-2 space-y-8 md:grid md:grid-cols-2 md:gap-12 md:space-y-0">
-                <!-- Proyecto -->
-                <div class="relative text-center">
-                    <div class="relative flex justify-center items-center">
-                        <svg enable-background="new 0 0 128 128" height="80px" width="80px" id="Слой_1"
-                            version="1.1" viewBox="0 0 128 128" xml:space="preserve"
-                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <g />
-                            <path
-                                d="M119,90.2c-1.1,0-2.4,0.2-3.8,0.6l-21.3,7.4c0-0.1,0-0.1,0-0.2c0-0.1,0-0.2,0-0.3c0-0.2,0-0.3,0-0.5  c0-0.1,0-0.2,0-0.2c0,0,0-0.1,0-0.1c0,0,0-0.1,0-0.1c0-0.2-0.1-0.5-0.1-0.7c0,0,0,0,0-0.1l0,0c-0.9-3.9-4.5-6.8-8.7-6.8H68.2  c-7.8-9.9-25.9-10-26.7-10h-13v-4.8H2v44.1h26.5v-4.2l32.8,10.4c0.2,0.1,5.1,1.5,10.7,1.5h0c3.4,0,6.4-0.5,9-1.6  c6.6-2.7,33.1-16.9,41.1-21.2c2.2-1.2,5.2-4.6,3.5-8.7C124.3,91.7,122.1,90.2,119,90.2z M24.5,114.4H6V78.3h18.5V79v33.8V114.4z   M120.1,99.8c-7.9,4.3-34.3,18.3-40.7,21c-2,0.8-4.5,1.3-7.4,1.3h0c-5.1,0-9.6-1.3-9.6-1.3l-34-10.7V83h13c0.2,0,17.8,0.1,24,9.2  l0.6,0.9h18.9c2.5,0,4.6,1.8,4.9,4.2c0,0,0,0.1,0,0.1c0,0.2,0,0.3,0,0.5c0,0.2,0,0.4-0.1,0.6c0,0.1,0,0.2,0,0.3  c0,0.2-0.1,0.4-0.2,0.6c0,0.1,0,0.2-0.1,0.2c-0.1,0.3-0.2,0.5-0.4,0.7l0,0c-0.8,1.2-2.2,2-3.8,2h-26v4h26c2.7,0,5.2-1.3,6.8-3.3  l24.3-8.4c1-0.3,1.9-0.4,2.7-0.4c1.5,0,2.2,0.5,2.8,1.9C122.6,98,120.7,99.5,120.1,99.8z"
-                                fill="#3EBBC4" />
-                            <path
-                                d="M105.4,73V35.2l4.7,4.7l2.8-2.8l-7.5-7.5V9.4H93.3v8L79,3.2L45.1,37.1l2.8,2.8l4.7-4.7V73H105.4z M97.3,27.1  V13.4h4.1v17.7v0.1V69H56.6V31.2L79,8.8L97.3,27.1z"
-                                fill="#3EBBC4" />
-                        </svg>
+    <!-- Stats Section -->
+    <section class="py-16 bg-gradient-to-r from-corporate-blue to-corporate-cyan">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center text-white">
+                <div class="fade-in-up">
+                    <div class="text-4xl lg:text-5xl font-bold mb-2" x-data="{ count: 0 }" x-init="setInterval(() => { if (count < 120) count++ }, 20)">
+                        <span x-text="count"></span>+
                     </div>
-                    <h3 class="text-4xl font-bold text-gray-900 dark:text-white" id="counter-projects">0</h3>
-                    <p class="font-light text-gray-500 dark:text-gray-400">PROYECTOS EJECUTADOS</p>
+                    <p class="text-lg opacity-90">Proyectos Ejecutados</p>
                 </div>
-
-                <!-- Clientes -->
-                <div class="relative text-center">
-                    <div class="relative flex justify-center items-center">
-                        <svg enable-background="new 0 0 160 240" height="80px" width="80px" id="Layer_1"
-                            version="1.1" viewBox="0 0 160 240" xml:space="preserve"
-                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <g>
-                                <path
-                                    d="M127.6,220.9c17.2-9.6,4.2-17-11.8-24.6c-17.8-8.5-24.2-10.6-40.5-1.6c-13.9,7.6-1.6,14.9,14.6,22.5   C108.4,225.8,115.5,227.8,127.6,220.9z"
-                                    opacity="0.2" />
-                                <path
-                                    d="M86.9,192.6c-3.4,2.5-6.8,4-9.8,5.6c-3,1.6-4.5,3.1-4.1,4.5c0.3,1.5,3,3.2,7.6,3s12-4.4,13.4-4.5   c1.4-0.1,1.1,0.8,2.1,0.8c1,0,6.4-1,7-1.7c0.6-0.7-0.1-5.7-0.1-5.7L86.9,192.6z"
-                                    fill="#262626" />
-                                <path
-                                    d="M103.1,200.3c0.3-0.4,0.3-1.8,0.2-3.1c-1.3,1.2-3.5,1.9-5.7,2c-2.6,0.1-5.7,0.6-9.3,2.9   c-3.6,2.3-16,4.2-14.6-1.4c-0.6,0.7-0.9,1.4-0.7,2.1c0.3,1.5,3,3.2,7.6,3c4.6-0.2,12-4.4,13.4-4.5c1.4-0.1,1.1,0.8,2.1,0.8   C97.1,202,102.5,201,103.1,200.3z"
-                                    opacity="0.5" />
-                                <path
-                                    d="M89.1,114c-0.9,6.6-1.3,29.8-0.4,40.3c0.8,10.6,0.7,25.9-0.1,31.2c-0.6,3.9-2.5,6-2,7.4   c0.5,1.5,5,4.6,10.2,5.2c5.1,0.6,7.2-0.2,7.9-2.2c0.6-2,2.8-23.5,3.5-37c0.6-12,1.7-45.1,1.7-45.1H89.1z"
-                                    fill="#656565" />
-                                <path
-                                    d="M89.1,114c-0.9,6.6-1.3,29.8-0.4,40.3c0.8,10.6,0.7,25.9-0.1,31.2c-0.6,3.9-2.5,6-2,7.4   c0.5,1.5,5,4.6,10.2,5.2c5.1,0.6,7.2-0.2,7.9-2.2c0.6-2,2.8-23.5,3.5-37c0.6-12,1.7-45.1,1.7-45.1H89.1z"
-                                    opacity="0.3" />
-                                <path
-                                    d="M117.9,204.6c-0.8,2.3-4.3,8-5,9.4c-0.8,1.4-2.3,3.3-1.3,4.7c1,1.5,5.7,3.3,10.4,1c4.7-2.2,5.5-7.7,5.5-7.7   h0.8c0,0,1-2.3,1-3.9c0-1.6-0.3-2.6-0.3-2.6L117.9,204.6z"
-                                    fill="#262626" />
-                                <path
-                                    d="M127.5,212.1h0.8c0,0,1-2.3,1-3.9c0-1.6-0.3-2.6-0.3-2.6l-0.1,0c-0.1,0.2-0.1,0.4-0.1,0.6   c-0.2,1.3-2.5,8.3-3.8,10c-3.4,4.4-12.6,5.4-13.5,0.3c-0.3,0.8-0.4,1.6,0.1,2.2c1,1.5,5.7,3.3,10.4,1   C126.7,217.5,127.5,212.1,127.5,212.1z"
-                                    opacity="0.5" />
-                                <path
-                                    d="M101,114.7c0.1,4.3,4.5,9.3,5.8,15.4c1.3,6.1,5.3,36.3,6.3,45.2c1.5,12.9,2.8,31.7,3.2,31.9   c0.4,0.1,3.7-1.9,6.9-0.2c3.2,1.7,6.8,1,7.9,0.2c1-0.8,0.6-9.4,0.2-14.6c-0.3-5.1-1.9-43.6-1.8-48.8c0.1-5.2,1.8-19.3,1.4-22.6   c-0.4-3.4-2.3-7.3-2.3-7.3L101,114.7z"
-                                    fill="#656565" />
-                                <path
-                                    d="M101,114.7c0.1,4.3,4.5,9.3,5.8,15.4c1.3,6.1,5.3,36.3,6.3,45.2c1.5,12.9,2.8,31.7,3.2,31.9   c0.4,0.1,3.7-1.9,6.9-0.2c3.2,1.7,6.8,1,7.9,0.2c1-0.8,0.6-9.4,0.2-14.6c-0.3-5.1-1.9-43.6-1.8-48.8c0.1-5.2,1.8-19.3,1.4-22.6   c-0.4-3.4-2.3-7.3-2.3-7.3L101,114.7z"
-                                    opacity="0.15" />
-                                <path
-                                    d="M90.8,67.4c-2.5,4-5.1,10.3-6.6,14.5c-1.5,4.2-5.4,11.7-5.7,12.7c-0.2,0.9-0.1,4.6,3.4,5.7s5.2,1.8,5.8,0.9   c0.5-0.8,4.2-5,4.2-5L90.8,67.4z"
-                                    fill="#656565" />
-                                <path
-                                    d="M90.8,67.4c-2.5,4-5.1,10.3-6.6,14.5c-1.5,4.2-5.4,11.7-5.7,12.7c-0.2,0.9-0.1,4.6,3.4,5.7s5.2,1.8,5.8,0.9   c0.5-0.8,4.2-5,4.2-5L90.8,67.4z"
-                                    opacity="0.15" />
-                                <path
-                                    d="M103.6,39.7c-2,1.6-10.2,13.3-10.6,27.7s3.2,21.1,3.2,21.1s10.9-29.1,16.9-35.5c6-6.4,5.6-11.5,5.6-11.5   s-3.8-2.6-7.9-2.9S103.6,39.7,103.6,39.7z"
-                                    fill="#FFFFFF" />
-                                <path
-                                    d="M103.3,49.7l2.3,6.4l6.4-4.3l-6.8,6L103,50l-1-0.2l-3.8,4.3c0,0,0-4.1,0-3.8c0,0.3,0.3,1.9,0.3,1.9l3.5-3.4   L103.3,49.7z"
-                                    opacity="0.2" />
-                                <path
-                                    d="M100.4,54.3l-0.1-3.8l1.5-1.6l1.5,0.7l1,2.7l-2.3,2.3c0,0-2.1,18.1-2.3,20.4s-3.1,13-3.1,13   s-4.5-12.5-4.3-12.7C92.4,75,100.4,54.3,100.4,54.3z"
-                                    fill="#28896D" />
-                                <path
-                                    d="M136.6,122.9c-0.3,1-0.2,2-2,3.2c-1.7,1.3-3.1,3.6-3.5,5.2c-0.4,1.6-1.7,3.5-1.9,4.7   c-0.1,1.2,0.8,2,1.8,1.1c1-0.8,2.9-4.5,3.9-4.8c1-0.3,1.3,2.9,1.4,4c0.1,1-1.5,3-2.2,4c-0.8,1-0.1,1.9,1,1.6s5.9-2.9,7.1-7.9   c1.3-5,0.7-12,0.7-12L136.6,122.9z"
-                                    fill="#FBD7C7" />
-                                <path
-                                    d="M134.4,122.2l-0.1,2c0,0,3.8,0.9,6.9,0.6c3.1-0.3,3.8-1,3.8-1l-0.3-3L134.4,122.2z"
-                                    fill="#FFFFFF" />
-                                <path
-                                    d="M107.3,38.8c-2.1,0.3-9.2-2-13.2,4.1s-4.7,12.6-4.9,18.3s-1.2,43-1.2,49.5c0,6.6,0.1,9.5,3,10.4   c3.4,1.1,5.9-1.9,6-3.8c0.1-2-0.3-30.7-0.3-30.7s-5.1-12-1.8-25.8s8.5-18.4,8.5-18.4l4.1-3.5L107.3,38.8z"
-                                    fill="#656565" />
-                                <path
-                                    d="M117.5,40.4c0,0,4,3.3,6.2,5.1c2.2,1.8,11.9,10.5,12.9,11.7c1,1.2,2.2,2.4,2.2,5.7s0.4,8.4,1.7,11.9   c4.1,10.6,4.3,15.2,4.6,19.8s0.9,26.6,0.9,26.6s-1.3,1.2-6.4,1.8c-5.2,0.6-6.4-0.1-6.4-0.1s-1.5-14.2-2.3-19.3   c-1.3-7.8-5-16.1-5-16.1s-0.6,3.5-0.3,5.6c0.3,2.1,4.1,19.3,4.9,22.1c0.8,2.7,1.7,6.1,1.7,6.1s-4.2,6.6-15.6,6.1s-18.2-4-19.6-11   c-1.4-7-1.7-24.5,0.1-34.3s9.7-25.6,14.9-31.4S117.5,40.4,117.5,40.4z"
-                                    fill="#656565" />
-                                <path
-                                    d="M97.5,86.7c0,0,3.5-8.9,8.9-16.5c3.8-5.2,7.8-8.6,7.8-8.6l-0.3-3.4l4.1-1.5l2.5-13.7l0.5,0.5l-1.7,14.1   l-4.6,1l1,3.5c0,0-5.4,4.7-9,9.2C102.8,76.1,97.5,86.7,97.5,86.7z"
-                                    opacity="0.2" />
-                                <path
-                                    d="M101.8,18.8c-3.8,2.8-4,10.3-3.9,15.4c0.1,5.1,0.7,9.3,1.5,9.7c0.8,0.4,2.4,0.6,2.4,0.6s-0.1,4.9,1.1,5.1   c1.2,0.3,7.8-2.8,10.9-6c3.1-3.1,3.5-3.8,3.5-3.8s4.3-7.9,3.6-14.1C120,19.5,112.4,11.1,101.8,18.8z"
-                                    fill="#FBD7C7" />
-                                <path
-                                    d="M98.5,21.9c-0.6,1,1.5,0.8,4.5,5.4c3.1,4.6,6.6,2.6,7.6,2.6c0.3,2.5,2.4,2.1,4.3,4.3c0,0,0.7-2.5,2.1-2.6   c1.4-0.1,0.9,4.2,0.9,4.2s0.2,1.7,1.2,2c1,0.3,4.7-8.8,2.8-14.7C119,13.7,105.4,10.4,98.5,21.9z"
-                                    fill="#762C07" />
-                                <path
-                                    d="M79.4,95c0.5-0.5,3.6-0.4,5.3,1.3c1.7,1.7,2.2,3.6,1.9,4.1c-0.2,0.4-2.4,0.2-4.9-1.5   C79.3,97.2,78.9,95.7,79.4,95z"
-                                    fill="#FFFFFF" />
-                                <path
-                                    d="M80,95.4c1.2-0.4,3.1,0.1,4.3,1.3c1.2,1.1,1.7,2.2,1.6,3s-1,2.7-1.2,3.6c-0.2,0.8-2.7,4.2-3.5,5.3   c-0.7,1.2-1.6,1.7-1.8,3.5c-0.2,1.8-0.8,2.7-2.1,2.8c-1.3,0.1-6.1-2.9-5.2-7.2c0.9-4.2,2.6-6.7,3.6-8.1c0.5-0.7,2.6-1.8,3.3-2.3   C79.8,96.7,79.5,95.6,80,95.4z"
-                                    fill="#FBD7C7" />
-                            </g>
-                            <g>
-                                <path
-                                    d="M73.6,231c17.2-9.6,4.2-17-11.8-24.6c-17.8-8.5-24.9-11.7-40.5-1.6c-9.5,6.1-2.4,15.9,13.8,23.5   C53.5,236.9,61.4,237.8,73.6,231z"
-                                    opacity="0.2" />
-                                <path
-                                    d="M21.6,214.3c0,2.1-0.1,5.9,3.8,5.9s5.9-2.9,6.2-3.8c0.3-1-0.1-3,1.3-3.8c1.3-0.8,6.3-2.5,6.6-7.1   c0.4-4.9-1.8-5-3.5-5c-1.7,0-5.9,0.3-5.9,0.3L21.6,214.3z"
-                                    fill="#262626" />
-                                <path
-                                    d="M38,200.8c1.2,1.5,1,3.9,0.1,5.7c-1.9,3.6-6.4,3.1-6.8,5.2c-0.4,2.1-2.7,5.6-5.4,6c-2,0.3-3.2-0.3-4.2-1.2   c0.2,1.8,1,3.6,3.8,3.6c4,0,5.9-2.9,6.2-3.8c0.3-1-0.1-3,1.3-3.8c1.3-0.8,6.3-2.5,6.6-7.1C39.8,202.4,39,201.3,38,200.8z"
-                                    opacity="0.5" />
-                                <path
-                                    d="M21,126.3c-0.3,6,1.4,21.3,1.2,32.8c-0.2,11.5-2.8,43.8-2.5,47.6c0.3,3.8-0.3,8.8,3.8,9.6   c3.2,0.6,7.4-1.8,9-4.3c1.6-2.5,2.6-6.2,2.7-10.5c0.1-4.3,9.4-58.4,9.5-60.6c0.1-2.2-1-13.8-1-13.8L21,126.3z"
-                                    fill="#06547A" />
-                                <path
-                                    d="M21,126.3c-0.3,6,1.4,21.3,1.2,32.8c-0.2,11.5-2.8,43.8-2.5,47.6c0.3,3.8-0.3,8.8,3.8,9.6   c3.2,0.6,7.4-1.8,9-4.3c1.6-2.5,2.6-6.2,2.7-10.5c0.1-4.3,9.4-58.4,9.5-60.6c0.1-2.2-1-13.8-1-13.8L21,126.3z"
-                                    opacity="0.3" />
-                                <path
-                                    d="M49.9,28.4c2.5,1,4.3,3.8,4.7,10.3c0.4,6.5,0,11.6-1.5,12.3c-1.5,0.7-2.5,0.4-2.5,0.4l1.1,7.1l-16.8-4.7   c0,0,0.3-3.9-0.6-6.4s-3.5-11.2-0.8-15.2C36.3,28.2,41.9,25.4,49.9,28.4z"
-                                    fill="#FBD7C7" />
-                                <path
-                                    d="M10.2,114.6c0,0-0.8,7-0.5,8.7c0.3,1.7,3.5,9.6,5.3,10c1.8,0.4,3.6-1,3.4-2.3c-0.2-1.2-2-3.3-2.1-5.4   s-0.1-5.3,0.8-5.7c0.9-0.5,2.9,2,3.8,3.1c0.9,1.1,2.5,0.7,2.5-0.2c0-0.8-1.9-2.6-2.3-4.1c-0.4-1.5-1.2-2.7-2.3-4   c-1.1-1.4-1.5-2.3-1.5-2.3L10.2,114.6z"
-                                    fill="#FBD7C7" />
-                                <path
-                                    d="M9,112.5c0,0-0.6,3.1,0.5,3.8c0.9,0.5,4.5,1.2,6.8,0.3c2-0.8,3.1-1.5,3.2-2.2c0.1-0.7-0.8-2-0.8-2L9,112.5z   "
-                                    fill="#FFFFFF" />
-                                <path
-                                    d="M48.7,225c0,2,0,3.3,0,4.1c0,0.8,0.1,2.9,4.3,2.6s6.4-1.2,6.6-1.5c0.2-0.3,0.7-1.1,0.7-1.1   s7.2,0.6,12.4-1.6c5.4-2.3,8.6-7.3,4-9.4c-2.8-1.3-4.4,0.3-8.6-0.2c-4.5-0.5-7.1-2.7-7.1-2.7L48.7,225z"
-                                    fill="#262626" />
-                                <path
-                                    d="M72.8,227.4c5.4-2.3,8.6-7.3,4-9.4c4.8,4.5-4.5,8.7-8.6,9c-2.7,0.2-8.6,0.5-12.4,1.3   c-3.1,0.6-6.2,0.4-7.1-0.8c0,0.7,0,1.3,0,1.7c0,0.8,0.1,2.9,4.3,2.6c4.3-0.3,6.4-1.2,6.6-1.5c0.2-0.3,0.7-1.1,0.7-1.1   S67.6,229.5,72.8,227.4z"
-                                    opacity="0.5" />
-                                <path
-                                    d="M38.1,129.4c-0.4,6.2,2.3,19.4,3.4,26.8c1,7.4,2.9,38.7,3.7,46.5c0.6,6.3,2.7,23.4,3.9,24.3   c1.2,0.9,9.6-0.3,13.1-2.6c2.3-1.6,4.9-4.7,4.5-6.8c-0.4-2.1-3.1-4.1-3.5-14.9c-0.3-10.8,0.9-30.2,0.6-44.9   c-0.3-14.8-1-31.5-1-31.5L38.1,129.4z"
-                                    fill="#06547A" />
-                                <path
-                                    d="M38.1,129.4c-0.4,6.2,2.3,19.4,3.4,26.8c1,7.4,2.9,38.7,3.7,46.5c0.6,6.3,2.7,23.4,3.9,24.3   c1.2,0.9,9.6-0.3,13.1-2.6c2.3-1.6,4.9-4.7,4.5-6.8c-0.4-2.1-3.1-4.1-3.5-14.9c-0.3-10.8,0.9-30.2,0.6-44.9   c-0.3-14.8-1-31.5-1-31.5L38.1,129.4z"
-                                    opacity="0.15" />
-                                <path
-                                    d="M17.4,56.9c-1.2,1.4-2,5.5-2.3,7.6c-0.3,2.1-5.7,19.3-6.6,22.7c-0.9,3.4-0.8,9.1-0.6,14.4   C8,107,8,113.3,8.1,114.3c0.1,1,4,2,6.9,1.6c2.9-0.4,4.6-1.2,4.9-3.6s1.8-13.9,3.8-18.1c2-4.2,4.9-11.7,4.9-11.7L17.4,56.9z"
-                                    fill="#06547A" />
-                                <path
-                                    d="M17.4,56.9c-1.2,1.4-2,5.5-2.3,7.6c-0.3,2.1-5.7,19.3-6.6,22.7c-0.9,3.4-0.8,9.1-0.6,14.4   C8,107,8,113.3,8.1,114.3c0.1,1,4,2,6.9,1.6c2.9-0.4,4.6-1.2,4.9-3.6s1.8-13.9,3.8-18.1c2-4.2,4.9-11.7,4.9-11.7L17.4,56.9z"
-                                    opacity="0.15" />
-                                <path
-                                    d="M70.5,104.3l0.1,8.8c0,0,4.1,1.1,7.1-0.5c3-1.6,5.2-4.7,5.2-5.8c0-1.1-0.3-2.4-1.3-2.4   c-1.1,0-2,1.6-3.2,0.3c-1.3-1.3-0.4-2.2,0.6-2.9c0.9-0.7,1.3-2.5-0.8-2.3c-1,0.1-1.9,0.8-2.5,1.3c-0.9,0.8-1.8,1.8-3,2.8   C71.3,104.7,70.5,104.3,70.5,104.3z"
-                                    fill="#FBD7C7" />
-                                <path
-                                    d="M35,50.3l-3.6,0.8l0.1,0.9c0,0-5.5-0.7-9.4,1.4c-4,2.1-6.1,4-5.6,7.3c0.6,3.4,3.9,15.1,6.1,21.1   c2.2,6,3.5,9.3,2.9,14.2s-7.1,27.7-6.7,31.2s5.8,6.1,12.5,7.9c6.9,1.8,31.9,3.2,32.4-1.9s0.5-18.9,0.5-18.9s7.1,1.3,8.4-0.4   c1.3-1.7,2.8-4.5,1.2-7.9c-1.5-3.4-2.1-3.5-3.1-3.8c-1-0.3-5.5-1-6.8-2.7c-1.3-1.6-0.3-7.8-0.3-15.7s0.3-13.6-3.2-17.3   c-3.5-3.7-7.5-8.9-10.8-10.1C45.2,55,34.3,55.3,35,50.3z"
-                                    fill="#06547A" />
-                                <path
-                                    d="M32.3,51c0,0,0.1,5.2,7.4,6.1c6.9,0.9,19,8.5,19,8.5s-13-7.3-18.9-7.8c-8.8-0.7-8.4-6.8-8.4-6.8L32.3,51z"
-                                    opacity="0.2" />
-                                <path
-                                    d="M48.4,43.8c0.1,0.8,1-1.3,1.7-3.1c0.7-1.9,2-4.3,2.7-7c0.7-2.7,1.3-1.7,1.4-2.9c0.1-1.2-5.7-8.9-16.3-5.2   s-8,16-7.1,19.4c1,3.4,4.1,7.3,7.1,7.3c3-0.1,6.5-2.4,6.8-6.8S48.3,42,48.4,43.8z"
-                                    fill="#825012" />
-                            </g>
-                        </svg>
+                <div class="fade-in-up">
+                    <div class="text-4xl lg:text-5xl font-bold mb-2" x-data="{ count: 0 }" x-init="setInterval(() => { if (count < 180) count++ }, 15)">
+                        <span x-text="count"></span>+
                     </div>
-                    <h3 class="text-4xl font-bold text-gray-900 dark:text-white" id="counter-clients">0</h3>
-                    <p class="font-light text-gray-500 dark:text-gray-400">CLIENTES SATISFECHOS</p>
+                    <p class="text-lg opacity-90">Clientes Satisfechos</p>
                 </div>
-
-                <!-- proyectos ejecutados -->
-                <div class="relative text-center">
-                    <div class="relative flex justify-center items-center">
-                        <svg enable-background="new 0 0 128 128" height="80px" width="80px" id="Слой_1"
-                            version="1.1" viewBox="0 0 128 128" xml:space="preserve"
-                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <g>
-                                <rect fill="#3EBBC4" height="4" width="40" x="24" y="112" />
-                                <path
-                                    d="M6,100h26v0v2H14c-6.6,0-12,5.4-12,12s5.4,12,12,12h60c6.6,0,12-5.4,12-12s-5.4-12-12-12H56v-2l10,0   c3.9,0,7-3.1,7-7V80.7c0-2.1-0.6-4.2-1.6-6l-5.5-9.5l21.7-33.6l26.1,44.9c0.9,1.5,2.3,2.6,4,3c0.6,0.1,1.1,0.2,1.7,0.2   c0.1,0,0.2,0,0.3,0v4.6l-28.7,6.3l-2.5-4.5l-3.5,2l6.8,12.2c4.3,7.7,12.4,12.2,20.8,12.2c1.9,0,3.8-0.2,5.8-0.7   c3.1-0.8,5.3-3.6,5.3-6.8V78.2c2.3-2,2.9-5.4,1.4-8.1l-28.8-52c1.5-3,0.6-6.7-2.2-8.7c-3-2.2-7.2-1.6-9.5,1.4L53.8,50   c-0.2,0-0.5,0-0.7,0H32v15H20c-2.2,0-4,1.8-4,4v6H6c-2.2,0-4,1.8-4,4v17C2,98.2,3.8,100,6,100z M119.6,105.1c0,1.4-0.9,2.6-2.3,2.9   c-8.7,2.2-17.8-1.8-22.1-9.6l-2.3-4.1l26.7-5.9V105.1z M82,114c0,4.4-3.6,8-8,8H14c-4.4,0-8-3.6-8-8s3.6-8,8-8h60   C78.4,106,82,109.6,82,114z M52,102H36v-2l16,0V102z M69,80.7v5.9l-24.6-4.8C43,81.5,42,80.3,42,78.9V54h11.1   c1.1,0,2.1,0.6,2.6,1.5l12.2,21.2C68.6,77.9,69,79.3,69,80.7z M120.6,75.5c-0.6,0.3-1.3,0.4-1.9,0.3c-0.7-0.2-1.2-0.6-1.6-1.2   L90,27.9l3.8-5.9L121.6,72C122.2,73.2,121.8,74.8,120.6,75.5z M87.8,13.2c1-1.2,2.7-1.5,4-0.6c1.3,0.9,1.6,2.6,0.8,4L63.7,61.3   l-4.5-7.8c-0.4-0.7-0.9-1.3-1.5-1.8L87.8,13.2z M36,54h2v24.9c0,3.4,2.4,6.2,5.7,6.9L69,90.6V93c0,1.7-1.3,3-3,3l-30,0V54z M20,69   h12v6H20V69z M6,79h3v7h4v-7h19v17H6V79z"
-                                    fill="#3EBBC4" />
-                                <circle cx="14" cy="114" fill="#3EBBC4" r="3" />
-                                <circle cx="74" cy="114" fill="#3EBBC4" r="3" />
-                            </g>
-                        </svg>
+                <div class="fade-in-up">
+                    <div class="text-4xl lg:text-5xl font-bold mb-2" x-data="{ count: 0 }" x-init="setInterval(() => { if (count < 9) count++ }, 200)">
+                        <span x-text="count"></span>+
                     </div>
-                    <h3 class="text-4xl font-bold text-gray-900 dark:text-white" id="regions-ejecutados">0</h3>
-                    <p class="font-light text-gray-500 dark:text-gray-400">PROYECTOS EJECUTÁNDOSE</p>
+                    <p class="text-lg opacity-90">Proyectos en Ejecución</p>
                 </div>
-
-                <!-- Regiones -->
-                <div class="relative text-center">
-                    <div class="relative flex justify-center items-center">
-                        <svg id="Layer_1" style="enable-background:new 0 0 120 120;" height="80px" width="80px"
-                            version="1.1" viewBox="0 0 120 120" xml:space="preserve"
-                            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <style type="text/css">
-                                .st0 {
-                                    fill: #75ABF9;
-                                }
-
-                                .st1 {
-                                    fill: #FFFFFF;
-                                }
-
-                                .st2 {
-                                    fill: #D90049;
-                                }
-                            </style>
-                            <g>
-                                <circle class="st0" cx="60" cy="60" r="45.1" />
-                                <g>
-                                    <path class="st1"
-                                        d="M64.5,100.4c8.8-1,16.7-4.7,22.9-10.4c-2.9-2.6-6.1-4.8-9.7-6.6C74.5,89.9,70,95.7,64.5,100.4z" />
-                                    <path class="st1"
-                                        d="M74,81.9c-3.8-1.4-7.8-2.2-12-2.4v17.8C67,93,71.1,87.8,74,81.9z" />
-                                    <path class="st1"
-                                        d="M79.1,62H62v13.4c4.8,0.2,9.4,1.2,13.6,2.8C77.7,73.2,78.9,67.7,79.1,62z" />
-                                    <path class="st1"
-                                        d="M79.3,79.8c4,1.9,7.6,4.4,10.9,7.4c6.1-6.7,9.9-15.5,10.4-25.2H83.1C82.9,68.3,81.6,74.3,79.3,79.8z" />
-                                    <path class="st1"
-                                        d="M83.1,58h17.5c-0.5-9.7-4.3-18.4-10.4-25.2c-3.2,3-6.9,5.5-10.9,7.4C81.6,45.8,82.9,51.7,83.1,58z" />
-                                    <path class="st1"
-                                        d="M77.7,36.6c3.5-1.7,6.8-4,9.7-6.6c-6.2-5.7-14.1-9.4-22.9-10.4C70,24.3,74.5,30.1,77.7,36.6z" />
-                                    <path class="st1"
-                                        d="M75.6,41.8c-4.3,1.6-8.9,2.6-13.6,2.8V58h17.1C78.9,52.3,77.7,46.8,75.6,41.8z" />
-                                    <path class="st1"
-                                        d="M62,22.8v17.8c4.2-0.2,8.2-1,12-2.4C71.1,32.2,67,27,62,22.8z" />
-                                    <path class="st1"
-                                        d="M46,38.1c3.8,1.4,7.8,2.2,12,2.4V22.8C53,27,48.9,32.2,46,38.1z" />
-                                    <path class="st1"
-                                        d="M55.5,19.6c-8.8,1-16.7,4.7-22.9,10.4c2.9,2.6,6.1,4.8,9.7,6.6C45.5,30.1,50,24.3,55.5,19.6z" />
-                                    <path class="st1"
-                                        d="M40.9,58H58V44.6c-4.8-0.2-9.4-1.2-13.7-2.8C42.3,46.8,41.1,52.3,40.9,58z" />
-                                    <path class="st1"
-                                        d="M44.4,78.2c4.3-1.6,8.9-2.6,13.7-2.8V62H40.9C41.1,67.7,42.3,73.2,44.4,78.2z" />
-                                    <path class="st1"
-                                        d="M58,97.3V79.4c-4.2,0.2-8.2,1-12,2.4C48.9,87.8,53,93,58,97.3z" />
-                                    <path class="st1"
-                                        d="M42.3,83.4c-3.5,1.7-6.8,4-9.7,6.6c6.2,5.7,14.1,9.4,22.9,10.4C50,95.7,45.5,89.9,42.3,83.4z" />
-                                    <path class="st1"
-                                        d="M36.9,62H19.4c0.5,9.7,4.3,18.4,10.4,25.2c3.2-3,6.9-5.5,10.9-7.4C38.4,74.3,37.1,68.3,36.9,62z" />
-                                    <path class="st1"
-                                        d="M40.7,40.2c-4-1.9-7.7-4.4-10.9-7.4c-6.1,6.7-9.9,15.5-10.4,25.2h17.5C37.1,51.7,38.4,45.8,40.7,40.2z" />
-                                </g>
-                            </g>
-                            <g>
-                                <path class="st2"
-                                    d="M28.3,59.6l-3.7-4.2c-2.3-2.6-1.8-6.6,1-8.5l0,0c2-1.4,4.6-1.4,6.5,0l0,0c2.8,2,3.3,6,1,8.5l-3.7,4.2   C29.1,60,28.5,60,28.3,59.6z" />
-                                <circle class="st1" cx="28.8" cy="51.6" r="3.1" />
-                            </g>
-                            <g>
-                                <path class="st2"
-                                    d="M59.5,76.8l-3.7-4.2c-2.3-2.6-1.8-6.6,1-8.5l0,0c2-1.4,4.6-1.4,6.5,0l0,0c2.8,2,3.3,6,1,8.5l-3.7,4.2   C60.3,77.2,59.7,77.2,59.5,76.8z" />
-                                <circle class="st1" cx="60" cy="68.8" r="3.1" />
-                            </g>
-                            <g>
-                                <path class="st2"
-                                    d="M45.5,39.5l-3.7-4.2c-2.3-2.6-1.8-6.6,1-8.5l0,0c2-1.4,4.6-1.4,6.5,0l0,0c2.8,2,3.3,6,1,8.5l-3.7,4.2   C46.3,39.9,45.7,39.9,45.5,39.5z" />
-                                <circle class="st1" cx="46" cy="31.5" r="3.1" />
-                            </g>
-                        </svg>
+                <div class="fade-in-up">
+                    <div class="text-4xl lg:text-5xl font-bold mb-2" x-data="{ count: 0 }" x-init="setInterval(() => { if (count < 5) count++ }, 400)">
+                        <span x-text="count"></span>+
                     </div>
-                    <h3 class="text-4xl font-bold text-gray-900 dark:text-white" id="counter-regions">0</h3>
-                    <p class="font-light text-gray-500 dark:text-gray-400">REGIONES EJECUTADAS</p>
+                    <p class="text-lg opacity-90">Regiones Atendidas</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Animación de Conteo -->
-    <script>
-        // Contadores
-        function animateCounter(id, start, end, duration) {
-            let current = start;
-            let range = end - start;
-            let increment = end > start ? 1 : -1;
-            let stepTime = Math.abs(Math.floor(duration / range));
-            let counterElement = document.getElementById(id);
-
-            let timer = setInterval(function() {
-                current += increment;
-                counterElement.innerText = current + (current === end ? '+' : '');
-                if (current === end) {
-                    clearInterval(timer);
-                }
-            }, stepTime);
-        }
-
-        // Activar el conteo para cada número
-        window.onload = function() {
-            animateCounter('counter-projects', 0, 120, 2000);
-            animateCounter('counter-clients', 0, 180, 2500);
-            animateCounter('counter-regions', 0, 5, 2000);
-            animateCounter('regions-ejecutados', 0, 9, 2000);
-        };
-    </script>
-
-    <section class="bg-gray-50 dark:bg-gray-800">
-        <div class="max-w-screen-xl px-4 py-8 mx-auto space-y-12 lg:space-y-20 lg:py-24 lg:px-6">
-            <!-- Row -->
-            <div class="items-center gap-8 lg:grid lg:grid-cols-2 xl:gap-16">
-                <div class="text-gray-500 sm:text-lg dark:text-gray-400">
-                    <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">NUESTRA
-                        VISION</h2>
-                    <p class="mb-8 font-light lg:text-xl">Ser el líder en el sector de la construcción y la
-                        arquitectura mediante la integración de tecnología avanzada y prácticas innovadoras. Aspiramos a
-                        transformar la industria con soluciones de diseño y construcción que sean sostenibles,
-                        eficientes y accesibles, ofreciendo una experiencia única a nuestros clientes y contribuyendo al
-                        desarrollo de infraestructuras de alta calidad.</p>
+    <!-- About Section -->
+    <section id="nosotros" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Vision -->
+                <div class="slide-in-left">
+                    <div class="flex items-center mb-6">
+                        <div class="w-2 h-12 bg-corporate-orange mr-4"></div>
+                        <h2 class="text-3xl lg:text-4xl font-bold text-corporate-blue">Nuestra Visión</h2>
+                    </div>
+                    <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                        Ser el líder en el sector de la construcción mediante la integración de tecnología avanzada y
+                        prácticas innovadoras.
+                        Aspiramos a transformar la industria con soluciones sostenibles, eficientes y accesibles.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white p-4 rounded-lg shadow-md">
+                            <div class="text-2xl font-bold text-corporate-green mb-2">15+</div>
+                            <div class="text-sm text-gray-600">Años de Experiencia</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-md">
+                            <div class="text-2xl font-bold text-corporate-orange mb-2">100%</div>
+                            <div class="text-sm text-gray-600">Calidad Garantizada</div>
+                        </div>
+                    </div>
                 </div>
-                <img class="hidden mb-4 rounded-lg lg:mb-0 lg:flex h-80 w-82"
-                    src="{{ asset('/storage/avatar_gespro/vision.png') }}" alt="dashboard feature image">
+
+                <div class="slide-in-right">
+                    <img src="/storage/avatar_gespro/vision.png" alt="Visión"
+                        class="w-full h-80 object-cover rounded-lg shadow-lg">
+                </div>
             </div>
-            <!-- Row -->
-            <div class="items-center gap-8 lg:grid lg:grid-cols-2 xl:gap-16">
-                <img class="hidden w-full mb-4 rounded-lg lg:mb-0 lg:flex"
-                    src="{{ asset('/storage/avatar_gespro/mision.png') }}" alt="feature image 2">
-                <div class="text-gray-500 sm:text-lg dark:text-gray-400">
-                    <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">NUESTRA
-                        MISION</h2>
-                    <p class="mb-8 font-light lg:text-xl">Nuestra misión es proporcionar servicios de construcción y
-                        diseño arquitectónico que superen las expectativas de nuestros clientes a través de la
-                        excelencia en la ejecución y el uso de tecnología avanzada. Nos comprometemos a ofrecer
-                        soluciones personalizadas y eficientes, garantizando la calidad y la satisfacción en cada
-                        proyecto. buscamos mejorar la gestión de proyectos y facilitar la colaboración, promoviendo
-                        prácticas de construcción responsables y sostenibles.</p>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-center mt-16">
+                <div class="slide-in-left order-2 lg:order-1">
+                    <img src="/storage/avatar_gespro/mision.png" alt="Misión"
+                        class="w-full h-80 object-cover rounded-lg shadow-lg">
+                </div>
+
+                <!-- Mission -->
+                <div class="slide-in-right order-1 lg:order-2">
+                    <div class="flex items-center mb-6">
+                        <div class="w-2 h-12 bg-corporate-yellow mr-4"></div>
+                        <h2 class="text-3xl lg:text-4xl font-bold text-corporate-blue">Nuestra Misión</h2>
+                    </div>
+                    <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                        Proporcionar servicios de construcción que superen las expectativas a través de la excelencia
+                        y tecnología avanzada. Nos comprometemos con soluciones personalizadas, eficientes y
+                        sostenibles.
+                    </p>
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-corporate-green rounded-full mr-2"></div>
+                            <span class="text-gray-700">Innovación</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-corporate-orange rounded-full mr-2"></div>
+                            <span class="text-gray-700">Calidad</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-corporate-cyan rounded-full mr-2"></div>
+                            <span class="text-gray-700">Sostenibilidad</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="bg-white dark:bg-gray-900">
-        <div class="max-w-screen-xl px-4 py-8 mx-auto lg:py-24 lg:px-6">
+    <!-- Services Section -->
+    <section id="servicios" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-corporate-blue mb-4">Servicios de Calidad</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Mejore sus proyectos con nuestra experiencia y
+                    compromiso con la excelencia</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div
+                    class="card-hover bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-corporate-orange">
+                    <img src="/storage/avatar_gespro/Imagen7.jpg" alt="Expedientes Técnicos"
+                        class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-corporate-blue mb-3">Elaboración de Expedientes Técnicos</h3>
+                        <p class="text-gray-600 leading-relaxed">Preparación meticulosa de archivos técnicos para
+                            garantizar el cumplimiento de todos los requisitos reglamentarios.</p>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div
+                    class="card-hover bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-corporate-green">
+                    <img src="/storage/avatar_gespro/Imagen2.jpg" alt="Ejecución de Proyectos"
+                        class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-corporate-blue mb-3">Ejecución de Proyectos</h3>
+                        <p class="text-gray-600 leading-relaxed">Ejecución experta de proyectos, haciendo realidad su
+                            visión a través de una gestión eficiente y eficaz.</p>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="card-hover bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-corporate-cyan">
+                    <img src="/storage/avatar_gespro/Imagen11.png" alt="Supervisión"
+                        class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-corporate-blue mb-3">Supervisión de Proyectos</h3>
+                        <p class="text-gray-600 leading-relaxed">Servicios integrales de supervisión para garantizar el
+                            cumplimiento de estándares de calidad y plazos.</p>
+                    </div>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="card-hover bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-corporate-red">
+                    <img src="/storage/avatar_gespro/Imagen5.jpg" alt="Reforzamiento"
+                        class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-corporate-blue mb-3">Reforzamiento y Rehabilitación</h3>
+                        <p class="text-gray-600 leading-relaxed">Servicios especializados en refuerzo y rehabilitación,
+                            mejorando la durabilidad de su infraestructura.</p>
+                    </div>
+                </div>
+
+                <!-- Service 5 -->
+                <div
+                    class="card-hover bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-corporate-yellow">
+                    <img src="/storage/avatar_gespro/Imagen12.png" alt="Evaluación" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-corporate-blue mb-3">Evaluación de Expedientes</h3>
+                        <p class="text-gray-600 leading-relaxed">Evaluación exhaustiva de archivos técnicos para
+                            evaluar cumplimiento y calidad con recomendaciones confiables.</p>
+                    </div>
+                </div>
+
+                <!-- Service 6 -->
+                <div
+                    class="card-hover bg-white rounded-xl shadow-lg overflow-hidden border-t-4 border-corporate-orange">
+                    <img src="/storage/avatar_gespro/Imagen13.png" alt="Mantenimiento"
+                        class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-corporate-blue mb-3">Mantenimiento de Proyectos</h3>
+                        <p class="text-gray-600 leading-relaxed">Servicios de mantenimiento confiables para garantizar
+                            rendimiento y sostenibilidad a largo plazo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Gallery -->
+    <section id="proyectos" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-corporate-blue mb-4">Nuestras Obras Más Recientes</h2>
+                <p class="text-xl text-gray-600">Diseños y proyectos innovadores ejecutados y finalizados con
+                    excelencia</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/03.jpg" alt="Proyecto 1" class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/adventista.jpg" alt="Proyecto 2"
+                        class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/09.jpg" alt="Proyecto 3" class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/04.jpg" alt="Proyecto 4" class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/07.jpg" alt="Proyecto 5" class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/05.jpg" alt="Proyecto 6" class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/02.jpg" alt="Proyecto 7" class="w-full h-64 object-cover">
+                </div>
+                <div class="card-hover rounded-xl overflow-hidden shadow-lg">
+                    <img src="/storage/avatar_gespro/10.jpg" alt="Proyecto 8" class="w-full h-64 object-cover">
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <button
+                    class="bg-corporate-blue hover:bg-corporate-cyan text-white px-8 py-4 rounded-lg text-lg font-bold transition-all duration-300 hover:scale-105">
+                    Ver Más Proyectos
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nuestras Alinzas  -->
+    <section id="alianzas" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
             <div class="max-w-screen-md mx-auto mb-8 text-center lg:mb-12">
-                <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">SERVICIOS DE
-                    CALIDAD </h2>
-                <p class="mb-5 font-light text-gray-500 sm:text-xl dark:text-gray-400">Mejore sus proyectos con nuestra
-                    experiencia</p>
-            </div>
-            <div class="space-y-8 lg:grid lg:grid-cols-4 sm:gap-6 xl:gap-10 lg:space-y-0">
-                <!-- Elaboracion de expedientes tecnicos -->
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/Imagen7.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover  rounded-t-xl" />
-                        <div class="px-4 py-3 w-72">
-                            <p class="text-base text-center font-bold text-black truncate block capitalize">ELABORACIÓN
-                                DE EXPEDIENTES <br>TÉCNICOS</p>
-                            <span class="text-gray-950 font-semibold text-center mr-3 uppercase text-xs">Preparación
-                                meticulosa de
-                                archivos técnicos para garantizar que su proyecto cumpla con todos los requisitos
-                                reglamentarios
-                                y técnicos necesarios.</span>
-                        </div>
-                    </a>
-                </div>
-                {{-- <div
-                    class="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-                    <h3 class="mb-4 text-2xl font-semibold">ELABORACIÓN DE EXPEDIENTES TÉCNICOS</h3>
-                    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Preparación meticulosa de
-                        archivos técnicos para garantizar que su proyecto cumpla con todos los requisitos reglamentarios
-                        y técnicos necesarios.</p>
-                </div> --}}
-
-                <!-- Ejecucion de proyectos -->
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/Imagen2.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-t-xl" />
-                        <div class="px-4 py-3 w-72">
-                            <p class="text-base text-center font-bold text-black truncate block capitalize">EJECUCIÓN
-                                DE PROYECTOS</p>
-                            <span class="text-gray-950 font-semibold text-center mr-3 uppercase text-xs">Preparación
-                                Ejecución experta de proyectos,
-                                haciendo realidad su visión a través de una gestión e implementación de proyectos
-                                eficiente y
-                                eficaz.</span>
-                        </div>
-                    </a>
-                </div>
-                {{-- <div
-                    class="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-                    <h3 class="mb-4 text-2xl font-semibold">EJECUCIÓN DE PROYECTOS</h3>
-                    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Ejecución experta de proyectos,
-                        haciendo realidad su visión a través de una gestión e implementación de proyectos eficiente y
-                        eficaz.</p>
-                </div> --}}
-
-                <!-- Supervicion de proyectos -->
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/Imagen11.png') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-t-xl" />
-                        <div class="px-4 py-3 w-72">
-                            <p class="text-base text-center font-bold text-black truncate block capitalize">SUPERVISIÓN
-                                DE PROYECTOS</p>
-                            <span class="text-gray-950 font-semibold text-center mr-3 uppercase text-xs">Servicios
-                                integrales de
-                                supervisión para supervisar cada fase de su proyecto, garantizando el cumplimiento de
-                                los
-                                estándares de calidad y los plazos.</span>
-                        </div>
-                    </a>
-                </div>
-                {{-- <div
-                    class="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-                    <h3 class="mb-4 text-2xl font-semibold">SUPERVISIÓN DE PROYECTOS</h3>
-                    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Servicios integrales de
-                        supervisión para supervisar cada fase de su proyecto, garantizando el cumplimiento de los
-                        estándares de calidad y los plazos.</p>
-                </div> --}}
-
-
-                <!-- REFORZAMIENTO Y REHABILITACIÓN DE PROYECTOS -->
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/Imagen5.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-t-xl" />
-                        <div class="px-4 py-3 w-72">
-                            <p class="text-base text-center font-bold text-black truncate block capitalize">
-                                REFORZAMIENTO Y REHABILITACIÓN DE PROYECTOS</p>
-                            <span class="text-gray-950 font-semibold text-center mr-3 uppercase text-xs">Servicios
-                                especializados en el
-                                refuerzo y rehabilitación de proyectos, mejorando la durabilidad y alargando la vida
-                                útil de su
-                                infraestructura.</span>
-                        </div>
-                    </a>
-                </div>
-                {{-- <div
-                    class="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-                    <h3 class="mb-4 text-2xl font-semibold">REFORZAMIENTO Y REHABILITACIÓN DE PROYECTOS</h3>
-                    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Servicios especializados en el
-                        refuerzo y rehabilitación de proyectos, mejorando la durabilidad y alargando la vida útil de su
-                        infraestructura.</p>
-                </div> --}}
-
-                <!-- EVALUCIÓN DE EXPEDIENTES TECNICOS -->
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/Imagen12.png') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-t-xl" />
-                        <div class="px-4 py-3 w-72">
-                            <p class="text-base text-center font-bold text-black truncate block capitalize">EVALUCIÓN
-                                DE EXPEDIENTES TECNICOS</p>
-                            <span class="text-gray-950 font-semibold text-center mr-3 uppercase text-xs">Evaluación
-                                exhaustiva de archivos
-                                técnicos para evaluar el cumplimiento y la calidad, brindándole información y
-                                recomendaciones
-                                confiables.</span>
-                        </div>
-                    </a>
-                </div>
-
-                {{-- <div
-                    class="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-                    <h3 class="mb-4 text-2xl font-semibold">EVALUCIÓN DE EXPEDIENTES TECNICOS</h3>
-                    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Evaluación exhaustiva de archivos
-                        técnicos para evaluar el cumplimiento y la calidad, brindándole información y recomendaciones
-                        confiables.</p>
-                </div> --}}
-
-                <!-- MANTENIMIENTO DE PROYECTOS -->
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/Imagen13.png') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-t-xl" />
-                        <div class="px-4 py-3 w-72">
-                            <p class="text-base text-center font-bold text-black truncate block capitalize">
-                                MANTENIMIENTO DE PROYECTOS<< /p>
-                                    <span
-                                        class="text-gray-950 font-semibold text-center mr-3 uppercase text-xs">Servicios
-                                        de mantenimiento
-                                        confiables para mantener sus proyectos en óptimas condiciones, garantizando
-                                        rendimiento y
-                                        sostenibilidad a largo plazo.</span>
-                        </div>
-                    </a>
-                </div>
-                {{-- <div
-                    class="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-                    <h3 class="mb-4 text-2xl font-semibold">MANTENIMIENTO DE PROYECTOS</h3>
-                    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Servicios de mantenimiento
-                        confiables para mantener sus proyectos en óptimas condiciones, garantizando rendimiento y
-                        sostenibilidad a largo plazo.</p>
-                </div> --}}
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-white dark:bg-gray-900">
-        <div class="max-w-screen-xl px-4 py-8 mx-auto lg:py-24 lg:px-6">
-            <div class="max-w-screen-md mx-auto mb-8 text-center lg:mb-12">
-                <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">NUESTRAS OBRAS
-                    MÁS RECIENTES</h2>
-                <p class="mb-5 font-light text-gray-500 sm:text-xl dark:text-gray-400">Diseños y proyectos innovadores
-                    ejecutado y finalizados</p>
-            </div>
-            <div class="space-y-8 lg:grid lg:grid-cols-4 sm:gap-6 xl:gap-10 lg:space-y-0">
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/03.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/adventista.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/09.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/04.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/07.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/05.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/02.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-                <div class="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl">
-                    <a href="#">
-                        <img src="{{ asset('/storage/avatar_gespro/10.jpg') }}" alt="Product"
-                            class="h-80 w-72 object-cover rounded-xl" />
-
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-white dark:bg-gray-900">
-        <div class="max-w-screen-xl px-4 py-8 mx-auto lg:py-24 lg:px-6">
-            <div class="max-w-screen-md mx-auto mb-8 text-center lg:mb-12">
-                <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">NUESTRAS VALIOSAS
+                <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900">NUESTRAS VALIOSAS
                     ALIANZAS</h2>
-                <p class="mb-5 font-light text-gray-500 sm:text-xl dark:text-gray-400">Tenemos nuestros a nuestros
+                <p class="mb-5 font-light text-gray-500 sm:text-xl">Tenemos nuestros a nuestros
                     aliados</p>
             </div>
             <div class="w-full">
@@ -1134,64 +888,350 @@
         </div>
     </section>
 
-    <!-- End block -->
-    <section class="bg-gray-50 dark:bg-gray-800 py-8">
-        <div class="max-w-screen-xl px-4 mx-auto lg:px-6">
-            <div class="max-w-screen-sm mx-auto text-center">
-                <h2 class="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-white">
-                    Contactenos y Adquiere tu cuenta
-                </h2>
-                <p class="mb-6 font-light text-gray-500 dark:text-gray-400 md:text-lg">
-                    Dirección: <strong>Jr. Bolivar 487, Huánuco, Peru</strong>
-                </p>
-                <p class="mb-6 font-light text-gray-500 dark:text-gray-400 md:text-lg">
-                    Telefono: <strong>+51 953 992 277</strong>
-                </p>
-                <p class="mb-6 font-light text-gray-500 dark:text-gray-400 md:text-lg">
-                    Correo: <strong>info.construyehco@gmail.com</strong>
+    <!-- Contact Section -->
+    <section id="contacto" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-corporate-blue mb-4">Contáctanos</h2>
+                <p class="text-xl text-gray-600">¿Listo para comenzar tu próximo proyecto? Estamos aquí para ayudarte
                 </p>
             </div>
 
-            <!-- Contact form section -->
-            <div class="mt-12 max-w-screen-sm mx-auto bg-white dark:bg-gray-900 p-8 rounded-lg shadow-lg">
-                <form method="POST" action="{{ route('cotizarcuentas') }}">
-                    @csrf
-                    <!-- Nombre -->
-                    <div>
-                        <x-input-label for="nombre" :value="__('Nombre')" />
-                        <x-text-input id="nombre" class="block mt-1 w-full" type="text" name="nombre"
-                            :value="old('nombre')" required />
-                        <x-input-error :messages="$errors->get('nombre')" class="mt-2" />
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- Contact Info -->
+                <div class="space-y-8">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-corporate-orange p-3 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-corporate-blue">Dirección</h3>
+                            <p class="text-gray-600">Jr. Bolivar 487, Huánuco, Perú</p>
+                        </div>
                     </div>
 
-                    <!-- Celular -->
-                    <div class="mt-4">
-                        <x-input-label for="celular" :value="__('Celular')" />
-                        <x-text-input id="celular" class="block mt-1 w-full" type="tel" name="celular"
-                            :value="old('celular')" required />
-                        <x-input-error :messages="$errors->get('celular')" class="mt-2" />
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-corporate-green p-3 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-corporate-blue">Teléfono</h3>
+                            <p class="text-gray-600">+51 953 992 277</p>
+                        </div>
                     </div>
 
-                    <!-- Correo Electrónico -->
-                    <div class="mt-4">
-                        <x-input-label for="email" :value="__('Correo Electrónico')" />
-                        <x-text-input id="email" class="block mt-1 w-full" type="email" name="email"
-                            :value="old('email')" required />
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-corporate-cyan p-3 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-corporate-blue">Correo Electrónico</h3>
+                            <p class="text-gray-600">info.construyehco@gmail.com</p>
+                        </div>
                     </div>
 
-                    <div class="flex items-center justify-end mt-4">
-                        <x-primary-button class="ms-3">
-                            {{ __('Enviar') }}
-                        </x-primary-button>
+                    <!-- Call to Action -->
+                    <div class="bg-gradient-to-r from-corporate-blue to-corporate-cyan p-6 rounded-lg text-white">
+                        <h3 class="text-xl font-bold mb-2">¿Tienes un proyecto en mente?</h3>
+                        <p class="mb-4">Contáctanos hoy mismo y comencemos a construir tu futuro</p>
+                        <button
+                            class="bg-corporate-yellow hover:bg-corporate-orange text-corporate-dark px-6 py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105">
+                            Solicitar Cotización
+                        </button>
                     </div>
-                </form>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+                    <h3 class="text-2xl font-bold text-corporate-blue mb-6">Envíanos un Mensaje</h3>
+
+                    <form x-data="{
+                        nombre: '',
+                        celular: '',
+                        email: '',
+                        mensaje: '',
+                        loading: false,
+                        submitted: false,
+                        submitForm() {
+                            this.loading = true;
+                            // Simulate form submission
+                            setTimeout(() => {
+                                this.loading = false;
+                                this.submitted = true;
+                                this.nombre = '';
+                                this.celular = '';
+                                this.email = '';
+                                this.mensaje = '';
+                                setTimeout(() => { this.submitted = false; }, 3000);
+                            }, 1500);
+                        }
+                    }" @submit.prevent="submitForm()" class="space-y-6">
+
+                        <div>
+                            <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">Nombre
+                                Completo</label>
+                            <input x-model="nombre" type="text" id="nombre" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-corporate-blue focus:border-transparent transition-all duration-300">
+                        </div>
+
+                        <div>
+                            <label for="celular" class="block text-sm font-medium text-gray-700 mb-2">Celular</label>
+                            <input x-model="celular" type="tel" id="celular" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-corporate-blue focus:border-transparent transition-all duration-300">
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Correo
+                                Electrónico</label>
+                            <input x-model="email" type="email" id="email" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-corporate-blue focus:border-transparent transition-all duration-300">
+                        </div>
+
+                        <div>
+                            <label for="mensaje" class="block text-sm font-medium text-gray-700 mb-2">Mensaje</label>
+                            <textarea x-model="mensaje" id="mensaje" rows="4"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-corporate-blue focus:border-transparent transition-all duration-300"
+                                placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                        </div>
+
+                        <button type="submit" :disabled="loading || submitted"
+                            :class="submitted ? 'bg-corporate-green' : 'bg-corporate-blue hover:bg-corporate-cyan'"
+                            class="w-full text-white px-6 py-4 rounded-lg font-bold transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed">
+                            <span x-show="!loading && !submitted">Enviar Mensaje</span>
+                            <span x-show="loading" class="flex items-center justify-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Enviando...
+                            </span>
+                            <span x-show="submitted" class="flex items-center justify-center">
+                                <svg class="mr-2 h-5 w-5 text-white" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                ¡Mensaje Enviado!
+                            </span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- End block -->
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+    <!-- Footer -->
+    <footer class="bg-corporate-dark text-white py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="lg:col-span-2">
+                    <div class="flex items-center mb-6">
+                        <img src="/storage/avatar_empresa/logo_gespro.png" alt="CONSTRUYE HCO"
+                            class="h-12 w-12 mr-3">
+                        <span class="text-2xl font-bold">CONSTRUYE HCO</span>
+                    </div>
+                    <p class="text-gray-300 leading-relaxed mb-6">
+                        Empresa especializada en la creación, ejecución y supervisión de proyectos de infraestructura,
+                        comprometida con ofrecer un trabajo de máxima calidad y excelencia en cada proyecto.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#"
+                            class="bg-corporate-blue hover:bg-corporate-cyan p-3 rounded-full transition-colors duration-300">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                            </svg>
+                        </a>
+                        <a href="#"
+                            class="bg-corporate-blue hover:bg-corporate-cyan p-3 rounded-full transition-colors duration-300">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+                            </svg>
+                        </a>
+                        <a href="#"
+                            class="bg-corporate-blue hover:bg-corporate-cyan p-3 rounded-full transition-colors duration-300">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-bold mb-6">Enlaces Rápidos</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#nosotros"
+                                class="text-gray-300 hover:text-corporate-yellow transition-colors duration-300">Nosotros</a>
+                        </li>
+                        <li><a href="#servicios"
+                                class="text-gray-300 hover:text-corporate-yellow transition-colors duration-300">Servicios</a>
+                        </li>
+                        <li><a href="#proyectos"
+                                class="text-gray-300 hover:text-corporate-yellow transition-colors duration-300">Proyectos</a>
+                        </li>
+                        <li><a href="#contacto"
+                                class="text-gray-300 hover:text-corporate-yellow transition-colors duration-300">Contacto</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h3 class="text-lg font-bold mb-6">Nuestros Servicios</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="text-gray-300">Expedientes Técnicos</li>
+                        <li class="text-gray-300">Ejecución de Proyectos</li>
+                        <li class="text-gray-300">Supervisión</li>
+                        <li class="text-gray-300">Reforzamiento</li>
+                        <li class="text-gray-300">Evaluación</li>
+                        <li class="text-gray-300">Mantenimiento</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-600 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-300 text-sm">
+                    © 2025 CONSTRUYE HCO. Todos los derechos reservados.
+                </p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#"
+                        class="text-gray-300 hover:text-corporate-yellow text-sm transition-colors duration-300">Política
+                        de Privacidad</a>
+                    <a href="#"
+                        class="text-gray-300 hover:text-corporate-yellow text-sm transition-colors duration-300">Términos
+                        de Servicio</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float Button -->
+    <div class="fixed bottom-6 right-6 z-50 group">
+        <a href="https://wa.me/51953992277" target="_blank"
+            class="relative bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center animate-bounce-slow">
+
+            <!-- Ícono WhatsApp -->
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.108" />
+            </svg>
+
+            <!-- Pulso animado -->
+            <span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+        </a>
+
+        <!-- Tooltip -->
+        <div
+            class="absolute right-20 bottom-1 bg-gray-800 text-white text-sm px-3 py-1 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            Escríbenos en WhatsApp
+        </div>
+    </div>
+
+    <!-- Animación bounce lenta -->
+    <style>
+        .animate-bounce-slow {
+            animation: bounce 3s infinite;
+        }
+    </style>
+
+    <!-- Scroll to Top Button -->
+    <div x-data="{ showButton: false }" x-init="window.addEventListener('scroll', () => { showButton = window.scrollY > 500; })" class="fixed bottom-6 left-6 z-50">
+        <button x-show="showButton" x-transition @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+            class="bg-corporate-blue hover:bg-corporate-cyan text-white p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18">
+                </path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Loading Screen -->
+    <div x-data="{ loading: true }" x-init="setTimeout(() => { loading = false }, 2000)" x-show="loading"
+        x-transition:leave="transition ease-in duration-500" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <img src="/storage/avatar_empresa/logo_gespro.png" alt="CONSTRUYE HCO"
+                class="h-20 w-20 mx-auto mb-4 floating">
+            <h2 class="text-2xl font-bold text-corporate-blue mb-4">CONSTRUYE HCO</h2>
+            <div class="w-16 h-1 bg-corporate-yellow mx-auto rounded-full">
+                <div class="h-full bg-corporate-orange rounded-full animate-pulse" style="width: 60%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Optimize images with lazy loading
+        if ('loading' in HTMLImageElement.prototype) {
+            const images = document.querySelectorAll('img[loading="lazy"]');
+            images.forEach(img => {
+                img.src = img.src;
+            });
+        } else {
+            // Fallback for browsers that don't support lazy loading
+            const script = document.createElement('script');
+            script.src = 'https://polyfill.io/v3/polyfill.min.js?features=IntersectionObserver';
+            document.head.appendChild(script);
+        }
+    </script>
 </body>
 
 </html>
