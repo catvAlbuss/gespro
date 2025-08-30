@@ -994,7 +994,7 @@
                     // Verificar si la respuesta está vacía, es undefined o null
                     if (!data || data.length === 0) {
                         // Redirigir al gestor de tareas
-                        window.location.href = `/gestortareasphha/${id_trabajador}`;
+                        window.location.href = `/kanban/${id_trabajador}`;
                     } else {
                         // Guardar las tareas para mostrarlas después
                         window.tareas = data;
@@ -1010,7 +1010,7 @@
                         text: 'No se pudieron cargar las tareas. Serás redirigido al gestor de tareas.',
                         confirmButtonText: 'Aceptar'
                     }).then(() => {
-                        window.location.href = `/gestortareasphha/${id_trabajador}`;
+                        window.location.href = `/kanban/${id_trabajador}`;
                     });
                 }
             });

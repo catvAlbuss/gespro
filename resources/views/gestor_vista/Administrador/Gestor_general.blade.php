@@ -208,7 +208,7 @@
                                             stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestortareasphha', ['id' => $id]) }}">
+                                <a href="{{ route('kanban', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Area Actividades</p>
                                 </a>
                             </div>

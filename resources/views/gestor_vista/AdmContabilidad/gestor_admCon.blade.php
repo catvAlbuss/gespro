@@ -24,7 +24,12 @@
                 Planner
             </a>
             
-            <a href="{{ route('gestortareasphha', ['id' => $empresaId]) }}"
+            <a href="{{ route('Tramites', ['empresaId' => $empresaId]) }}"
+                class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
+                Trámites
+            </a>
+
+            <a href="{{ route('kanban', ['id' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Kanban
             </a>
@@ -957,7 +962,7 @@
                     // Verificar si la respuesta está vacía, es undefined o null
                     if (!data || data.length === 0) {
                         // Redirigir al gestor de tareas
-                        window.location.href = `/gestortareasphha/${id_trabajador}`;
+                        window.location.href = `/kanban/${id_trabajador}`;
                     } else {
                         // Guardar las tareas para mostrarlas después
                         window.tareas = data;
@@ -973,7 +978,7 @@
                         text: 'No se pudieron cargar las tareas. Serás redirigido al gestor de tareas.',
                         confirmButtonText: 'Aceptar'
                     }).then(() => {
-                        window.location.href = `/gestortareasphha/${id_trabajador}`;
+                        window.location.href = `/kanban/${id_trabajador}`;
                     });
                 }
             });

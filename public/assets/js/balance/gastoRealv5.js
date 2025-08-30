@@ -1291,8 +1291,7 @@ class GastoReal {
                 columns: true
             },
 
-            columns: columnas
-                .filter(col => col.title !== "Imagen"), // 👈 Ocultamos Imagen
+            columns: columnas.filter(col => col.title !== "Imagen"), // 👈 Ocultamos Imagen
 
             // Row formatter mejorado para DataTree
             rowFormatter: function (row) {

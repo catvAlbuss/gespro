@@ -13,6 +13,7 @@ use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\enviarCotizacionController;
 use App\Http\Controllers\EspecificacionesTecnicasController;
 use App\Http\Controllers\GastoGeneralController;
+use App\Http\Controllers\informesController;
 use App\Http\Controllers\instalacionSanitariaController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\KanbanController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\RequerimientoController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TareasController;
 use App\Http\Controllers\TrabajadorController;
+use App\Http\Controllers\TramitesController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\valesequipoentregaController;
 use App\Http\Controllers\valorizacionCampoController;
@@ -61,49 +63,49 @@ Route::middleware(['auth', 'role.redirect'])->group(function () {
         return view('gestor_vista.Gerencia.GerenteGeneral');
     })->name('manager.dashboard')->middleware('verified');
 
-     Route::get('/administradores/dashboard', function () {
+    Route::get('/administradores/dashboard', function () {
         // Obtener el ID de la empresa desde la sesión (si existe)
         $empresaId = session('empresa_id');
-    
+
         // Si no hay un ID de empresa en la sesión, asignamos un valor por defecto
         if (!$empresaId) {
             $empresaId = null;
         }
-    
+
         // Obtener todas las empresas del usuario (asumimos que el usuario está asociado a varias empresas)
         $empresas = auth()->user()->empresas;
-    
+
         // Si el usuario tiene una sola empresa
         if ($empresas->count() == 1) {
             // Asignamos el ID de la única empresa
             $empresaId = $empresas->first()->id;
-    
+
             // Limpiar la sesión si no es necesario
             session()->forget('empresa_id');
-    
+
             // Redirigir a la vista 'gestor_admCon' con el ID de la empresa
             return view('gestor_vista.AdmContabilidad.gestor_admCon', ['empresaId' => $empresaId]);
         }
-    
+
         // Si tiene varias empresas, enviamos a la vista para seleccionar empresa
         if ($empresas->count() > 1) {
             // Convertir las empresas a un array simple si es necesario
             $empresasArray = $empresas->toArray();  // Convertir la colección a un array de PHP
-    
+
             // Si no se ha seleccionado una empresa, no asignamos un ID
             if (count($empresasArray) > 1) {
                 $empresaId = null;  // No asignamos un ID si hay más de una empresa
             } else {
                 $empresaId = $empresasArray[0]['id'] ?? null;  // Si hay solo una empresa, selecciona el primer ID
             }
-    
+
             // Mostrar la vista para seleccionar la empresa
             return view('gestor_vista.AdmContabilidad.index', [
                 'empresasArray' => $empresasArray,  // Pasar todas las empresas
                 'empresaId' => $empresaId,         // Pasar el ID de la empresa seleccionada
             ]);
         }
-    
+
         // Si no tiene empresas, redirigir a la página de creación de empresa o mostrar un error
         return redirect()->route('crear.empresa')->with('error', 'No tienes empresas registradas.');
     })->name('administradores.dashboard')->middleware('verified');
@@ -175,7 +177,6 @@ Route::middleware(['auth', 'role.redirect'])->group(function () {
     Route::get('/home', function () {
         return view('home');
     })->name('home')->middleware('verified');
-    
 });
 
 
@@ -186,6 +187,11 @@ Route::resource('permissions', PermissionController::class);
 Route::resource('roles', RoleController::class);
 Route::resource('users', UserController::class);
 Route::resource('empresas', EmpresaController::class);
+
+/*****************************
+ *          INFORMES
+ *****************************/
+Route::get('gestor-informes-contabilidad/{empresaId}', [informesController::class, 'getInformesPersonalEmpresa'])->name('gestor-informes-contabilidad');
 
 //CONTABILIDAD Y BALANCES
 Route::resource('contabilidads', ContabilidadController::class);
@@ -250,10 +256,58 @@ Route::post('trabajadorregister/obtener-data', [TrabajadorController::class, 'ob
 Route::get('gestor-registrarPer/{empresaId}', [TrabajadorController::class, 'index'])->name('gestor-registrarPer');
 
 //CRUD PHHP GESTOR ACTIVIDADES
-Route::get('gestor-tareasphhp/{id}', function ($id) {
+Route::get('kanban/{id}', function ($id) {
     return view('gestor_vista.Administrador.gestion_tareasPHHA', compact('id'));
-})->name('gestortareasphha');
+})->name('kanban');
+//======================TRAMITES======================
+Route::get('Tramites/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.contabilidad.tramites.tramites', compact('empresaId'));
+})->name('Tramites');
 
+// Ruta para obtener perfil del usuario (necesaria para el frontend)
+Route::post('/get-user-profile', [TramitesController::class, 'getUserProfile'])
+    ->name('user.profile');
+
+// Ruta principal de trámites con parámetro de empresa
+Route::get('/tramites', [TramitesController::class, 'index'])
+    ->name('tramites.index');
+
+// Crear nuevo trámite
+Route::post('/tramites', [TramitesController::class, 'store'])
+    ->name('tramites.store');
+
+// Ver detalles de un trámite específico
+Route::get('/tramites/{tramite}', [TramitesController::class, 'show'])
+    ->name('tramites.show');
+
+// Aprobar trámite
+Route::post('/tramites/{tramite}/aprobar', [TramitesController::class, 'aprobar'])
+    ->name('tramites.aprobar');
+
+// Rechazar trámite
+Route::post('/tramites/{tramite}/rechazar', [TramitesController::class, 'rechazar'])
+    ->name('tramites.rechazar');
+
+// Reenviar (reiniciar) trámite rechazado
+Route::post('/tramites/{tramite}/reenviar', [TramitesController::class, 'reenviar'])
+    ->name('tramites.reenviar');
+
+// Estadísticas de trámites
+Route::get('/tramites-estadisticas', [TramitesController::class, 'estadisticas'])
+    ->name('tramites.estadisticas');
+
+// Obtener Actividad Mensual y Descuentos
+Route::post('/get-Actividad-Personal', [TramitesController::class, 'getDataActivityPersonalMount']);
+
+//obtener informe de pago firmado y sellado
+Route::post('/get-informe-pago-tramitado', [TramitesController::class, 'getDataInformePago']);
+
+// Ruta para mostrar la vista de trámites de una empresa específica
+Route::get('/Tramites/{empresa_id}', function ($empresa_id) {
+    return view('tramites.index', compact('empresa_id'));
+})->where('empresa_id', '[0-9]+')->name('tramites.empresa');
+
+//======================Actividades
 Route::resource('actividadpersonal', actividadespersonalController::class);
 Route::get('listar_trab/{empresaId}', [actividadespersonalController::class, 'listar_trabajador'])->name('listar_trab');
 Route::get('listar_pro/{empresaId}', [actividadespersonalController::class, 'listar_proyectos'])->name('listar_pro');
@@ -261,6 +315,9 @@ Route::post('actualizar_actividadcol/{taskId}', [actividadespersonalController::
 Route::post('actualizar_fichas/{taskId}', [actividadespersonalController::class, 'update_fichas'])->name('actualizar_fichas');
 Route::post('/actividades-personal/exportar', [actividadespersonalController::class, 'exportarIp']);
 
+// Ruta para actualizar elapsed_time
+Route::post('/update-elapsed-time/{id}', [actividadespersonalController::class, 'actividadPersonal']);
+Route::get('/cron/update-elapsed', [actividadespersonalController::class, 'updateElapsedTime']);
 //CRUD CALENDARIOS
 // Asegúrate de que el namespace del controlador esté importado correctamente
 Route::get('gestor-calendariogen/{id}', [CalendariotrabajadorController::class, 'show'])
@@ -303,11 +360,11 @@ Route::post('requerimiento_register/store', [RequerimientoController::class, 'st
 Route::post('actualizarSustento/{id}', [RequerimientoController::class, 'actualizarsustento'])->name('actualizarSustento.actualizarsustento');
 // Marcar una notificación como leída
 Route::post('notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
-->name('notifications.markAsRead');
+    ->name('notifications.markAsRead');
 
 // Marcar todas las notificaciones como leídas
 Route::post('notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
-->name('notifications.markAllAsRead');
+    ->name('notifications.markAllAsRead');
 
 Route::get('/listar-tareas/{idtrabajador}', [actividadespersonalController::class, 'listartarea']);
 Route::post('/actualizar-status/{idTarea}/{status}', [actividadespersonalController::class, 'actualizarStatusUser']);
@@ -323,7 +380,6 @@ Route::delete('gestor-inventario/{id}', [InventarioController::class, 'destroyin
 
 //CRUD CALENDARIOS JEFES
 Route::resource('calendariojefes', CalendarioJefesController::class);
-Route::get('/calendariojefes/{empresaId}', [TuControlador::class, 'show'])->name('calendario.show');
 Route::post('registrar_tarea', [TareasController::class, 'store'])->name('registrar_tarea.store');
 //CRUD CALENDARIOS TRABAJADOR
 Route::get('calendariotrabajadores/{empresaId}/{trabajadorId}', [CalendarioTrabajadoresController::class, 'show']);
@@ -489,6 +545,20 @@ Route::get('/storage/profile/{filename}', function ($filename) {
     $response->header("Content-Type", $type);
     return $response;
 });
+
+// routes/web.php
+Route::get('/get-firma/{filename}', function ($filename) {
+    $path = storage_path('app/public/firmas/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path, [
+        'Content-Type' => 'image/png',
+        'Cache-Control' => 'public, max-age=3600'
+    ]);
+})->name('get.firma');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

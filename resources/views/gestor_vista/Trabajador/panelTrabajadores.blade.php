@@ -280,7 +280,6 @@
             <div class="flex flex-wrap">
                 <div class="w-full md:w-3/3 px-4 py-4 -mt-10 md:-mt-10">
                     <div class="overflow-auto">
-
                         <style>
                             .wx-event-calendar_mark {
                                 display: none;
@@ -877,7 +876,7 @@
                         text: 'No se pudieron cargar las tareas. Serás redirigido al gestor de tareas.',
                         confirmButtonText: 'Aceptar'
                     }).then(() => {
-                        window.location.href = `/gestortareasphha/${id_trabajador}`;
+                        window.location.href = `/kanban/${id_trabajador}`;
                     });
                 }
             });

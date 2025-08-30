@@ -4,19 +4,14 @@
 <div x-data="{ open: false }" @click.away="open = false" class="relative">
     {{-- Botón de notificaciones --}}
     <button @click="open = !open"
-        class="py-4 px-5 relative border-2 border-transparent text-gray-800 dark:text-gray-50 rounded-full hover:text-gray-400 focus:outline-none focus:text-gray-500 transition duration-150 ease-in-out">
-        <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <path
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
-            </path>
+        class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-5 5v-5zM10.07 2.82l-.9 1.63A9 9 0 003 12v3.8a.6.6 0 00.6.6h6.8l5.3 5.3a.6.6 0 001-.4v-3.8a9 9 0 00-6.07-8.48l-.9 1.63z" />
         </svg>
-        <span class="absolute inset-0 object-right-top -mr-6">
-            <div
-                class="inline-flex items-center px-1.5 py-0.5 border-2 border-white rounded-full text-xs font-semibold leading-4 bg-red-500 text-white">
-                {{ auth()->user()->unreadNotifications->count() }}
-            </div>
-        </span>
+        <!-- Notification Badge -->
+        <span
+            class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse"> {{ auth()->user()->unreadNotifications->count() }}</span>
     </button>
 
     {{-- Panel de notificaciones --}}
@@ -42,7 +37,7 @@
         </div>
 
         <div class="max-h-96 overflow-y-auto">
-              @forelse(auth()->user()->notifications()->orderBy('created_at', 'desc')->get() as $notification)
+            @forelse(auth()->user()->notifications()->orderBy('created_at', 'desc')->get() as $notification)
                 @if ($notification->read_at)
                     @continue
                 @endif

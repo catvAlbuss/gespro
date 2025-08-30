@@ -8,48 +8,12 @@ use App\Models\Proyecto;
 use App\Models\requerimiento;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Svg\Tag\Rect;
 
 class actividadespersonalController extends Controller
 {
-    /*public function index(Request $request)
-    {
-        // Obtener el ID de la empresa desde la solicitud
-        $empresaId = $request->input('empresaId');
-
-        // Obtener los usuarios que pertenecen a esa empresa
-        $users = User::whereHas('empresas', function ($query) use ($empresaId) {
-            $query->where('empresa_id', $empresaId);
-        })->get();
-
-        // Obtener las tareas asociadas al usuario designado
-        $tasks = Actividadespersonal::whereIn('usuario_designado', $users->pluck('id'))->get();
-
-        // Obtener los proyectos asociados a la empresa
-        $proyectos = Proyecto::where('empresa_id', $empresaId)->get();
-
-        // Incluir el nombre del usuario y el nombre e ID del proyecto en cada tarea
-        $tasksWithUserAndProject = $tasks->map(function ($task) use ($users, $proyectos) {
-            // Encontrar el usuario designado
-            $user = $users->firstWhere('id', $task->usuario_designado);
-
-            // Encontrar el proyecto asociado a la tarea (usando projectActividad)
-            $proyecto = $proyectos->firstWhere('id_proyectos', $task->projectActividad);
-
-            return [
-                'task' => $task,
-                'user_name' => $user ? $user->name : null,
-                'user_id' => $user ? $user->id : null,
-                'project_name' => $proyecto ? $proyecto->nombre_proyecto : null,
-                'project_id' => $proyecto ? $proyecto->id_proyectos : null,
-            ];
-        });
-
-        // Retornar las tareas con el nombre y ID del usuario, y el nombre e ID del proyecto como una respuesta JSON
-        return response()->json($tasksWithUserAndProject);
-    }*/
-    
     public function index(Request $request)
     {
         // Obtener el ID de la empresa y el ID del trabajador desde la solicitud
@@ -88,23 +52,23 @@ class actividadespersonalController extends Controller
 
         return response()->json($tasksWithUserAndProject);
     }
-    
+
     public function listar_trabajador($empresaId)
     {
         // Obtener la empresa por su ID
         $empresa = Empresa::find($empresaId);
-    
+
         // Verificar si la empresa existe
         if (!$empresa) {
             return response()->json(['error' => 'Empresa no encontrada'], 404);
         }
-    
+
         // Obtener los usuarios (trabajadores) asociados a esta empresa y filtrarlos
         $trabajadores = $empresa->users->filter(function ($user) {
             // Filtrar los usuarios con los nombres especificados
             return !in_array($user->name, ['Administrador', 'LUIS ANGEL']);
         });
-    
+
         // Obtener solo los campos 'id' y 'name' de los trabajadores filtrados
         $trabajadoresFiltrados = $trabajadores->map(function ($user) {
             return [
@@ -112,7 +76,7 @@ class actividadespersonalController extends Controller
                 'name' => $user->name
             ];
         });
-    
+
         // Retornar los trabajadores filtrados
         return response()->json($trabajadoresFiltrados);
     }
@@ -214,7 +178,7 @@ class actividadespersonalController extends Controller
             // Validar los datos recibidos
             $request->validate([
                 'status' => 'required|string|in:todo,doing,done,approved',
-                'elapsedTime' => 'required|numeric',
+                //'elapsedTime' => 'required|numeric',
             ]);
 
             // Buscar la tarea por su ID
@@ -222,24 +186,19 @@ class actividadespersonalController extends Controller
 
             // Verificar si la tarea existe
             if (!$task) {
-                \Log::warning("Tarea no encontrada con ID: $taskId");
                 return response()->json(['error' => 'Tarea no encontrada'], 404);
             }
 
             // Actualizar las columnas correctas
             $task->update([
                 'status' => $request->status,
-                'elapsed_time' => $request->elapsedTime,
+                //'elapsed_time' => $request->elapsedTime,
             ]);
-
-            \Log::info("Tarea ID: $taskId actualizada correctamente.");
-
             return response()->json([
                 'message' => 'Tarea actualizada correctamente',
                 'task' => $task
             ], 200);
         } catch (\Exception $e) {
-            \Log::error("Error al actualizar tarea ID $taskId: " . $e->getMessage());
             return response()->json(['error' => 'Error interno del servidor'], 500);
         }
     }
@@ -248,22 +207,21 @@ class actividadespersonalController extends Controller
     {
         // Encuentra la tarea por su ID
         $task = actividadespersonal::findOrFail($id);
-    
+
         // Elimina la tarea
         $task->delete();
-    
+
         // Retorna una respuesta JSON para confirmar que se eliminó
         return response()->json(['message' => 'Tarea eliminada correctamente'], 200);
     }
 
-
-     //funcionalidades extras
+    //funcionalidades extras
     public function listarTarea($idtrabajador)
     {
         // Obtenemos las tareas del trabajador con status 'todo', solo seleccionamos actividadId y nameActividad
-       $actividades = actividadespersonal::where('usuario_designado', $idtrabajador)
-        ->whereIn('status', ['todo', 'doing'])  // Usamos whereIn para filtrar por múltiples valores
-        ->get(['actividadId', 'nameActividad']);
+        $actividades = actividadespersonal::where('usuario_designado', $idtrabajador)
+            ->whereIn('status', ['todo', 'doing'])  // Usamos whereIn para filtrar por múltiples valores
+            ->get(['actividadId', 'nameActividad']);
 
         // Retornamos los datos en formato JSON para usarlos en el frontend
         return response()->json($actividades);
@@ -273,15 +231,15 @@ class actividadespersonalController extends Controller
     public function listarTareaJefes($empresaId)
     {
         // Definir los nombres de usuarios que NO deben contarse
-        $usuariosExcluidos = ['LUIS ANGEL', 'ANDREA ALEXANDRA','Administrador','FERNANDO PIERO','CESAR RICARDO'];
-    
+        $usuariosExcluidos = ['LUIS ANGEL', 'ANDREA ALEXANDRA', 'Administrador', 'FERNANDO PIERO', 'CESAR RICARDO'];
+
         // Obtener todos los trabajadores de la empresa, excluyendo los nombres específicos
         $usuarios = User::whereHas('empresas', function ($query) use ($empresaId) {
             $query->where('empresa_id', $empresaId);
         })
-        ->whereNotIn('name', $usuariosExcluidos) // Excluir usuarios específicos
-        ->get();
-    
+            ->whereNotIn('name', $usuariosExcluidos) // Excluir usuarios específicos
+            ->get();
+
         // Verificar si quedan trabajadores después del filtro
         if ($usuarios->isEmpty()) {
             return response()->json([
@@ -290,73 +248,36 @@ class actividadespersonalController extends Controller
                 'total_doing' => 0
             ]);
         }
-    
+
         // Inicializar array de tareas y contador total de "doing"
         $tareas = [];
         $totalDoing = 0;
-    
+
         // Iterar sobre los trabajadores filtrados
         foreach ($usuarios as $usuario) {
             // Obtener tareas "doing" de cada trabajador
             $actividades = actividadespersonal::where('usuario_designado', '=', (int) $usuario->id)
                 ->where('status', 'doing')
                 ->get(['actividadId', 'nameActividad']);
-    
+
             // Contar las tareas y sumarlas al total general
             $cantidadDoing = $actividades->count();
             $totalDoing += $cantidadDoing;
-    
+
             // Agregar al array de respuesta
             $tareas[] = [
-                'nombre_usuario' => $usuario->name, 
+                'nombre_usuario' => $usuario->name,
                 'tareas_doing' => $actividades,
                 'cantidad_doing' => $cantidadDoing,
             ];
         }
-    
+
         // Retornar respuesta JSON con la lista de tareas y total "doing"
         return response()->json([
             'tareas' => $tareas,
             'total_doing' => $totalDoing
         ]);
     }
-
-    /*public function listarTareaJefes($empresaId)
-    {
-        // Obtener todos los trabajadores que pertenecen a la empresa especificada
-        $usuarios = User::whereHas('empresas', function ($query) use ($empresaId) {
-            $query->where('empresa_id', $empresaId);
-        })->get();
-    
-        // Array para almacenar las tareas "doing" por trabajador
-        $tareas = [];
-        $totalDoing = 0; // Variable para contar todas las tareas "doing" a nivel empresa
-    
-        // Iterar sobre los trabajadores de la empresa
-        foreach ($usuarios as $usuario) {
-            // Obtener las tareas "doing" para cada trabajador
-            $actividades = actividadespersonal::where('usuario_designado', $usuario->id)
-                ->where('status', 'doing') // Filtramos por tareas "doing"
-                ->get(['actividadId', 'nameActividad']); // Seleccionamos solo la actividadId y nameActividad
-    
-            // Sumamos las tareas "doing" de este usuario al total
-            $totalDoing += $actividades->count();
-    
-            // Agregar las actividades de este trabajador al array de tareas
-            $tareas[] = [
-                'nombre_usuario' => $usuario->name, // Nombre del trabajador
-                'tareas_doing' => $actividades,
-                'cantidad_doing' => $actividades->count(), // Contamos las tareas "doing"
-            ];
-        }
-    
-        // Retornamos los datos en un formato claro
-        return response()->json([
-            'tareas' => $tareas, // Lista de tareas por trabajador
-            'total_doing' => $totalDoing // Total de tareas "doing" en toda la empresa
-        ]);
-    }*/
-
 
     //funcionalidad para los admninistradores
     public function countRequerimientoAdmin()
@@ -369,7 +290,6 @@ class actividadespersonalController extends Controller
 
         return response()->json(['count' => $count]);
     }
-
 
     public function actualizarStatusUser($idTarea, $status)
     {
@@ -389,10 +309,9 @@ class actividadespersonalController extends Controller
             return response()->json(['success' => false], 404);
         }
     }
-    
-    
+
     public function exportarIp(Request $request)
-    {  
+    {
         // Validar los datos de entrada
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -487,5 +406,32 @@ class actividadespersonalController extends Controller
             'idEmpresa' => $empresaId,
             'extras' => $extras
         ], 200);
+    }
+
+    // En el controlador
+    // public function actividadPersonal(Request $request)
+    // {
+    //     $empresaId = $request->empresaId;
+    //     $usuarioId = $request->usuarioId;
+    //     $month = $request->month ?? date('m');
+    //     $year = $request->year ?? date('Y');
+
+    //     // Filtrar por mes y año específicos
+    //     $query = actividadespersonal::whereMonth('fecha', $month)
+    //         ->whereYear('fecha', $year);
+
+    //     // ... resto de la lógica
+    // }
+
+    public function updateElapsedTime()
+    {
+        $updated = Actividadespersonal::where('status', 'doing')->update([
+            'elapsed_time' => DB::raw('COALESCE(elapsed_time, 0) + 1')
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Se actualizó el elapsed_time de {$updated} actividades."
+        ]);
     }
 }

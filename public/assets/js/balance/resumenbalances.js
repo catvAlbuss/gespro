@@ -56,12 +56,12 @@ class ResumenBalance {
                 formatter: "money",
                 formatterParams: {
                     symbol: "S/ ",
-                    precision: 2  // 🔥 dos decimales en las celdas normales
+                    precision: 2
                 },
                 bottomCalcFormatter: "money",
                 bottomCalcFormatterParams: {
                     symbol: "S/ ",
-                    precision: 2  // 🔥 dos decimales en el total
+                    precision: 2
                 }
             },
             {
@@ -82,7 +82,6 @@ class ResumenBalance {
             }
         ];
 
-
         this.tableResumenIngresos = this._createTable(this._ui.tableIngresos, columnas);
         this.tableResumenGastos = this._createTable(this._ui.tableGastos, columnas);
     }
@@ -96,7 +95,7 @@ class ResumenBalance {
             virtualDom: true,
             layout: "fitColumns",
             columns: columns,
-            placeholder: "No hay datos disponibles" // Mensaje para tablas vacías
+            placeholder: "No hay datos disponibles"
         });
     }
 
@@ -118,7 +117,6 @@ class ResumenBalance {
         const id_contabilidad = document.querySelector(this._ui.idContabilidad)?.value;
         if (!id_contabilidad) {
             console.error("No se encontró el ID de contabilidad.");
-            // Opcional: mostrar un mensaje de error en la UI
             return;
         }
 
@@ -153,8 +151,6 @@ class ResumenBalance {
             }
         } catch (error) {
             console.error("Error al cargar el resumen del balance:", error);
-            // Opcional: Mostrar un mensaje de error al usuario en la UI
-            // ej: document.querySelector('#error-message').textContent = 'No se pudieron cargar los datos.';
         }
     }
 
@@ -178,14 +174,16 @@ class ResumenBalance {
         // Actualizar resumen de ingresos
         this._updateCard(
             'ingreso',
-            totalesIngresos.real - totalesIngresos.planificado,
+            totalesIngresos.real - totalesIngresos.planificado,  // diferencia = real - programado
+            totalesIngresos.real,
             totalesIngresos.planificado
         );
 
         // Actualizar resumen de gastos
         this._updateCard(
             'gasto',
-            totalesGastos.real - totalesGastos.planificado,
+            totalesGastos.real - totalesGastos.planificado,      // diferencia = real - programado
+            totalesGastos.real,
             totalesGastos.planificado
         );
     }
@@ -193,37 +191,45 @@ class ResumenBalance {
     /**
      * Helper para actualizar una tarjeta de resumen individual (ingreso o gasto).
      */
-    _updateCard(type, diferencia, totalPlanificado) {
-        const esIngreso = type === 'ingreso';
-        const esPositivo = diferencia >= 0;
-
+    _updateCard(type, diferencia, totalReal, totalPlanificado) {
+        console.log(totalReal);
+        console.log(diferencia);
+        console.log(totalPlanificado);
         const montoEl = document.querySelector(this._ui[`${type}Monto`]);
         const porcentajeEl = document.querySelector(this._ui[`${type}Porcentaje`]);
         const textoEl = document.querySelector(this._ui[`${type}Texto`]);
 
         if (!montoEl || !porcentajeEl || !textoEl) return;
 
-        // Formatear valores
-        const montoFormateado = diferencia.toLocaleString('es-PE', { style: 'currency', currency: 'PEN' });
-        const porcentaje = totalPlanificado !== 0 ? (diferencia / totalPlanificado) * 100 : 0;
+        // Formatear monto de la diferencia
+        const montoFormateado = diferencia.toLocaleString('es-PE', {
+            style: 'currency',
+            currency: 'PEN'
+        });
+
+        // Calcular porcentaje: (totalReal / totalPlanificado) * 100
+        const porcentaje = totalPlanificado !== 0 ? (totalReal / totalPlanificado) * 100 : 0;
         const porcentajeFormateado = `${porcentaje.toFixed(2)}%`;
 
-        // Lógica de colores y texto
-        let colorClass = '';
+        // Determinar color basado en si la diferencia es positiva o negativa
+        const esPositivo = diferencia >= 0;
+        const colorClass = esPositivo ? 'text-green-600' : 'text-red-600';
+
+        // Determinar texto descriptivo
         let texto = '';
-        if (esIngreso) {
-            colorClass = esPositivo ? 'text-green-600' : 'text-red-600';
+        if (type === 'ingreso') {
             texto = esPositivo ? 'SE SUPERÓ' : 'NO SE ALCANZÓ';
         } else { // Es gasto
-            colorClass = esPositivo ? 'text-red-600' : 'text-green-600';
             texto = esPositivo ? 'SE SOBREGASTÓ' : 'SE AHORRÓ';
         }
 
-        // Aplicar clases y texto
+        // Aplicar valores y estilos
         montoEl.textContent = montoFormateado;
         montoEl.className = `text-2xl font-bold mt-2 ${colorClass}`;
+
         porcentajeEl.textContent = porcentajeFormateado;
         porcentajeEl.className = `text-xl font-semibold ${colorClass}`;
+
         textoEl.textContent = texto;
     }
 
@@ -243,23 +249,21 @@ class ResumenBalance {
 
         // Plantilla de opciones con estilos para modo oscuro
         const getChartOption = (chartData) => ({
-            // ELIMINADO: El título ya está en el HTML (h2)
             tooltip: {
                 trigger: 'axis',
                 axisPointer: { type: 'shadow' },
-                backgroundColor: '#282c34', // Fondo de tooltip oscuro
+                backgroundColor: '#282c34',
                 borderColor: '#555',
                 textStyle: {
-                    color: '#fff' // Texto de tooltip blanco
+                    color: '#fff'
                 }
             },
             legend: {
                 data: ['Planificado', 'Real'],
-                // NUEVO: Estilo para el texto de la leyenda
                 textStyle: {
-                    color: '#ccc' // Color de texto gris claro
+                    color: '#ccc'
                 },
-                top: '5%' // Un poco de espacio desde arriba
+                top: '5%'
             },
             grid: {
                 left: '3%',
@@ -273,7 +277,6 @@ class ResumenBalance {
                 axisLabel: {
                     interval: 0,
                     rotate: 45,
-                    // NUEVO: Estilo para las etiquetas del eje X
                     color: '#ccc'
                 },
                 axisTick: {
@@ -281,7 +284,7 @@ class ResumenBalance {
                 },
                 axisLine: {
                     lineStyle: {
-                        color: '#555' // Color de la línea del eje
+                        color: '#555'
                     }
                 }
             },
@@ -289,12 +292,11 @@ class ResumenBalance {
                 type: 'value',
                 axisLabel: {
                     formatter: 'S/ {value}',
-                    // NUEVO: Estilo para las etiquetas del eje Y
                     color: '#ccc'
                 },
                 splitLine: {
                     lineStyle: {
-                        color: '#333' // Color de las líneas de la cuadrícula
+                        color: '#333'
                     }
                 }
             },
@@ -321,8 +323,7 @@ class ResumenBalance {
             this.chartGastos.setOption(getChartOption(dataGastos));
         }
 
-        // NUEVO: Asegurarse de que los gráficos se redimensionen con la ventana
-        // Esto es crucial para que se ajusten al contenedor responsivo
+        // Redimensionar gráficos con la ventana
         window.addEventListener('resize', () => {
             this.chartIngresos?.resize();
             this.chartGastos?.resize();

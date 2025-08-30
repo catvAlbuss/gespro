@@ -20,6 +20,7 @@ class actividadespersonal extends Model
         'diasAsignados',
         'porcentajeTarea',
         'usuario_designado',
+        'elapsed_time',
     ];
 
      // Agregar relación con el modelo Proyecto
