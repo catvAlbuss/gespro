@@ -152,7 +152,7 @@ const app = createApp({
 
         if (res.ok) {
           const data = await res.json();
-          console.log('trámites recibidos:', data);
+          //console.log('trámites recibidos:', data);
 
           const normalized = data.map(t => {
             if (t.creador) {
@@ -185,7 +185,7 @@ const app = createApp({
           },
           body: JSON.stringify({
             user_id: userId,
-            month: fechaActual.getMonth() + 1,
+            month: fechaActual.getMonth(),
             empresaId: empresaId,
             adelanto: 0,
             permisos: 0,
@@ -200,7 +200,7 @@ const app = createApp({
         }
 
         const data = await response.json();
-        console.log(data);
+        //console.log(data);
 
         activities.value = Array.isArray(data.tareas) ? data.tareas : (data.tareas || []);
 
@@ -224,7 +224,7 @@ const app = createApp({
         descuentos.value = unique;
 
         updateMofDiscount();
-        console.log('Exportación completada', { actividades: activities.value.length, descuentos: descuentos.value });
+        //console.log('Exportación completada', { actividades: activities.value.length, descuentos: descuentos.value });
       } catch (err) {
         console.error('Error al cargar actividades:', err);
       }
@@ -517,9 +517,11 @@ const app = createApp({
       const diff = Math.max(0, (Number(totalDiasProgramados.value) || 0) - (Number(totalDiasEjecutados.value) || 0));
       const idx = descuentos.value.findIndex(d => d.key === 'incMof' || d.key === 'inc_mof' || (d.label && String(d.label).toLowerCase().includes('mof')));
       if (idx !== -1) {
-        descuentos.value[idx].cantidad = diff;
+        descuentos.value[idx].cantidad = 0;
+        //descuentos.value[idx].cantidad = diff;
       } else {
-        descuentos.value.push({ key: 'incMof', label: 'Inc Mof', cantidad: diff });
+        //descuentos.value.push({ key: 'incMof', label: 'Inc Mof', cantidad: diff });
+        descuentos.value.push({ key: 'incMof', label: 'Inc Mof', cantidad: 0 });
       }
     };
 

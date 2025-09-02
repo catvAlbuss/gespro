@@ -22,5 +22,5 @@
         <!-- Vue App will be mounted here -->
     </div>
 
-    @vite('resources/js/tramites.js')
+    @vite('resources/js/tramites/tramites.js')
 </x-app-layout>

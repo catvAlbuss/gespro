@@ -70,7 +70,7 @@
         #modalAsistencia,
         #modalMarcarAsistencia,
         #modalTareas,
-        #modalValesEquipamiento{
+        #modalValesEquipamiento {
             z-index: 50;
             /* Asegúrate de que estén al frente */
         }
@@ -143,14 +143,14 @@
 
     <!-- Modal para marcar asistencia -->
     <div id="modalMarcarAsistencia"
-         class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+        class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
         <div id="alert-additional-content-4"
-             class="p-4 mb-4 text-yellow-800 border border-yellow-300 rounded-lg bg-white shadow-lg" role="alert">
+            class="p-4 mb-4 text-yellow-800 border border-yellow-300 rounded-lg bg-white shadow-lg" role="alert">
             <div class="flex items-center">
                 <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                     fill="currentColor" viewBox="0 0 20 20">
+                    fill="currentColor" viewBox="0 0 20 20">
                     <path
-                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
                 </svg>
                 <span class="sr-only">Marcar Asistencia</span>
                 <h3 class="text-lg font-medium">Marcar Asistencia</h3>
@@ -161,30 +161,35 @@
             </div>
             <div class="flex items-center justify-end mt-8">
                 <button type="button" id="dismiss-marcar-asistencia"
-                        class="text-yellow-800 bg-transparent border border-yellow-800 hover:bg-yellow-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-yellow-600 dark:border-yellow-600 dark:text-yellow-400 dark:hover:text-white dark:focus:ring-yellow-700"
-                        aria-label="Close">
+                    class="text-yellow-800 bg-transparent border border-yellow-800 hover:bg-yellow-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center dark:hover:bg-yellow-600 dark:border-yellow-600 dark:text-yellow-400 dark:hover:text-white dark:focus:ring-yellow-700"
+                    aria-label="Close">
                     Cerrar
                 </button>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal para mostrar tareas -->
     <div id="modalTareas"
-         class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50 hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl h-[80vh] sm:h-[85vh] md:h-[90vh] max-h-[90vh] m-4 flex flex-col">
+        class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50 hidden">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl h-[80vh] sm:h-[85vh] md:h-[90vh] max-h-[90vh] m-4 flex flex-col">
             <!-- Encabezado -->
             <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center">
-                    <svg class="flex-shrink-0 w-5 h-5 me-2 text-blue-800 dark:text-blue-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                    <svg class="flex-shrink-0 w-5 h-5 me-2 text-blue-800 dark:text-blue-400" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
                     </svg>
                     <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-400">Tareas del Trabajador</h3>
                 </div>
                 <button id="close-tareas" type="button"
-                        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -198,18 +203,20 @@
                 </div>
             </div>
             <!-- Pie con conteo y botón -->
-            <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div
+                class="p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div id="conteoTareas" class="text-sm text-gray-600 dark:text-gray-300"></div>
                 <button id="close-tareas-footer" type="button"
-                        class="text-blue-800 bg-transparent border border-blue-800 hover:bg-blue-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-200 font-medium rounded-lg text-sm px-4 py-2 text-center dark:hover:bg-blue-600 dark:border-blue-600 dark:text-blue-400 dark:hover:text-white dark:focus:ring-blue-800">
+                    class="text-blue-800 bg-transparent border border-blue-800 hover:bg-blue-900 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-200 font-medium rounded-lg text-sm px-4 py-2 text-center dark:hover:bg-blue-600 dark:border-blue-600 dark:text-blue-400 dark:hover:text-white dark:focus:ring-blue-800">
                     Cerrar
                 </button>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Tareas -->
-    <div id="modalTareasEntregado" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+    <div id="modalTareasEntregado"
+        class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
         <div id="alert-additional-content-4"
             class="p-6 mb-4 text-yellow-800 border border-yellow-300 rounded-lg bg-white shadow-lg" role="alert">
             <div class="flex items-center">
@@ -240,7 +247,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Equipos Entregados -->
     <div id="modalValesEquipamiento"
         class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
@@ -285,7 +292,8 @@
                                 display: none;
                                 /* Oculta el elemento siempre */
                             }
-                             div[style*="background: #ff5252"] {
+
+                            div[style*="background: #ff5252"] {
                                 display: none !important;
                                 visibility: hidden !important;
                                 opacity: 0 !important;
@@ -340,8 +348,8 @@
         document.getElementById('dismiss-tareas-list').onclick = function() {
             document.getElementById('modalTareasEntregado').classList.add('hidden');
         };
-        
-         // Abrir el modal de Tareas al hacer clic en el botón correspondiente
+
+        // Abrir el modal de Tareas al hacer clic en el botón correspondiente
         document.getElementById('abrir_equipamiento').onclick = function() {
             document.getElementById('modalValesEquipamiento').classList.remove('hidden');
         };
@@ -834,22 +842,22 @@
 
     {{-- Marcar asistencia --}}
     <script>
-         window.onload = function () {
+        window.onload = function() {
             // Verificar tareas antes de iniciar el proceso de asistencia
             verificarTareas();
         };
-        
+
         // Variable global para el escáner
         var html5QrcodeScanner;
-        
+
         // Bandera para evitar múltiples registros
         var registroEnProceso = false;
         var registroCompletado = false;
-        
+
         // Función para verificar tareas al cargar la página
         function verificarTareas() {
             const id_trabajador = document.getElementById('trabajador_id').value;
-        
+
             $.ajax({
                 url: '/listar-tareas/' + id_trabajador,
                 method: 'GET',
@@ -881,11 +889,11 @@
                 }
             });
         }
-        
+
         // Función principal que determina el flujo de trabajo según el dispositivo
         function iniciarProcesoDeAsistencia() {
             const tipoDispositivo = detectarDispositivo();
-            
+
             if (tipoDispositivo === 'mobile' || tipoDispositivo === 'tablet') {
                 document.getElementById('modalMarcarAsistencia').classList.remove('hidden');
                 iniciarProcesoMobile();
@@ -893,18 +901,22 @@
                 mostrarMensajePC();
             }
         }
-        
+
         // Función para detectar el tipo de dispositivo
         function detectarDispositivo() {
             const userAgent = navigator.userAgent.toLowerCase();
-            const isMobile = /iphone|ipod|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(userAgent);
-            const isTablet = /ipad|android 3|sch-i800|playbook|tablet|kindle|gt-p1000|sgh-t849|shw-m180s|a510|a511|a100|dell streak|silk/i.test(userAgent);
-            
+            const isMobile =
+                /iphone|ipod|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i
+                .test(userAgent);
+            const isTablet =
+                /ipad|android 3|sch-i800|playbook|tablet|kindle|gt-p1000|sgh-t849|shw-m180s|a510|a511|a100|dell streak|silk/i
+                .test(userAgent);
+
             if (isMobile) return 'mobile';
             if (isTablet) return 'tablet';
             return 'desktop';
         }
-        
+
         // Función para mostrar mensaje en dispositivos de escritorio
         function mostrarMensajePC() {
             Swal.fire({
@@ -914,13 +926,13 @@
                 confirmButtonText: 'Entendido'
             });
         }
-        
+
         // Iniciar proceso para dispositivos móviles
         function iniciarProcesoMobile() {
             // Reiniciar banderas de control
             registroEnProceso = false;
             registroCompletado = false;
-            
+
             // Solicitar permisos de ubicación y cámara en secuencia
             solicitarPermisos()
                 .then(() => {
@@ -932,7 +944,7 @@
                     mostrarErrorPermisos(error);
                 });
         }
-        
+
         // Solicitar todos los permisos necesarios
         async function solicitarPermisos() {
             try {
@@ -943,7 +955,7 @@
                 return Promise.reject("Se requiere acceso a la ubicación para registrar la asistencia");
             }
         }
-        
+
         // Función para mostrar error de permisos
         function mostrarErrorPermisos(mensaje) {
             Swal.fire({
@@ -957,44 +969,43 @@
                 }
             });
         }
-        
+
         // Cerrar modal de marcar asistencia
-        document.getElementById('dismiss-marcar-asistencia').onclick = function () {
+        document.getElementById('dismiss-marcar-asistencia').onclick = function() {
             document.getElementById('modalMarcarAsistencia').classList.add('hidden');
-            
+
             // Limpiar el escáner si existe
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.clear();
                 html5QrcodeScanner = null;
             }
         };
-        
+
         // Iniciar el escáner QR con configuración optimizada para móviles
         function iniciarEscanerQR() {
             // Limpiar el escáner anterior si existe
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.clear();
             }
-            
+
             html5QrcodeScanner = new Html5QrcodeScanner(
-                "qr-reader", 
-                { 
+                "qr-reader", {
                     fps: 10,
                     qrbox: 250,
                     rememberLastUsedCamera: true,
-                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
                 }
             );
-        
+
             html5QrcodeScanner.render(onScanSuccess, onScanError);
-        
+
             // Ocultar el botón de subir imagen con un retraso mayor
             setTimeout(ocultarBotonSubirImagen, 1000);
-            
+
             // Intentar seleccionar la cámara trasera con un retraso más largo
             setTimeout(seleccionarCamaraTrasera, 1500);
         }
-        
+
         // Función para seleccionar automáticamente la cámara trasera
         async function seleccionarCamaraTrasera() {
             try {
@@ -1003,37 +1014,36 @@
                     console.log("No se encontraron cámaras disponibles");
                     return;
                 }
-                
+
                 console.log("Cámaras disponibles:", devices.map(d => d.label));
-                
+
                 const patronesCamaraTrasera = [
                     'back', 'trasera', 'rear', 'environment', 'posterior', 'exterior', 'externa', 'back camera'
                 ];
-                
+
                 let camaraTrasera = null;
                 for (const patron of patronesCamaraTrasera) {
-                    camaraTrasera = devices.find(device => 
+                    camaraTrasera = devices.find(device =>
                         device.label.toLowerCase().includes(patron)
                     );
                     if (camaraTrasera) break;
                 }
-                
+
                 if (!camaraTrasera && devices.length > 1) {
                     camaraTrasera = devices[devices.length - 1];
                 } else if (!camaraTrasera) {
                     camaraTrasera = devices[0];
                 }
-                
+
                 console.log("Cámara seleccionada:", camaraTrasera.label);
-                
+
                 if (html5QrcodeScanner && html5QrcodeScanner.html5Qrcode) {
                     try {
                         await html5QrcodeScanner.html5Qrcode.stop();
                         await html5QrcodeScanner.html5Qrcode.start(
-                            camaraTrasera.id, 
-                            { 
+                            camaraTrasera.id, {
                                 fps: 10,
-                                qrbox: 250 
+                                qrbox: 250
                             },
                             onScanSuccess,
                             onScanError
@@ -1044,12 +1054,14 @@
                         console.error("Error al iniciar cámara directamente:", err);
                     }
                 }
-                
+
                 const cameraSelector = document.getElementById('qr-reader__camera_selection');
                 if (cameraSelector) {
                     cameraSelector.value = camaraTrasera.id;
-                    cameraSelector.dispatchEvent(new Event('change', { bubbles: true }));
-                    
+                    cameraSelector.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+
                     setTimeout(() => {
                         const startButton = document.querySelector('#qr-reader__camera_permission_button');
                         if (startButton) {
@@ -1064,20 +1076,20 @@
                 console.error("Error al seleccionar cámara trasera:", error);
             }
         }
-        
+
         function ocultarBotonSubirImagen() {
             const botonSubirImagen = document.querySelector('#qr-reader__dashboard_section_swaplink');
             if (botonSubirImagen) {
                 botonSubirImagen.style.display = 'none';
             }
-            
+
             const headerSection = document.querySelector('#qr-reader__header_message');
             if (headerSection) {
                 headerSection.style.fontSize = '14px';
                 headerSection.style.padding = '5px';
             }
         }
-        
+
         async function obtenerHoraLima() {
             try {
                 const response = await fetch(
@@ -1095,28 +1107,28 @@
                 return new Date(now.getTime() + (localOffset + limaOffset) * 60000);
             }
         }
-        
-         function calcularEntrada(horaLimaDateObject) {
+
+        function calcularEntrada(horaLimaDateObject) {
             // Es una buena práctica asegurarse de que el argumento es un objeto Date válido.
             if (!(horaLimaDateObject instanceof Date) || isNaN(horaLimaDateObject.getTime())) {
                 console.error("El argumento proporcionado no es un objeto Date válido.");
                 return 'Error: Fecha inválida'; // O manejar el error como se prefiera
             }
-        
+
             const horas = horaLimaDateObject.getHours(); // Obtiene la hora del día (0-23)
             const minutos = horaLimaDateObject.getMinutes(); // Obtiene los minutos de la hora (0-59)
-        
+
             // --- HORARIO DE MAÑANA ---
-            // Entrada Puntual Mañana: Desde las 7:30 AM hasta las 8:20 AM.
-            if ((horas === 7 && minutos >= 30) || (horas === 8 && minutos <= 20)) {
+            // Entrada Puntual Mañana: Desde las 7:30 AM hasta las 8:30 AM.
+            if ((horas === 7 && minutos >= 30) || (horas === 8 && minutos <= 30)) {
                 return 'Puntual';
             }
-            // Entrada Tarde Mañana: Desde las 8:21 AM hasta las 12:59 PM.
+            // Entrada Tarde Mañana: Desde las 8:31 AM hasta las 12:59 PM.
             // (Se asume que el bloque de "Tarde Mañana" termina antes de las 13:00)
-            else if (((horas === 8 && minutos >= 21) || (horas > 8 && horas < 13))) {
+            else if (((horas === 8 && minutos >= 31) || (horas > 8 && horas < 13))) {
                 return 'Tarde';
             }
-        
+
             // --- HORARIO DE TARDE ---
             // Entrada Puntual Tarde: Desde las 2:30 PM (14:30) hasta las 3:10 PM (15:10).
             else if ((horas === 14 && minutos >= 30) || (horas === 15 && minutos <= 10)) {
@@ -1127,24 +1139,24 @@
             else if (((horas === 15 && minutos >= 11) || (horas > 15 && horas < 20) || (horas === 20 && minutos === 0))) {
                 return 'Tarde';
             }
-        
+
             // --- FUERA DE HORARIO ---
             // Si no cumple ninguna de las condiciones anteriores, se considera Fuera de horario.
             else {
                 return 'Fuera de horario';
             }
         }
-        
+
         function obtenerMensajeIngreso(entrada) {
             const mensajePuntual = "Excelente trabajo por llegar puntual! Sigue así.";
             const mensajeTarde = "Recuerda que la puntualidad es importante. ¡Esfuérzate por llegar a tiempo!";
             const mensajeFuera = "Estás registrando asistencia fuera del horario laboral regular.";
-            
+
             if (entrada === "Puntual") return mensajePuntual;
             if (entrada === "Tarde") return mensajeTarde;
             return mensajeFuera;
         }
-        
+
         async function obtenerUbicacion() {
             return new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -1154,52 +1166,53 @@
                 });
             });
         }
-        
+
         async function obtenerDireccion(position) {
             try {
                 const urlNominatim =
                     `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`;
                 const response = await fetch(urlNominatim);
-                
+
                 if (!response.ok) {
                     throw new Error("Error al obtener dirección");
                 }
-                
+
                 const data = await response.json();
                 const address = data.address || {};
                 const numeroCasa = address.house_number || "";
                 const calle = address.road || "";
                 const ciudad = address.residential || address.city || address.town || address.county || "";
-                
-                return `${numeroCasa} ${calle}, ${ciudad}`.trim() || `Lat: ${position.coords.latitude.toFixed(5)}, Lon: ${position.coords.longitude.toFixed(5)}`;
+
+                return `${numeroCasa} ${calle}, ${ciudad}`.trim() ||
+                    `Lat: ${position.coords.latitude.toFixed(5)}, Lon: ${position.coords.longitude.toFixed(5)}`;
             } catch (error) {
                 console.error("Error al obtener dirección:", error);
                 return `Lat: ${position.coords.latitude.toFixed(5)}, Lon: ${position.coords.longitude.toFixed(5)}`;
             }
         }
-        
+
         function registrarAsistencia(formData) {
             return new Promise((resolve, reject) => {
                 if (registroEnProceso) {
                     reject(new Error('Ya hay un registro en proceso'));
                     return;
                 }
-                
+
                 if (registroCompletado) {
                     reject(new Error('La asistencia ya ha sido registrada hoy'));
                     return;
                 }
-                
+
                 registroEnProceso = true;
-                
+
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', '/registrar_asistencia');
                 xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]')
                     .getAttribute('content'));
-                    
+
                 xhr.timeout = 15000;
-        
-                xhr.onload = function () {
+
+                xhr.onload = function() {
                     if (xhr.status === 200) {
                         registroCompletado = true;
                         registroEnProceso = false;
@@ -1209,29 +1222,29 @@
                         reject(new Error(xhr.statusText || 'Error en la respuesta del servidor'));
                     }
                 };
-                
+
                 xhr.ontimeout = function() {
                     registroEnProceso = false;
                     reject(new Error('Tiempo de espera agotado para la solicitud'));
                 };
-                
-                xhr.onerror = function () {
+
+                xhr.onerror = function() {
                     registroEnProceso = false;
                     reject(new Error('Error de red'));
                 };
-                
+
                 xhr.send(formData);
             });
         }
-        
+
         async function onScanSuccess(decodedText, decodedResult) {
             console.log("QR escaneado con éxito:", decodedText);
-            
+
             if (registroEnProceso) {
                 console.log("Ya hay un registro en proceso, ignorando escaneo");
                 return;
             }
-            
+
             if (registroCompletado) {
                 console.log("La asistencia ya fue registrada, ignorando escaneo");
                 Swal.fire({
@@ -1245,7 +1258,7 @@
                 }
                 return;
             }
-            
+
             if (html5QrcodeScanner) {
                 try {
                     await html5QrcodeScanner.clear();
@@ -1253,11 +1266,11 @@
                     console.error("Error al detener el escáner:", error);
                 }
             }
-        
+
             const id_empresa = document.getElementById('empresaId').value || 0;
             const id_trabajador = document.getElementById('trabajador_id').value;
             const nombre_trabajador = document.getElementById('nombre_trab').value;
-        
+
             try {
                 Swal.fire({
                     title: 'Procesando...',
@@ -1267,24 +1280,24 @@
                         Swal.showLoading();
                     }
                 });
-        
+
                 const fechaHoraLima = await obtenerHoraLima();
-        
+
                 if (!(fechaHoraLima instanceof Date) || isNaN(fechaHoraLima.getTime())) {
                     throw new Error('No se pudo obtener la fecha y hora de Lima');
                 }
-        
+
                 const entrada = calcularEntrada(fechaHoraLima);
                 const mensajesingreso = obtenerMensajeIngreso(entrada);
-        
+
                 const fechaFormateada = fechaHoraLima.toISOString().split('T')[0];
                 const horaLima = fechaHoraLima.toLocaleTimeString('es-PE', {
                     hour12: false
                 });
-        
+
                 const position = await obtenerUbicacion();
                 const ubicacion = await obtenerDireccion(position);
-        
+
                 const formData = new FormData();
                 formData.append('nombre_trabajador', nombre_trabajador);
                 formData.append('tipo_horario', entrada);
@@ -1294,7 +1307,7 @@
                 formData.append('id_trabajador', id_trabajador);
                 formData.append('id_empresa', id_empresa);
                 formData.append('qr_code', decodedText);
-        
+
                 const respuesta = await registrarAsistencia(formData);
                 const data = JSON.parse(respuesta);
                 if (data.success) {
@@ -1309,7 +1322,7 @@
                         // Mostrar el contenedor de tareas
                         //const tareasGrid = document.querySelector('.grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-2.xl:grid-cols-2.2xl:grid-cols-2');
                         //if (tareasGrid) {
-                            //tareasGrid.classList.remove('hidden');
+                        //tareasGrid.classList.remove('hidden');
                         //}
                         // Mostrar las tareas
                         // Ocultar el modal de asistencia
@@ -1321,7 +1334,8 @@
                     registroCompletado = false;
                     Swal.fire({
                         title: 'Error',
-                        text: 'Hubo un error en la respuesta del servidor: ' + (data.error || 'Error desconocido'),
+                        text: 'Hubo un error en la respuesta del servidor: ' + (data.error ||
+                            'Error desconocido'),
                         icon: 'error',
                         confirmButtonText: 'Reintentar',
                         showCancelButton: true,
@@ -1349,17 +1363,17 @@
                 });
             }
         }
-        
+
         function onScanError(errorMessage) {
             if (errorMessage && !errorMessage.includes('No QR code found')) {
                 console.error("Error al escanear:", errorMessage);
             }
         }
-        
+
         // Función para mostrar las tareas después de registrar asistencia
         function mostrarTareas() {
             var idtrabajador = $('#trabajador_id').val();
-        
+
             // Validar que idtrabajador tenga un valor válido
             if (!idtrabajador) {
                 console.error('Error: idtrabajador no está definido');
@@ -1367,17 +1381,17 @@
                 document.getElementById('modalTareas').classList.remove('hidden');
                 return;
             }
-        
+
             $.ajax({
                 url: '/listar-tareas/' + idtrabajador,
                 method: 'GET',
                 dataType: 'json',
-                success: function (data) {
+                success: function(data) {
                     $('#tareas-container').empty();
-        
+
                     // Validar que data sea un array y no esté vacío
                     if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(function (tarea) {
+                        data.forEach(function(tarea) {
                             // Verificar que las propiedades esperadas existan
                             if (tarea.actividadId && tarea.nameActividad) {
                                 $('#tareas-container').append(
@@ -1399,34 +1413,35 @@
                         $('#tareas-container').append('<p>No hay tareas para este trabajador.</p>');
                         $('#conteoTareas').text('Total de tareas: 0');
                     }
-        
+
                     // Agregar eventos de clic a los botones
                     agregarEventoClickTareas();
-        
+
                     // Mostrar el modal de tareas
                     document.getElementById('modalTareas').classList.remove('hidden');
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error('Error al cargar las tareas:', {
                         status: status,
                         error: error,
                         response: xhr.responseText
                     });
-                    $('#tareas-container').empty().append('<p>Error al cargar las tareas. Por favor, intenta de nuevo.</p>');
+                    $('#tareas-container').empty().append(
+                        '<p>Error al cargar las tareas. Por favor, intenta de nuevo.</p>');
                     $('#conteoTareas').text('Total de tareas: 0');
                     document.getElementById('modalTareas').classList.remove('hidden');
                 }
             });
         }
-        
+
         // Función para agregar eventos de clic a los botones de tareas
         function agregarEventoClickTareas() {
-            $('#tareas-container').find('button').on('click', function () {
+            $('#tareas-container').find('button').on('click', function() {
                 const idTarea = $(this).data('id');
                 cambiarEstadoTarea(idTarea);
             });
         }
-        
+
         // Función para cambiar el estado de la tarea
         function cambiarEstadoTarea(idTarea) {
             $.ajax({
@@ -1436,7 +1451,7 @@
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                success: function (data) {
+                success: function(data) {
                     if (data.success) {
                         Swal.fire({
                             icon: 'success',
@@ -1449,7 +1464,7 @@
                             // Cerrar el modal de asistencia
                             //document.getElementById('modalMarcarAsistencia').classList.add('hidden');
                             //if (typeof $('#AsistenciaPersonal').modal === 'function') {
-                                //$('#AsistenciaPersonal').modal('hide');
+                            //$('#AsistenciaPersonal').modal('hide');
                             //}
                         });
                     } else {
@@ -1461,7 +1476,7 @@
                         });
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error('Error al cambiar el estado de la tarea: ', error);
                     Swal.fire({
                         icon: 'error',
@@ -1559,7 +1574,7 @@
             obtenerTareas(trabajadorId);
         });
     </script>
-    
+
     {{-- Lista de equipos --}}
     <script>
         async function obtenerEquipamiento(trabajadorId) {

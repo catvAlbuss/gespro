@@ -5,6 +5,8 @@ import '../css/app.css'; // Ensure this path is correct
 // resources/js/app.js
 import './contabilidad/kanban.js';
 import './tramites/tramites.js';
+import './proyectos/portadaproyectos.js';
+import './proyectos/detallesproyectos.js';
 
 
 window.Alpine = Alpine;

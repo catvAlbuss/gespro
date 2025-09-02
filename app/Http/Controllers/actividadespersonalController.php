@@ -94,31 +94,38 @@ class actividadespersonalController extends Controller
 
     public function store(Request $request)
     {
-        // Validar los datos del request
         $request->validate([
             'name' => 'required|string|max:255',
-            'project' => 'required|string|max:255',
-            'assignedTo' => 'required|string|max:100',
+            'project' => 'required|integer',
+            'assignedTo' => 'required|integer',
             'status' => 'required|string|in:todo,doing,done,approved',
             'fecha' => 'required|date',
             'diasTo' => 'required|integer',
             'porcentTo' => 'required|integer',
         ]);
 
-        // Crear la nueva tarea
         $task = actividadespersonal::create([
-            'nameActividad' => $request->name,         // Cambié 'name' por 'nameActividad'
-            'projectActividad' => $request->project,   // Cambié 'project' por 'projectActividad'
-            'elapsed_timeActividadId' => 0,            // Cambié 'elapsed_time' por 'elapsed_timeActividadId'
+            'nameActividad' => $request->name,
+            'projectActividad' => $request->project,
+            'elapsed_timeActividadId' => 0,
             'status' => $request->status,
             'fecha' => $request->fecha,
             'diasAsignados' => $request->diasTo,
             'porcentajeTarea' => $request->porcentTo,
-            'usuario_designado' => $request->assignedTo, // Cambié 'assignedTo' por 'usuario_designado'
+            'usuario_designado' => $request->assignedTo,
         ]);
 
-        // Devolver la tarea creada como respuesta JSON
-        return response()->json($task, 201);
+        // 🔹 Aquí cargamos joins como en loadTasks
+        $projectName = Proyecto::find($request->project)->nombre_proyecto ?? 'Sin proyecto';
+        $userName = User::find($request->assignedTo)->name ?? 'Sin asignar';
+
+        return response()->json([
+            'task' => $task,
+            'project_name' => $projectName,
+            'project_id' => $request->project,
+            'user_name' => $userName,
+            'user_id' => $request->assignedTo,
+        ], 201);
     }
 
     public function edit(string $id)

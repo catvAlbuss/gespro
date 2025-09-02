@@ -589,8 +589,35 @@ class TramitesController extends Controller
             }
         }
 
+        $jefesPorEmpresa = [
+            1 => 2,  // Empresa 1 -> User ID 2
+            2 => 6,  // Empresa 2 -> User ID 6
+            3 => 14, // Empresa 3 -> User ID 14
+            4 => 14, // Empresa 4 -> User ID 14
+            5 => 12, // Empresa 5 -> User ID 12
+        ];
+
+        // 🔹 Obtener información del jefe de área para esta empresa
+        $jefeAreaId = $jefesPorEmpresa[$empresaId] ?? null;
+        $jefeAreaInfo = null;
+
+        if ($jefeAreaId) {
+            $jefeArea = User::select('id', 'name', 'surname', 'email', 'area_laboral')
+                ->find($jefeAreaId);
+            if ($jefeArea) {
+                $jefeAreaInfo = [
+                    'id' => $jefeArea->id,
+                    'nombre' => $jefeArea->name,
+                    'apellido' => $jefeArea->surname,
+                    'email' => $jefeArea->email,
+                    'area_laboral' => $jefeArea->area_laboral,
+                    'nombre_completo' => $jefeArea->name . ' ' . $jefeArea->surname
+                ];
+            }
+        }
+
         // 🔹 Generar mapeo de firmas basado en las aprobaciones
-        $firmasDisponibles = $this->generarMapeoFirmas($aprobacionesData);
+        $firmasDisponibles = $this->generarMapeoFirmas($aprobacionesData, $empresaId, $jefeAreaInfo);
 
         // ... resto del código para tareas (sin cambios) ...
         $tareas = actividadespersonal::with(['proyecto' => function ($query) {
@@ -671,27 +698,46 @@ class TramitesController extends Controller
             // 🔹 Nuevos datos del trámite
             'tramite' => $tramiteData,
             'aprobaciones' => $aprobacionesData,
-            'firmas_disponibles' => $firmasDisponibles
+            'firmas_disponibles' => $firmasDisponibles,
+            'jefe_area' => $jefeAreaInfo
         ], 200);
     }
 
     /**
-     * 🔹 Método auxiliar para generar mapeo de firmas
+     * 🔹 Método auxiliar para generar mapeo de firmas (modificado)
      */
-    private function generarMapeoFirmas($aprobaciones)
+    private function generarMapeoFirmas($aprobaciones, $empresaId, $jefeAreaInfo)
     {
         $mapeoFirmas = [];
 
         foreach ($aprobaciones as $aprobacion) {
             if ($aprobacion['aprobado']) {
                 $etapa = $aprobacion['etapa'];
-                $archivoFirma = $this->obtenerArchivoFirmaPorEtapa($etapa);
+                $archivoFirma = null;
+                $usuarioAprobador = $aprobacion['usuario_aprobador'];
+
+                // 🔹 Lógica especial para Jefe de Área
+                if ($etapa === 'Jefe de Área') {
+                    $archivoFirma = $this->obtenerFirmaJefeAreaPorEmpresa($empresaId, $jefeAreaInfo);
+                    // Usar la info del jefe específico en lugar del usuario que aprobó
+                    if ($jefeAreaInfo) {
+                        $usuarioAprobador = [
+                            'id' => $jefeAreaInfo['id'],
+                            'nombre' => $jefeAreaInfo['nombre'],
+                            'apellido' => $jefeAreaInfo['apellido'],
+                            'email' => $jefeAreaInfo['email']
+                        ];
+                    }
+                } else {
+                    // Para otras etapas, usar el mapeo normal
+                    $archivoFirma = $this->obtenerArchivoFirmaPorEtapa($etapa);
+                }
 
                 if ($archivoFirma) {
                     $mapeoFirmas[] = [
                         'etapa' => $etapa,
                         'archivo' => $archivoFirma,
-                        'usuario_aprobador' => $aprobacion['usuario_aprobador'],
+                        'usuario_aprobador' => $usuarioAprobador,
                         'fecha_aprobacion' => $aprobacion['fecha_aprobacion'],
                         'orden' => $aprobacion['orden']
                     ];
@@ -708,17 +754,34 @@ class TramitesController extends Controller
     }
 
     /**
-     * 🔹 Mapeo de etapas a archivos de firma
+     * 🔹 Obtener archivo de firma específico para Jefe de Área según empresa
+     */
+    private function obtenerFirmaJefeAreaPorEmpresa($empresaId, $jefeAreaInfo)
+    {
+        // Mapeo de empresa -> archivo de firma del jefe
+        $firmasJefesPorEmpresa = [
+            1 => 'FirmasGestorPro-bg.png',    // Para empresa 1 (userId=2)
+            2 => 'FirmasJefeAreaProyecta-bg.png',    // Para empresa 2 (userId=6)
+            3 => 'FirmasJefeAreaSeven-bg.png',    // Para empresa 3 (userId=14)
+            4 => 'FirmaJefeArea_Empresa4.png',    // Para empresa 4 (userId=14)
+            5 => 'FirmaJefeArea_Empresa5.png',    // Para empresa 5 (userId=12)
+        ];
+
+        return $firmasJefesPorEmpresa[$empresaId] ?? 'FirmaJefeArea_Default.png';
+    }
+
+    /**
+     * 🔹 Mapeo de etapas a archivos de firma (actualizado)
      */
     private function obtenerArchivoFirmaPorEtapa($etapa)
     {
         $mapeoArchivos = [
             'Asistente' => 'FirmaAsistente-bg.png',
-            'Jefe de Área' => 'FirmaJefeArea-bg.png',
+            // 'Jefe de Área' se maneja por separado en obtenerFirmaJefeAreaPorEmpresa
             'Administrador de Proyectos' => 'FirmasGestorPro-bg.png',
             'Administración' => 'FirmasGestorAdmon-bg.png',
-            'Gerencia' => 'FirmaGerencia-bg.png',
-            'Contabilidad' => 'FirmaContabilidad-bg.png',
+            'Gerencia' => 'FirmasGerencia-bg.png',
+            'Contabilidad' => 'FirmasGestorAdmon-bg.png',
         ];
 
         return $mapeoArchivos[$etapa] ?? null;

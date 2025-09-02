@@ -451,77 +451,65 @@ const loadImageAsBase64 = async (filename) => {
 
 const agregarFirmas = async (pdf, payload, startY) => {
   try {
-    // 🔹 Usar las firmas del payload
     const firmasDisponibles = payload.firmas_disponibles || [];
 
     if (firmasDisponibles.length === 0) {
-      console.warn('No hay firmas disponibles para mostrar');
+      console.warn("No hay firmas disponibles para mostrar");
       return startY;
     }
 
-    console.log(`Agregando ${firmasDisponibles.length} firmas al PDF`);
+    // 📌 Ajustes
+    let currentY = startY - 80;
+    const firmaWidth = 30;
+    const firmaHeight = 20;
+    const spacingY = 28; // espacio vertical entre cada firma
+    const margenLateral = 10; // margen lateral de la hoja
 
-    let xPosition = 20;
-    const spacing = 60; // Espaciado entre firmas
-    const maxFirmasPorFila = 3;
-    let firmasEnFila = 0;
-    let currentY = startY;
+    // Ancho de la página
+    const pageWidth = pdf.internal.pageSize.getWidth();
+
+    // Posiciones X de las columnas (izquierda y derecha)
+    const xColIzq = pageWidth - (firmaWidth * 2) - (margenLateral * 2);
+    const xColDer = pageWidth - firmaWidth - margenLateral;
+
+    let colIndex = 0; // 0 = izquierda, 1 = derecha
 
     for (const firmaData of firmasDisponibles) {
       try {
-        console.log(`Procesando firma: ${firmaData.etapa} - ${firmaData.archivo}`);
-
-        // Cargar imagen de firma
+        // Cargar imagen
         const firmaBase64 = await loadImageAsBase64(firmaData.archivo);
 
-        // Si ya hay 3 firmas en la fila, saltar a la siguiente
-        if (firmasEnFila >= maxFirmasPorFila) {
-          currentY += 45;
-          xPosition = 20;
-          firmasEnFila = 0;
-        }
+        // Elegir X en función de la columna
+        const xPosition = colIndex === 0 ? xColIzq : xColDer;
 
-        // Agregar firma al PDF
-        pdf.addImage(firmaBase64, "PNG", xPosition, currentY, 30, 20);
+        // Agregar firma
+        pdf.addImage(firmaBase64, "PNG", xPosition, currentY, firmaWidth, firmaHeight);
 
-        // Agregar etiqueta con información del aprobador
+        // Texto debajo
         pdf.setFontSize(7);
         pdf.setFont("helvetica", "bold");
-        pdf.text(firmaData.etapa, xPosition + 15, currentY + 25, { align: 'center' });
+        pdf.text(firmaData.etapa, xPosition + firmaWidth / 2, currentY + firmaHeight + 3, { align: "center" });
 
-        pdf.setFont("helvetica", "normal");
-        if (firmaData.usuario_aprobador) {
-          const nombreCompleto = `${firmaData.usuario_aprobador.nombre} ${firmaData.usuario_aprobador.apellido}`;
-          pdf.text(nombreCompleto, xPosition + 15, currentY + 29, { align: 'center' });
+        // Alternar columnas
+        if (colIndex === 0) {
+          colIndex = 1; // siguiente firma a la derecha
+        } else {
+          colIndex = 0; // volvemos a izquierda
+          currentY += spacingY; // bajar fila cuando ambas columnas ya tienen firma
         }
-
-        // Fecha de aprobación (formato más compacto)
-        if (firmaData.fecha_aprobacion) {
-          const fecha = new Date(firmaData.fecha_aprobacion).toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit'
-          });
-          pdf.text(fecha, xPosition + 15, currentY + 33, { align: 'center' });
-        }
-
-        console.log(`✅ Firma ${firmaData.etapa} agregada en posición x: ${xPosition}`);
-
-        xPosition += spacing;
-        firmasEnFila++;
 
       } catch (firmaError) {
         console.warn(`❌ Error con firma ${firmaData.etapa}:`, firmaError.message);
-        // Continuar con las siguientes firmas
       }
     }
 
-    return currentY + 50; // Espacio para firmas + etiquetas + margen extra
+    return currentY + spacingY; // última posición usada
   } catch (error) {
     console.error("Error general al agregar firmas:", error);
     return startY;
   }
 };
+
 
 // ============================================================================
 // FUNCIÓN PRINCIPAL
@@ -532,7 +520,7 @@ const agregarFirmas = async (pdf, payload, startY) => {
  */
 const informe_pago_personal = async (payload) => {
   try {
-    console.log("Generando PDF con payload:", payload);
+    //console.log("Generando PDF con payload:", payload);
 
     // Validaciones básicas
     if (!payload?.usuario?.sueldo_base || !payload?.mes) {
@@ -569,7 +557,7 @@ const informe_pago_personal = async (payload) => {
     // Descargar PDF
     pdf.save(nombreArchivo);
 
-    console.log(`PDF generado exitosamente: ${nombreArchivo}`);
+    //console.log(`PDF generado exitosamente: ${nombreArchivo}`);
     return true;
 
   } catch (error) {
@@ -614,7 +602,7 @@ const exportarIP = async (tramite, csrfToken, empresaId) => {
     }
 
     const data = await response.json();
-    console.log(data);
+    //console.log(data);
 
     if (data.status !== "success") {
       throw new Error(data.message || "Error al procesar datos del informe.");
@@ -648,7 +636,7 @@ const exportarIP = async (tramite, csrfToken, empresaId) => {
       firmas_disponibles: data.firmas_disponibles || []
     };
 
-    console.log('Payload con firmas:', payload.firmas_disponibles);
+    //console.log('Payload con firmas:', payload.firmas_disponibles);
 
     // Generar PDF
     await informe_pago_personal(payload);

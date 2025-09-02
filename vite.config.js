@@ -8,6 +8,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/tramites/tramites.js',
+                'resources/js/contabilidad/kanban.js',
             ],
             refresh: true,
         }),

@@ -156,9 +156,25 @@ const app = createApp({
                 const data = await response.json();
                 proyectos.value = Array.isArray(data) ? data : [];
             } catch (error) {
-                console.error('Error cargando proyectos:', error);
+                //console.error('Error cargando proyectos:', error);
                 showNotification('Error al cargar proyectos', 'error');
             }
+        };
+
+        // Cargar tareas mejorado para búsqueda por trabajador
+        // Función auxiliar para crear fecha sin problemas de zona horaria
+        const createLocalDate = (dateString) => {
+            if (!dateString) return null;
+
+            // Si el formato es YYYY-MM-DD, crear la fecha como local
+            const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (match) {
+                const [, year, month, day] = match;
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            }
+
+            // Si es otro formato, usar el constructor normal
+            return new Date(dateString);
         };
 
         // Cargar tareas mejorado para búsqueda por trabajador
@@ -181,6 +197,11 @@ const app = createApp({
                 }
 
                 const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 // console.log('Datos recibidos:', data);
@@ -190,87 +211,197 @@ const app = createApp({
 
                 if (Array.isArray(data)) {
                     data.forEach(taskData => {
-                        if (!taskData.task) return;
-                        const task = taskData.task;
+                        try {
+                            if (!taskData.task) return;
+                            const task = taskData.task;
 
-                        // Validar fecha
-                        if (!task.fecha || !/^\d{4}-\d{2}-\d{2}/.test(task.fecha)) return;
+                            // Validar fecha
+                            if (!task.fecha || !/^\d{4}-\d{2}-\d{2}/.test(task.fecha)) {
+                                //console.warn('Tarea con fecha inválida:', task);
+                                return;
+                            }
 
-                        const taskDate = new Date(task.fecha);
+                            // Crear fecha local para evitar problemas de zona horaria
+                            const taskDate = createLocalDate(task.fecha);
 
-                        // Para búsquedas por trabajador, mostrar todas las tareas del mes/año
-                        // independientemente del mes actual
-                        if (taskDate.getMonth() + 1 !== month || taskDate.getFullYear() !== year) {
-                            return;
+                            if (!taskDate || isNaN(taskDate.getTime())) {
+                                //console.warn('No se pudo crear fecha válida para:', task.fecha);
+                                return;
+                            }
+
+                            const taskMonth = taskDate.getMonth() + 1;
+                            const taskYear = taskDate.getFullYear();
+
+                            // Para búsquedas por trabajador, mostrar todas las tareas del mes/año
+                            // independientemente del mes actual
+                            if (taskMonth !== month || taskYear !== year) {
+                                return;
+                            }
+
+                            // Procesar tarea con validaciones adicionales
+                            const processedTask = {
+                                id: task.actividadId || task.id,
+                                name: task.nameActividad || task.name || 'Sin nombre',
+                                project: taskData.project_name || 'Sin proyecto',
+                                projectId: taskData.project_id,
+                                assignedTo: taskData.user_name || 'Sin asignar',
+                                assignedToId: taskData.user_id,
+                                status: task.status || 'todo',
+                                fecha: task.fecha,
+                                taskDate: taskDate, // Agregar la fecha parseada para referencia
+                                diasAsignados: parseFloat(task.diasAsignados) || 0,
+                                diasRestantes: parseFloat(task.diasRestantes) || parseFloat(task.diasAsignados) || 0,
+                                porcentajeTarea: parseInt(task.porcentajeTarea) || 0,
+                                elapsed_time: parseFloat(task.elapsed_time || task.elapsed_timeActividadId) || 0
+                            };
+
+                            tasks.value.push(processedTask);
+                        } catch (taskError) {
+                            //console.error('Error procesando tarea individual:', taskError, taskData);
                         }
-
-                        // Procesar tarea
-                        const processedTask = {
-                            id: task.actividadId || task.id,
-                            name: task.nameActividad || task.name,
-                            project: taskData.project_name || 'Sin proyecto',
-                            projectId: taskData.project_id,
-                            assignedTo: taskData.user_name || 'Sin asignar',
-                            assignedToId: taskData.user_id,
-                            status: task.status || 'todo',
-                            fecha: task.fecha,
-                            diasAsignados: parseFloat(task.diasAsignados) || 0,
-                            diasRestantes: parseFloat(task.diasRestantes) || parseFloat(task.diasAsignados) || 0,
-                            porcentajeTarea: task.porcentajeTarea || 0,
-                            elapsed_time: parseFloat(task.elapsed_time || task.elapsed_timeActividadId) || 0
-                        };
-
-                        tasks.value.push(processedTask);
                     });
+                } else {
+                    //console.warn('Los datos recibidos no son un array:', data);
                 }
 
                 // Actualizar contadores en la interfaz
                 updateColumnDays();
 
+                //console.log(`Cargadas ${tasks.value.length} tareas para ${month}/${year}`);
+
             } catch (error) {
-                console.error('Error cargando tareas:', error);
-                showNotification('Error al cargar tareas', 'error');
+                //console.error('Error cargando tareas:', error);
+                showNotification(`Error al cargar tareas: ${error.message}`, 'error');
             } finally {
                 isLoadingTasks.value = false;
             }
         };
 
-        // Task management
+        // Task management mejorado
         const handleAddTask = async () => {
-            if (!newTask.name || !newTask.project || !newTask.assignedTo || !newTask.dias) {
+            //console.log("📌 Datos capturados en newTask:", newTask);
+
+            // Validación manual para ver qué campos faltan
+            if (!newTask.name || !newTask.project || !newTask.assignedTo || !newTask.dias || !newTask.porcent) {
                 showNotification('Por favor completa todos los campos requeridos', 'warning');
                 return;
             }
 
             isLoadingTask.value = true;
             try {
-                const response = await fetch('/tasks', {
+                // Construir payload con nombres correctos para backend
+                const payload = {
+                    name: newTask.name,
+                    project: newTask.project,
+                    assignedTo: newTask.assignedTo,
+                    status: "todo", // siempre inicia en todo
+                    fecha: new Date().toISOString().split("T")[0], // fecha actual YYYY-MM-DD
+                    diasTo: newTask.dias,         // mapear correctamente
+                    porcentTo: newTask.porcent    // mapear correctamente
+                };
+
+                //console.log("📤 Payload enviado al backend:", payload);
+
+                const response = await fetch('/actividadpersonal', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken.value
                     },
-                    body: JSON.stringify({
-                        ...newTask,
-                        empresa_id: empresaId.value,
-                        status: 'todo',
-                        created_by: trabajadorId.value
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
+                //console.log("📥 Respuesta cruda:", response);
 
-                if (response.ok) {
-                    tasks.value.push(result.task);
-                    resetNewTask();
-                    updateColumnDays();
-                    showNotification('Tarea creada exitosamente', 'success');
-                } else {
-                    showNotification(result.message || 'Error al crear la tarea', 'error');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                const result = await response.json();
+                //console.log("📥 JSON recibido:", result);
+
+                // Procesar la respuesta usando la misma estructura que loadTasks
+                if (result && (Array.isArray(result) || result.task || result.actividadId)) {
+                    let taskData;
+
+                    // Si la respuesta es un array (como en loadTasks)
+                    if (Array.isArray(result) && result.length > 0) {
+                        taskData = result[0];
+                    }
+                    // Si la respuesta tiene la estructura anidada de loadTasks
+                    else if (result.task) {
+                        taskData = result;
+                    }
+                    // Si la respuesta es directa (sin estructura anidada)
+                    else {
+                        taskData = {
+                            task: result,
+                            project_name: newTask.project, // Usar los datos del formulario
+                            project_id: newTask.project,
+                            user_name: newTask.assignedTo,
+                            user_id: newTask.assignedTo
+                        };
+                    }
+
+                    // Procesar usando la misma lógica que loadTasks
+                    if (taskData && taskData.task) {
+                        const task = taskData.task;
+
+                        // Validar fecha usando la misma lógica que loadTasks
+                        if (!task.fecha || !/^\d{4}-\d{2}-\d{2}/.test(task.fecha)) {
+                            //console.warn('Tarea creada con fecha inválida:', task);
+                            // Usar la fecha del payload como fallback
+                            task.fecha = payload.fecha;
+                        }
+
+                        // Crear fecha local usando la misma función que loadTasks
+                        const taskDate = createLocalDate(task.fecha);
+
+                        if (!taskDate || isNaN(taskDate.getTime())) {
+                            //console.warn('No se pudo crear fecha válida para:', task.fecha);
+                            return;
+                        }
+
+                        // Procesar tarea con la misma estructura que loadTasks
+                        const processedTask = {
+                            id: task.actividadId || task.id,
+                            name: task.nameActividad || task.name || newTask.name,
+                            project: taskData.project_name || newTask.project || 'Sin proyecto',
+                            projectId: taskData.project_id || task.projectActividad,
+                            assignedTo: taskData.user_name || newTask.assignedTo || 'Sin asignar',
+                            assignedToId: taskData.user_id || task.usuario_designado,
+                            status: task.status || 'todo',
+                            fecha: task.fecha,
+                            taskDate: taskDate, // Agregar la fecha parseada para referencia
+                            diasAsignados: parseFloat(task.diasAsignados || task.diasTo || newTask.dias) || 0,
+                            diasRestantes: parseFloat(task.diasRestantes || task.diasAsignados || task.diasTo || newTask.dias) || 0,
+                            porcentajeTarea: parseInt(task.porcentajeTarea || task.porcentTo || newTask.porcent) || 0,
+                            elapsed_time: parseFloat(task.elapsed_time || task.elapsed_timeActividadId) || 0
+                        };
+
+                        //console.log("📋 Tarea procesada:", processedTask);
+
+                        // Agregar la tarea al array
+                        tasks.value.push(processedTask);
+
+                        // Limpiar formulario y actualizar interfaz
+                        resetNewTask();
+                        updateColumnDays();
+                        showNotification('Tarea creada exitosamente', 'success');
+
+                    } else {
+                        //console.error('❌ Estructura de respuesta inesperada:', result);
+                        showNotification('Error: Estructura de respuesta inesperada', 'error');
+                    }
+                } else {
+                    //console.error('❌ Respuesta vacía o inválida:', result);
+                    showNotification('Error: Respuesta del servidor inválida', 'error');
+                }
+
             } catch (error) {
-                console.error('Error creando tarea:', error);
-                showNotification('Error al crear la tarea', 'error');
+                //console.error('❌ Error creando tarea:', error);
+                showNotification(`Error al crear la tarea: ${error.message}`, 'error');
             } finally {
                 isLoadingTask.value = false;
             }
@@ -287,7 +418,7 @@ const app = createApp({
         };
 
         const openEditModal = (task) => {
-            console.log(task);
+            //console.log(task);
             editingTask.value = {
                 id: task.id,
                 name: task.name,
@@ -573,7 +704,7 @@ const app = createApp({
                 }
 
                 const data = await response.json();
-                console.log(data);
+                //console.log(data);
                 // ✅ Extraemos datos con valores seguros por defecto
                 const {
                     tareas = [],
@@ -612,7 +743,7 @@ const app = createApp({
                     Messelect: parseInt(mes)
                 };
 
-                console.log("✅ Exportación completada", payload);
+                //console.log("✅ Exportación completada", payload);
 
                 // ✅ Ahora pasamos bien las variables a la función
                 informe_pago_personal(
@@ -925,7 +1056,7 @@ function informe_pago_personal(tareas, tareasnoaprobados, trabajador, adelantos,
             area_laboral: trabajadorEncontrado.area_laboral,
         };
     } else {
-        console.log("No se encontró el trabajador con el ID proporcionado.");
+        //console.log("No se encontró el trabajador con el ID proporcionado.");
         return;
     }
 

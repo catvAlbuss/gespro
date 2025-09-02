@@ -14,6 +14,7 @@ class tramites extends Model
         'tipo',
         'descripcion',
         'estado_actual',
+        'fecha_informe_sol',
     ];
 
     protected $casts = [

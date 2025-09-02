@@ -35,9 +35,19 @@ class ProyectoController extends Controller
 
         // Obtener todos los trabajadores (no solo los relacionados con el proyecto)
         $trabajadores = User::all(); // Esto obtiene todos los trabajadores
-
+//resources/views/gestor_vista/proyectos/detallesProyectos.blade.php
         // Pasar los datos a la vista
-        return view('gestor_vista.Administrador.Gestor_Proyectos_ges', [
+        // return view('gestor_vista.Administrador.Gestor_Proyectos_ges', [
+        //     'id' => $proyecto->id_proyectos,
+        //     'nombre_proyecto' => $proyecto->nombre_proyecto,
+        //     'porcentaje_total' => $proyecto->porcentaje_total,
+        //     'documento_proyecto' => $proyecto->documento_proyecto,
+        //     'plazo_total_pro' => $proyecto->plazo_total_pro,
+        //     'empresa_id' => $empresa_id, // Pasar el empresa_id
+        //     'tareas' => $tareas, // Almacena las tareas en una variable
+        //     'trabajadores' => $trabajadores, // Almacena todos los trabajadores
+        // ]);
+        return view('gestor_vista.proyectos.detallesProyectos', [
             'id' => $proyecto->id_proyectos,
             'nombre_proyecto' => $proyecto->nombre_proyecto,
             'porcentaje_total' => $proyecto->porcentaje_total,
@@ -50,9 +60,10 @@ class ProyectoController extends Controller
     }
 
     public function index($empresaId)
-    {
+    {//resources/views/gestor_vista/proyectos/PortadaProyectos.blade.php
         $proyectos = Proyecto::where('empresa_id', $empresaId)->get();
-        return view('gestor_vista.Administrador.Gestor_Proyectos', compact('proyectos', 'empresaId'));
+        //return view('gestor_vista.Administrador.Gestor_Proyectos', compact('proyectos', 'empresaId'));
+        return view('gestor_vista.proyectos.PortadaProyectos', compact('proyectos', 'empresaId'));
     }
 
     public function store(Request $request)
@@ -600,23 +611,23 @@ class ProyectoController extends Controller
     
     public function actualizarMontoInvertidoProyecto(Request $request)
     {
-        \Log::info("Actualizando montos invertidos con datos: " . json_encode($request->all()));
+        //\Log::info("Actualizando montos invertidos con datos: " . json_encode($request->all()));
         
         $proyectos = $request->input('proyectos'); // Cambiado a 'proyectos' para ser consistente con el frontend
         
         if (!$proyectos || !is_array($proyectos)) {
-            \Log::error("Error: No se recibieron datos válidos para proyectos.");
+            //\Log::error("Error: No se recibieron datos válidos para proyectos.");
             return response()->json(['error' => 'Datos inválidos'], 400);
         }
         
-        \Log::info("Actualizando Montos Invertidos: " . json_encode($proyectos));
+        //\Log::info("Actualizando Montos Invertidos: " . json_encode($proyectos));
         
         foreach ($proyectos as $proyecto_item) {
             $id_proyecto = $proyecto_item['id_proyecto'] ?? null;
             $monto_invertido = $proyecto_item['monto_invertido'] ?? null; // Cambiado para coincidir con el frontend
             
             if (!$id_proyecto || !isset($monto_invertido)) {
-                \Log::warning("Datos incompletos para actualización de monto invertido: " . json_encode($proyecto_item));
+                //\Log::warning("Datos incompletos para actualización de monto invertido: " . json_encode($proyecto_item));
                 continue;
             }
             
@@ -625,9 +636,9 @@ class ProyectoController extends Controller
             ]);
             
             if ($actualizados) {
-                \Log::info("Monto invertido ID $id_proyecto actualizado correctamente.");
+                //\Log::info("Monto invertido ID $id_proyecto actualizado correctamente.");
             } else {
-                \Log::warning("No se pudo actualizar el monto invertido ID $id_proyecto.");
+                //\Log::warning("No se pudo actualizar el monto invertido ID $id_proyecto.");
             }
         }
         

@@ -133,10 +133,10 @@
                                         </option>
                                     </select>
                                 </div>
-                                <button @click="showPersonalModal = true"
+                                {{-- <button @click="showPersonalModal = true"
                                     class="bg-cyan-600 text-white px-4 py-3 rounded-lg hover:bg-cyan-500 transition duration-200 shadow-md">
                                     ⚙️ Detalles IP
-                                </button>
+                                </button> --}}
                             </div>
                         </div>
                     @endif
@@ -404,7 +404,7 @@
         </transition>
 
         {{-- ======================= MODAL DE INFORME PERSONAL ======================= --}}
-        <transition name="modal">
+        {{-- <transition name="modal">
             <div v-if="showPersonalModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
                 <div
@@ -481,7 +481,7 @@
                     </div>
                 </div>
             </div>
-        </transition>
+        </transition> --}}
 
         {{-- ======================= SCRIPTS ======================= --}}
         @vite(['resources/js/app.js'])
