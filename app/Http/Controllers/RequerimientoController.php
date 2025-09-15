@@ -46,8 +46,8 @@ class RequerimientoController extends Controller
             'total_requerimientos' => 'required|numeric|min:0',
             'empresaId' => 'required|integer',
             'banco_req' => 'required|string|max:40',
-            'nro_banco_req' => 'required|integer|max:999999999999999999999999',
-            'cci_req' => 'required|integer|max:999999999999999999999999',
+            'nro_banco_req' => 'required|string|max:20',   // Ejemplo: máximo 20 caracteres
+            'cci_req'       => 'required|string|max:30',   // Ejemplo: máximo 30 caracteres
             'titular_req' => 'required|string|max:50',
             'dni_req' => 'required|integer|min:0|max:99999999',
             'datosAgrupados' => 'required|json',

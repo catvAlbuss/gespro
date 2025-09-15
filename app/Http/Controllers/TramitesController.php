@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\actividadespersonal;
 use App\Models\aprobaciones;
+use App\Models\BonificacionDescuento;
 use App\Models\tramites;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -36,8 +37,20 @@ class TramitesController extends Controller
         $user = Auth::user();
         $empresaId = $request->get('empresa_id');
 
+        // Loguear los datos iniciales
+        Log::info('📥 Datos recibidos en index', [
+            'user_id'    => $user->id ?? null,
+            'user_name'  => $user->name ?? null,
+            'user_role'  => $user->area_laboral ?? null, // 👈 ajusta según tu campo de rol
+            'empresa_id' => $empresaId,
+        ]);
+
         // Verificar que el usuario pertenece a la empresa solicitada
         if ($empresaId && !$this->usuarioPerteneceEmpresa($user, $empresaId)) {
+            Log::warning('❌ Usuario no pertenece a la empresa', [
+                'user_id'    => $user->id,
+                'empresa_id' => $empresaId,
+            ]);
             return response()->json(['message' => 'No tienes acceso a esta empresa'], 403);
         }
 
@@ -57,15 +70,23 @@ class TramitesController extends Controller
 
         // Filtrar trámites según el rol del usuario
         $tramites = $this->filtrarTramitesPorRol($query, $user)->get();
+
         // Agregar información de permisos a cada trámite
         $tramites->transform(function ($tramite) use ($user) {
-            $tramite->puede_modificar = $this->puedeModificarTramite($tramite, $user);
-            $tramite->puede_ver_botones = $this->puedeVerBotones($tramite, $user);
+            $tramite->puede_modificar    = $this->puedeModificarTramite($tramite, $user);
+            $tramite->puede_ver_botones  = $this->puedeVerBotones($tramite, $user);
             return $tramite;
         });
 
+        // 🔍 Loguear todo lo que se va a devolver
+        Log::info('📤 Trámites retornados', [
+            'total'    => $tramites->count(),
+            'tramites' => $tramites->toArray()
+        ]);
+
         return response()->json($tramites);
     }
+
 
     /**
      * Crear nuevo trámite
@@ -74,8 +95,10 @@ class TramitesController extends Controller
     {
         $validated = $request->validate([
             'tipo' => ['required', Rule::in(['Informe de Pago', 'Requerimiento', 'Solicitud de Compra', 'Autorización de Gasto', 'Reporte Financiero'])],
+            'fecha_informe_sol' => 'required|integer|min:1|max:12',
             'descripcion' => 'required|string|max:1000',
-            'empresa_id' => 'required|exists:empresas,id'
+            'empresa_id' => 'required|exists:empresas,id',
+            'rolUser' => 'required|string|max:1000'
         ]);
 
         $user = Auth::user();
@@ -94,10 +117,22 @@ class TramitesController extends Controller
                 'tipo' => $validated['tipo'],
                 'descripcion' => $validated['descripcion'],
                 'estado_actual' => 'En proceso',
+                'fecha_informe_sol' => $validated['fecha_informe_sol'],
             ]);
 
-            // Definir el flujo de aprobación según el rol del creador
-            $flujo = $this->definirFlujoAprobacion($user->area_laboral);
+            // Crear registro de bonificación/descuento por defecto
+            BonificacionDescuento::create([
+                'permisos'          => 0,
+                'adelantos'         => 0,
+                'incumplimientolab' => 0,
+                'incumplimientomof' => 0,
+                'descuento'         => 0,
+                'bonificacion'      => 0,
+                'tramite_desing'    => $tramite->id,
+            ]);
+
+            // Usar el rol enviado desde el frontend
+            $flujo = $this->definirFlujoAprobacion($validated['rolUser']);
 
             // Crear las etapas de aprobación
             foreach ($flujo as $index => $etapa) {
@@ -437,22 +472,24 @@ class TramitesController extends Controller
      */
     public function getDataActivityPersonalMount(Request $request)
     {
-        // Validar los datos de entrada
+        // 1. Validar datos de entrada
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'month' => 'required|integer|min:1|max:12',
-            'empresaId' => 'required|exists:empresas,id',
-            'adelanto' => 'nullable|numeric',
-            'permisos' => 'nullable|numeric',
-            'incMof' => 'nullable|numeric',
-            'bondtrab' => 'nullable|numeric',
-            'descuenttrab' => 'nullable|numeric',
+            'user_id'       => 'required|exists:users,id',
+            'month'         => 'required|integer|min:1|max:12',
+            'empresaId'     => 'required|exists:empresas,id',
+            'tramitedesing' => 'required|numeric|exists:tramites,id',
+            'adelanto'      => 'nullable|numeric',
+            'permisos'      => 'nullable|numeric',
+            'incMof'        => 'nullable|numeric',
+            'bondtrab'      => 'nullable|numeric',
+            'descuenttrab'  => 'nullable|numeric',
         ]);
 
         $userId    = $validated['user_id'];
         $month     = $validated['month'];
-        $empresaId = $validated['empresaId'];
+        $tramiteId = $validated['tramitedesing'];
 
+        // 2. Extras por defecto
         $extras = [
             'adelanto'     => $validated['adelanto'] ?? 0,
             'permisos'     => $validated['permisos'] ?? 0,
@@ -461,7 +498,7 @@ class TramitesController extends Controller
             'descuenttrab' => $validated['descuenttrab'] ?? 0,
         ];
 
-        // Función para mapear tareas (aprobadas o no aprobadas)
+        // 3. Mapper de tareas
         $mapTareas = function ($tarea, $aprobada = true) {
             $fechaInicio = \Carbon\Carbon::parse($tarea->fecha);
             $fechaFin    = (clone $fechaInicio)->addDays($tarea->elapsed_time ?? 0);
@@ -470,38 +507,118 @@ class TramitesController extends Controller
                 'id'             => $tarea->actividadId,
                 'titulo'         => $tarea->nameActividad,
                 'descripcion'    => $tarea->descripcion ?? 'Sin descripción',
-                'status'         => $aprobada ? 'sí' : 'no', // 👈 cambio aquí
+                'status'         => $aprobada ? 'sí' : 'no',
                 'fecha_inicio'   => $fechaInicio->format('Y-m-d'),
                 'fecha_fin'      => $fechaFin->format('Y-m-d'),
-                'diasEjecutados' => $tarea->elapsed_time,
-                'diasProgramado' => $tarea->diasAsignados,
-                'proyecto'       => $tarea->proyecto ? $tarea->proyecto->nombre_proyecto : 'Sin proyecto',
+                'diasEjecutados' => $tarea->elapsed_time ?? 0,
+                'diasProgramado' => $tarea->diasAsignados ?? 0,
+                'proyecto'       => $tarea->proyecto->nombre_proyecto ?? 'Sin proyecto',
             ];
         };
 
-        // Tareas aprobadas
-        $tareas = actividadespersonal::with('proyecto:id_proyectos,nombre_proyecto')
+        // 4. Consultar tareas aprobadas y no aprobadas
+        $tareasAprobadas = actividadespersonal::with('proyecto:id_proyectos,nombre_proyecto')
             ->where('usuario_designado', $userId)
             ->where('status', 'approved')
             ->whereMonth('fecha', $month)
-            ->get()
-            ->map(fn($t) => $mapTareas($t, true));
+            ->get();
 
-        // Tareas no aprobadas
         $tareasNoAprobadas = actividadespersonal::with('proyecto:id_proyectos,nombre_proyecto')
             ->where('usuario_designado', $userId)
             ->where('status', 'done')
             ->whereMonth('fecha', $month)
-            ->get()
-            ->map(fn($t) => $mapTareas($t, false));
+            ->get();
 
-        // Preparar respuesta mínima
+        // 5. Mapear tareas
+        $tareasMapped     = $tareasAprobadas->map(fn($t) => $mapTareas($t, true));
+        $tareasNoMapped   = $tareasNoAprobadas->map(fn($t) => $mapTareas($t, false));
+
+        // 6. Totales sumando diasProgramado y diasEjecutados
+        $totalDiasAprobados = $tareasMapped->sum('diasProgramado');
+
+        $totalDiasNoAprobados = $tareasNoMapped->sum('diasProgramado');
+
+        // 7. Bonificación y descuentos
+        $bonificacionDescuento = BonificacionDescuento::where('tramite_desing', $tramiteId)->first();
+
+        $bonificacionData = [
+            'adelantos'          => $bonificacionDescuento->adelantos ?? 0,
+            'permisos'           => $bonificacionDescuento->permisos ?? 0,
+            'incumplimientolab'  => $bonificacionDescuento->incumplimientolab ?? 0,
+            'incumplimientomof'  => $bonificacionDescuento->incumplimientomof ?? 0,
+            'descuento'          => $bonificacionDescuento->descuento ?? 0,
+            'bonificacion'       => $bonificacionDescuento->bonificacion ?? 0,
+        ];
+
+        // 8. Respuesta
         return response()->json([
-            'status'  => 'success',
-            'mes'     => $month,
-            'extras'  => $extras,
-            'tareas'  => $tareas,
+            'status'              => 'success',
+            'mes'                 => $month,
+            'extras'              => $bonificacionData,
+            'tareas'              => $tareasMapped,
+            'tareas_no_aprobadas' => $tareasNoMapped,
+            'totalDiasAprobados'  => $totalDiasAprobados,
+            'totalDiasNoAprobados' => $totalDiasNoAprobados,
         ]);
+    }
+
+    /**
+     * Actualizar Bonificacion/descuentos
+     */
+    public function updateBonificacionDescuento(Request $request)
+    {
+        $validated = $request->validate([
+            'tramitedesing' => 'required|exists:tramites,id',
+            'descuentos'    => 'required|array',
+            'descuentos.*.key' => 'required|string',
+            'descuentos.*.cantidad' => 'nullable|numeric',
+        ]);
+
+        try {
+            // Buscar registro existente
+            $bonificacion = BonificacionDescuento::firstOrCreate(
+                ['tramite_desing' => $validated['tramitedesing']],
+                [
+                    'permisos' => 0,
+                    'adelantos' => 0,
+                    'incumplimientolab' => 0,
+                    'incumplimientomof' => 0,
+                    'descuento' => 0,
+                    'bonificacion' => 0,
+                ]
+            );
+
+            // Mapeo entre keys de JS y columnas DB
+            $map = [
+                'permisos'    => 'permisos',
+                'adelanto'    => 'adelantos',
+                'adelantos'   => 'adelantos',
+                'incLab'      => 'incumplimientolab',
+                'incMof'      => 'incumplimientomof',
+                'descuenttrab' => 'descuento',
+                'bondtrab'    => 'bonificacion',
+            ];
+
+            foreach ($validated['descuentos'] as $item) {
+                if (isset($map[$item['key']])) {
+                    $columna = $map[$item['key']];
+                    $bonificacion->$columna = $item['cantidad'] ?? 0;
+                }
+            }
+
+            $bonificacion->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Descuentos actualizados correctamente',
+                'data' => $bonificacion,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al actualizar descuentos: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -527,6 +644,8 @@ class TramitesController extends Controller
         $monthValue = $validated['month'];
         $empresaId = $validated['empresaId'];
         $tramiteId = $validated['tramite_id'] ?? null;
+
+        // 🔹 Inicializar extras con valores por defecto
         $extras = [
             'adelanto' => $validated['adelanto'] ?? 0,
             'permisos' => $validated['permisos'] ?? 0,
@@ -543,9 +662,10 @@ class TramitesController extends Controller
             'banco'
         ])->findOrFail($userId);
 
-        // 🔹 Obtener datos del trámite y sus aprobaciones
+        // 🔹 Obtener datos del trámite, sus aprobaciones y bonificaciones/descuentos
         $tramiteData = null;
         $aprobacionesData = [];
+        $bonificacionDescuentoData = null;
 
         if ($tramiteId) {
             $tramite = tramites::with([
@@ -586,6 +706,29 @@ class TramitesController extends Controller
                         'esta_rechazado' => $aprobacion->estaRechazado(),
                     ];
                 });
+
+                // 🔹 Buscar bonificaciones y descuentos directamente por tramite_id
+                $bonificacionDescuento = BonificacionDescuento::where('tramite_desing', $tramiteId)->first();
+
+                if ($bonificacionDescuento) {
+                    $bonificacionDescuentoData = [
+                        'id' => $bonificacionDescuento->id,
+                        'permisos' => $bonificacionDescuento->permisos ?? 0,
+                        'adelantos' => $bonificacionDescuento->adelantos ?? 0,
+                        'incumplimientolab' => $bonificacionDescuento->incumplimientolab ?? 0,
+                        'incumplimientomof' => $bonificacionDescuento->incumplimientomof ?? 0,
+                        'descuento' => $bonificacionDescuento->descuento ?? 0,
+                        'bonificacion' => $bonificacionDescuento->bonificacion ?? 0,
+                    ];
+
+                    // 🔹 Sobrescribir los valores de extras con los datos del trámite si existen
+                    $extras['permisos'] = $bonificacionDescuento->permisos ?? 0;
+                    $extras['adelanto'] = $bonificacionDescuento->adelantos ?? 0;
+                    $extras['incumplimientolab'] = $bonificacionDescuento->incumplimientolab ?? 0;
+                    $extras['incMof'] = $bonificacionDescuento->incumplimientomof ?? 0;
+                    $extras['descuenttrab'] = $bonificacionDescuento->descuento ?? 0;
+                    $extras['bondtrab'] = $bonificacionDescuento->bonificacion ?? 0;
+                }
             }
         }
 
@@ -698,6 +841,7 @@ class TramitesController extends Controller
             // 🔹 Nuevos datos del trámite
             'tramite' => $tramiteData,
             'aprobaciones' => $aprobacionesData,
+            'bonificacion_descuento' => $bonificacionDescuentoData, // 🔹 Agregar bonificaciones/descuentos
             'firmas_disponibles' => $firmasDisponibles,
             'jefe_area' => $jefeAreaInfo
         ], 200);
@@ -807,6 +951,7 @@ class TramitesController extends Controller
     private function filtrarTramitesPorRol($query, $user)
     {
         $rol = $this->roleKey($user->area_laboral);
+        Log::info('El rol detectado', ['rol' => $rol]);
 
         // si ROOT, ve todo
         if ($rol === 'ROOT') return $query;
@@ -848,14 +993,18 @@ class TramitesController extends Controller
 
             case 'Administración':
             case 'Gerencia':
-                return $query->where(function ($q) use ($user, $etapaPendienteWhere) {
+                // Normalizar area_laboral (trim y lowercase)
+                $area = mb_strtolower(trim($user->area_laboral));
+
+                return $query->where(function ($q) use ($user, $etapaPendienteWhere, $area) {
                     $q->where('user_id', $user->id)
-                        ->orWhereHas('aprobaciones', function ($q2) use ($user, $etapaPendienteWhere) {
+                        ->orWhereHas('aprobaciones', function ($q2) use ($etapaPendienteWhere, $area) {
                             $etapaPendienteWhere($q2);
-                            $q2->where('etapa', $user->area_laboral);
+                            // Comparación normalizada (sin espacios/tildes ni mayúsculas)
+                            $q2->whereRaw('LOWER(TRIM(etapa)) = ?', [$area]);
                         });
                 });
-
+                
             case 'Contabilidad':
                 return $query->whereHas('aprobaciones', function ($q) use ($user, $etapaPendienteWhere) {
                     $etapaPendienteWhere($q);
@@ -873,15 +1022,15 @@ class TramitesController extends Controller
     private function definirFlujoAprobacion($rolCreador)
     {
         $flujos = [
-            'Asistente' => ['Jefe de Área', 'Administrador de Proyectos', 'Administración', 'Gerencia', 'Contabilidad'],
-            'Jefe de Área' => ['Administrador de Proyectos', 'Administración', 'Gerencia', 'Contabilidad'],
-            'Administrador de Proyectos' => ['Administración', 'Gerencia', 'Contabilidad'],
-            'Administración' => ['Gerencia', 'Contabilidad'],
+            'Asistente' => ['Jefe de area', 'Administrador de Proyectos', 'Administracion', 'Gerencia', 'Contabilidad'],
+            'Jefe de area' => ['Jefe de area', 'Administrador de Proyectos', 'Administracion', 'Gerencia', 'Contabilidad'],
+            'admin_proyectos' => ['Administrador de Proyectos', 'Administracion', 'Gerencia', 'Contabilidad'],
+            'administracion' => ['Administracion', 'Gerencia', 'Contabilidad'], // ← Cambié de 'Administración' a 'Administracion'
             'Gerencia' => ['Contabilidad'],
             'Contabilidad' => [],
         ];
 
-        return $flujos[$rolCreador] ?? ['Jefe de Área', 'Administrador de Proyectos', 'Administración', 'Gerencia', 'Contabilidad'];
+        return $flujos[$rolCreador] ?? ['Jefe de area', 'Administrador de Proyectos', 'Administracion', 'Gerencia', 'Contabilidad'];
     }
 
     /**

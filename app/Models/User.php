@@ -144,6 +144,11 @@ class User extends Authenticatable
         return $this->name . ' ' . $this->surname;
     }
 
+    public function actividades()
+    {
+        return $this->hasMany(Actividadespersonal::class, 'usuario_designado', 'id');
+    }
+
     /**
      * Relación con bancos
      */

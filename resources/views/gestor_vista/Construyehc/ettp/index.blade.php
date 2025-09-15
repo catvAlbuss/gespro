@@ -32,7 +32,7 @@
                     alt="upload">
             </button>
 
-            <input type="hidden" name="proyecto_id" id="proyecto_id" value="1">
+            <input type="hidden" name="proyecto_id" id="proyecto_id" value="405">
             <input type="hidden" name="id_especificacionestecnicas" id="id_especificacionestecnicas" value="1">
         </div>
     </x-slot>

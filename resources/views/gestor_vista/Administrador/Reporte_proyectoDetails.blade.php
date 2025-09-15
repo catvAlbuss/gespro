@@ -132,12 +132,9 @@
                 <input type="hidden" id="tareas" name="tareas" value="{{ json_encode($tareas) }}">
                 <input type="hidden" id="montoplazos" name="montoplazos" value="{{ json_encode($plazos) }}">
                 <input type="hidden" id="listarPersonals" name="listarPersonals" value="{{ json_encode($personal) }}">
-                <input type="hidden" id="reportpresupuestos" name="reportpresupuestos"
-                    value="{{ json_encode($presupuesto) }}">
-                <input type="hidden" id="reporterequerimientoProceso" name="reporterequerimientoProceso"
-                    value="{{ json_encode($requerimientosProceso) }}">
-                <input type="hidden" id="reporterequerimientosustentadp" name="reporterequerimientosustentadp"
-                    value="{{ json_encode($requerimientosSustentado) }}">
+                <input type="hidden" id="reportpresupuestos" name="reportpresupuestos"value="{{ json_encode($presupuesto) }}">
+                <input type="hidden" id="reporterequerimientoProceso" name="reporterequerimientoProceso" value="{{ json_encode($requerimientosProceso) }}">
+                <input type="hidden" id="reporterequerimientosustentadp" name="reporterequerimientosustentadp" value="{{ json_encode($requerimientosSustentado) }}">
 
                 <input type="hidden" id="id_empresa" value="{{ $empresaId }}">
                 <input type="hidden" id="nombre_proyecto" value="{{ str_replace('+', ' ', $nombre_proyecto) }}">

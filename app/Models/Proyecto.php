@@ -11,15 +11,17 @@ class Proyecto extends Model
 
     protected $table = 'proyectos';
     public $primaryKey = 'id_proyectos';
-    
+
     protected $fillable = [
         'nombre_proyecto',
         'descripcion_proyecto',
         'documento_proyecto',
+        'especialidades',
+        'cantidad_modulos',
         'porcentaje_total',
         'tipoproyecto',
         'plazo_total_pro',
-        'porcentaje_designado',
+        'especialidades_porcentaje',
         'monto_designado',
         'monto_invertido',
         'monto_invertido_prev',
@@ -29,4 +31,17 @@ class Proyecto extends Model
     {
         return $this->hasMany(tarea_trabajador::class, 'proyecto_asignadot', 'id_proyectos');
     }
+
+    // Relación con actividades
+    public function actividades()
+    {
+        return $this->hasMany(actividadespersonal::class, 'projectActividad', 'id_proyectos');
+    }
+
+    // Relación con requerimientos
+    public function requerimientos()
+    {
+        return $this->hasMany(requerimiento::class, 'proyecto_designado', 'id_proyectos');
+    }
+    
 }

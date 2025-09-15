@@ -20,10 +20,13 @@ const app = createApp({
     const activeTab = ref('pendientes');
     const activities = ref([]);
     const descuentos = ref([]);
+    const tareasejecutadas = ref([]);
+    const mes = ref("");
 
     // Computadas de permisos
     const canEditDiscount = computed(() => {
-      const allowed = ['gerencia', 'administracion', 'admin_proyectos', 'contabilidad'];
+      //const allowed = ['gerencia', 'administracion', 'admin_proyectos', 'contabilidad'];
+      const allowed = ['administracion'];
       return allowed.includes(userRole.value);
     });
 
@@ -60,6 +63,9 @@ const app = createApp({
       'contabilidad': ['contabilidad', 'gerencia', 'administracion', 'admin_proyectos', 'jefe_area', 'asistente'],
       'asistente': []
     };
+
+    const meses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 
     // Computed para filtrar trámites
     const tramitesFiltrados = computed(() =>
@@ -143,6 +149,8 @@ const app = createApp({
       try {
         loading.value = true;
         const includeSub = (userRole.value === 'jefe_area' || userRole.value === 'gerencia' || userRole.value === 'administracion');
+        console.log(userRole.value)
+        console.log(includeSub)
         const res = await fetch(`/tramites?empresa_id=${empresaId}` + (includeSub ? '&include_subordinates=1' : ''), {
           headers: {
             'Accept': 'application/json',
@@ -152,7 +160,7 @@ const app = createApp({
 
         if (res.ok) {
           const data = await res.json();
-          //console.log('trámites recibidos:', data);
+          console.log('trámites recibidos:', data);
 
           const normalized = data.map(t => {
             if (t.creador) {
@@ -173,9 +181,11 @@ const app = createApp({
       }
     };
 
-    const getDataActivityPersonal = async (userId = trabajadorId) => {
+    const getDataActivityPersonal = async (userId = trabajadorId, mesSolicitado, tramiteId) => {
       try {
-        const fechaActual = new Date();
+        const fecha = new Date();
+        const mesSolicitadoInfo = mesSolicitado || fecha.getMonth();
+        const idtramite = tramiteId || 1;
         const response = await fetch('/get-Actividad-Personal', {
           method: 'POST',
           headers: {
@@ -185,8 +195,9 @@ const app = createApp({
           },
           body: JSON.stringify({
             user_id: userId,
-            month: fechaActual.getMonth(),
+            month: mesSolicitadoInfo,
             empresaId: empresaId,
+            tramitedesing: idtramite,
             adelanto: 0,
             permisos: 0,
             incMof: 0,
@@ -200,17 +211,19 @@ const app = createApp({
         }
 
         const data = await response.json();
-        //console.log(data);
 
         activities.value = Array.isArray(data.tareas) ? data.tareas : (data.tareas || []);
+        tareasejecutadas.value = data;
 
         const extras = data.extras || {};
         const built = [
-          { key: 'adelanto', label: 'Adelanto', cantidad: Number(extras.adelanto || extras.adelantos || 0) },
           { key: 'permisos', label: 'Permisos', cantidad: Number(extras.permisos || 0) },
-          { key: 'incMof', label: 'Inc Mof', cantidad: Number(extras.incMof || 0) },
-          { key: 'bondtrab', label: 'Bono Trabajo', cantidad: Number(extras.bondtrab || 0) },
-          { key: 'descuenttrab', label: 'Descuento Trabajador', cantidad: Number(extras.descuenttrab || extras.descuentos || 0) }
+          { key: 'adelanto', label: 'Adelanto', cantidad: Number(extras.adelantos || extras.adelanto || 0) },
+          { key: 'incLab', label: 'INCUMPLIMIENTO DEL LAB', cantidad: Number(data.incumplimientolab || extras.incumplimientolab || 0) },
+          { key: 'incMof', label: 'INCUMPLIMIENTO DEL MOF (2 HORAS)', cantidad: Number(extras.incumplimientomof || extras.incMof || 0) },
+          { key: 'descuenttrab', label: 'Descuento Trabajador', cantidad: Number(extras.descuento || extras.descuenttrab || 0) },
+          { key: 'bondtrab', label: 'Bonificacion', cantidad: Number(extras.bonificacion || extras.bondtrab || 0) },
+
         ];
 
         const seen = new Set();
@@ -232,19 +245,20 @@ const app = createApp({
 
     // Funciones CRUD de trámites
     const enviarTramite = async () => {
-      if (!tipoTramite.value || !descripcion.value) {
+      if (!tipoTramite.value || !mes.value || !descripcion.value) {
         error.value = 'Todos los campos son requeridos';
         return;
       }
-
+      console.log(userRole.value);
       try {
         loading.value = true;
         error.value = '';
-
         const formData = new FormData();
         formData.append('tipo', tipoTramite.value);
+        formData.append('fecha_informe_sol', mes.value);
         formData.append('descripcion', descripcion.value);
         formData.append('empresa_id', empresaId);
+        formData.append('rolUser', userRole.value);
 
         const res = await fetch('/tramites', {
           method: 'POST',
@@ -365,7 +379,7 @@ const app = createApp({
       }
     };
 
-    const saveDiscounts = async () => {
+    const saveDiscounts = async (tramiteId) => {
       if (!canEditDiscount.value) {
         error.value = 'No tiene permiso para modificar descuentos';
         return;
@@ -375,11 +389,10 @@ const app = createApp({
         loading.value = true;
         error.value = '';
         const payload = {
-          empresaId: empresaId,
-          user_id: trabajadorId,
+          tramitedesing: tramiteId,
           descuentos: descuentos.value
         };
-
+        console.log(payload);
         const res = await fetch('/actividades-personal/guardar-descuentos', {
           method: 'POST',
           headers: {
@@ -410,7 +423,10 @@ const app = createApp({
       selectedTramite.value = tramite;
       observaciones.value = '';
       const creatorId = tramite && tramite.creador && (tramite.creador.id || tramite.creador.user_id) ? (tramite.creador.id || tramite.creador.user_id) : trabajadorId;
-      await getDataActivityPersonal(creatorId);
+      const mesSolicitado = tramite.fecha_informe_sol;
+      const tramiteId = tramite.id;
+      console.log(tramite);
+      await getDataActivityPersonal(creatorId, mesSolicitado, tramiteId);
       showModal.value = true;
       updateMofDiscount();
     };
@@ -506,22 +522,29 @@ const app = createApp({
     const totalDiasProgramados = computed(() => 26);
 
     const totalDiasEjecutados = computed(() => {
-      if (!activities.value || activities.value.length === 0) return 0;
-      return activities.value.reduce((sum, a) => {
-        const v = Number(a.diasEjecutados || a.dias_ejecutados || a.dias_ejecutado || 0);
-        return sum + (isNaN(v) ? 0 : v);
-      }, 0);
+      return tareasejecutadas.value.totalDiasAprobados
     });
 
     const updateMofDiscount = () => {
-      const diff = Math.max(0, (Number(totalDiasProgramados.value) || 0) - (Number(totalDiasEjecutados.value) || 0));
-      const idx = descuentos.value.findIndex(d => d.key === 'incMof' || d.key === 'inc_mof' || (d.label && String(d.label).toLowerCase().includes('mof')));
+      const totalProg = Number(totalDiasProgramados.value) || 0;
+      const totalEjec = Number(totalDiasEjecutados.value) || 0;
+
+      // Diferencia de días
+      const diff = Math.max(0, totalProg - totalEjec);
+
+      // Buscar específicamente la clave 'incLab'
+      const idx = descuentos.value.findIndex(d => d.key === 'incLab');
+
       if (idx !== -1) {
-        descuentos.value[idx].cantidad = 0;
-        //descuentos.value[idx].cantidad = diff;
+        // Actualizar cantidad con el dato real del backend si existe
+        descuentos.value[idx].cantidad = tareasejecutadas.value?.totalDiasNoAprobados ?? diff;
       } else {
-        //descuentos.value.push({ key: 'incMof', label: 'Inc Mof', cantidad: diff });
-        descuentos.value.push({ key: 'incMof', label: 'Inc Mof', cantidad: 0 });
+        // Insertar si no existe
+        descuentos.value.push({
+          key: 'incLab',
+          label: 'Incumplimiento del LAB',
+          cantidad: tareasejecutadas.value?.totalDiasNoAprobados ?? diff
+        });
       }
     };
 
@@ -548,6 +571,8 @@ const app = createApp({
       observaciones,
       userRole,
       activeTab,
+      mes,
+
       enviarTramite,
       aprobarTramite,
       rechazarTramite,
@@ -562,8 +587,10 @@ const app = createApp({
       getTramitesActivos,
       obtenerMotivoRechazo,
       reenviarTramite,
+      meses,
       activities,
       descuentos,
+      tareasejecutadas,
       saveDiscounts,
       canEditDiscount,
       totalDiasProgramados,
@@ -594,14 +621,36 @@ const app = createApp({
       <div class="bg-white rounded-lg shadow-md p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Nuevo Trámite</h3>
         <form @submit.prevent="enviarTramite" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de trámite</label>
-            <select v-model="tipoTramite" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-              <option disabled value="">-- Seleccionar tipo --</option>
-              <option>Informe de Pago</option>
-              <option>Requerimiento</option>
-            </select>
+          <div class="flex flex-row gap-6">
+            <!-- Tipo de trámite -->
+            <div class="w-1/2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Tipo de trámite
+              </label>
+              <select 
+                v-model="tipoTramite" 
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <option disabled value="">-- Seleccionar tipo --</option>
+                <option>Informe de Pago</option>
+                <option>Requerimiento</option>
+              </select>
+            </div>
+
+            <!-- Mes -->
+            <div class="w-1/2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Mes
+              </label>
+              <select 
+                v-model="mes" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <option disabled value="">-- Seleccionar mes --</option>
+                <option v-for="m in meses" :key="m" :value="m">
+                  {{ m }}
+                </option>
+              </select>
+            </div>
           </div>
+
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
@@ -794,7 +843,7 @@ const app = createApp({
 
           <!-- Información del trámite -->
           <div class="bg-gray-50 p-4 rounded mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
               <p><strong>Tipo:</strong> {{ selectedTramite?.tipo }}</p>
               <p><strong>Creado por:</strong> {{ selectedTramite?.creador.name }}</p>
               <p><strong>Rol:</strong> {{ formatearRol(selectedTramite?.creador.area_laboral) }}</p>
@@ -862,10 +911,10 @@ const app = createApp({
                   <tr v-if="descuentos.length === 0">
                     <td class="px-3 py-2 text-gray-500" colspan="2">No hay descuentos registrados.</td>
                   </tr>
-                  <tr v-for="(d, idx) in descuentos" :key="d.key" :class="d.key === 'incMof' ? 'bg-red-50' : ''">
-                    <td class="px-3 py-2" :class="d.key === 'incMof' ? 'font-medium text-red-600' : ''">{{ d.label }}</td>
-                    <td class="px-3 py-2" :class="d.key === 'incMof' ? 'text-red-600' : ''">
-                      <template v-if="d.key === 'incMof'">{{ Math.max(0, Math.round(d.cantidad || 0)) }}</template>
+                  <tr v-for="(d, idx) in descuentos" :key="d.key" :class="d.key === 'incLab' ? 'bg-red-50' : ''">
+                    <td class="px-3 py-2" :class="d.key === 'incLab' ? 'font-medium text-red-600' : ''">{{ d.label }}</td>
+                    <td class="px-3 py-2" :class="d.key === 'incLab' ? 'text-red-600' : ''">
+                      <template v-if="d.key === 'incLab'">{{ Math.max(0, Math.round(d.cantidad || 0)) }}</template>
                       <template v-else>
                         <input v-if="canEditDiscount" type="number" step="0.01" min="0" v-model.number="descuentos[idx].cantidad"
                             class="w-28 border rounded px-2 py-1 text-sm" />
@@ -878,7 +927,7 @@ const app = createApp({
             </div>
 
             <div class="flex justify-end mt-3">
-              <button v-if="canEditDiscount" @click="saveDiscounts" :disabled="loading"
+              <button v-if="canEditDiscount" @click="saveDiscounts(selectedTramite?.id)" :disabled="loading"
                       class="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                 Guardar descuentos
               </button>

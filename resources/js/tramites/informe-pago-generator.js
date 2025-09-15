@@ -123,73 +123,66 @@ const procesarProyectosEfectuados = (tareasAprobadas) => {
  * Calcula descuentos y bonificaciones
  */
 const calcularDescuentosBonificaciones = (payload) => {
-  const { usuario, extras, tareas_aprobadas, tareas_no_aprobadas, mes } = payload;
-  const sueldoPIP = parseFloat(usuario.sueldo_base);
+  const { usuario = {}, extras = {}, tareas_aprobadas = [], tareas_no_aprobadas = [], mes } = payload;
+  const sueldoPIP = Number(usuario.sueldo_base);
 
-  if (!sueldoPIP || sueldoPIP <= 0) {
+  if (!sueldoPIP || isNaN(sueldoPIP) || sueldoPIP <= 0) {
     console.error("Error: sueldo_base no está definido o es inválido.");
     return [];
   }
 
-  // Calcular días de incumplimiento
+  // Conteo días incumplimiento (forzando Number)
   const conteoDiasNA = tareas_no_aprobadas.reduce((total, tarea) => {
-    const dias = parseFloat(tarea.diasAsignados || tarea.dias_asignados || 0);
+    const dias = Number(tarea.diasAsignados ?? tarea.dias_asignados ?? 0);
     return total + (isNaN(dias) ? 0 : dias);
   }, 0);
 
-  // Calcular bonificaciones por rendimiento
+  // Bonificaciones por rendimiento (ejemplo tu lógica original)
   let totalBonificacionDias = 0;
   tareas_aprobadas.forEach(tarea => {
-    const porcentaje = parseFloat(tarea.procentaje_trabajador || tarea.porcentaje || 0) / 100;
-    if (porcentaje > 0.98) {
-      totalBonificacionDias += porcentaje;
-    }
+    const porcentaje = Number(tarea.procentaje_trabajador ?? tarea.porcentaje ?? 0) / 100;
+    if (porcentaje > 0.98) totalBonificacionDias += porcentaje;
   });
 
-  // Días laborables y sueldo diario
-  const diasLaborables = obtenerDiasLaborables();
+  // Días laborables y sueldo diario (asegurar Number)
+  const diasLaborables = Number(obtenerDiasLaborables());
+  if (!diasLaborables || isNaN(diasLaborables)) {
+    console.error("Error: obtenerDiasLaborables() no devolvió un número válido.");
+    return [];
+  }
   const sueldoDiario = sueldoPIP / diasLaborables;
 
-  // Extraer valores de extras
-  const {
-    adelanto = 0,
-    permisos = 0,
-    incMof = 0,
-    bondtrab = 0,
-    descuenttrab = 0
-  } = extras;
+  // Extraer valores de extras como números (evita concatenaciones)
+  const adelanto = Number(extras.adelanto ?? 0);
+  const permisos = Number(extras.permisos ?? 0);
+  const incMof = Number(extras.incMof ?? 0);
+  const bondtrab = Number(extras.bondtrab ?? 0);
+  const descuenttrab = Number(extras.descuenttrab ?? 0);
 
-  // Calcular montos
+  // Montos (guardamos como número, pero los mostramos con 2 decimales)
   const montos = {
-    adelanto: (sueldoDiario * adelanto).toFixed(2),
-    permisos: (sueldoDiario * permisos).toFixed(2),
-    incumplimiento: (sueldoDiario * conteoDiasNA).toFixed(2),
-    incMof: (sueldoDiario * incMof).toFixed(2),
-    descuentos: (sueldoDiario * descuenttrab).toFixed(2),
-    bonos: (sueldoDiario * bondtrab).toFixed(2)
+    adelanto: Number((sueldoDiario * adelanto).toFixed(2)),
+    permisos: Number((sueldoDiario * permisos).toFixed(2)),
+    incumplimiento: Number((sueldoDiario * conteoDiasNA).toFixed(2)),
+    incMof: Number((sueldoDiario * incMof).toFixed(2)),
+    descuentos: Number((sueldoDiario * descuenttrab).toFixed(2)),
+    bonos: Number((sueldoDiario * bondtrab).toFixed(2))
   };
 
-  // Total descuentos
-  const totalDescuentoMonto = (
-    parseFloat(montos.adelanto) +
-    parseFloat(montos.permisos) +
-    parseFloat(montos.incumplimiento) +
-    parseFloat(montos.incMof) +
-    parseFloat(montos.descuentos)
-  ).toFixed(2);
-
+  // Totales (suma numérica correcta)
+  const totalDescuentoMonto = (montos.adelanto + montos.permisos + montos.incumplimiento + montos.incMof + montos.descuentos);
   const totalDescuentoDias = adelanto + permisos + conteoDiasNA + incMof + descuenttrab;
 
-  // Armar tabla de descuentos y bonificaciones
+  // Armar tabla (cantidad y monto con formato para visualización)
   return [
-    ["PERMISOS", permisos, montos.permisos],
-    ["ADELANTO", adelanto, montos.adelanto],
-    ["INCUMPLIMIENTO DEL LAB", conteoDiasNA, montos.incumplimiento],
-    ["INCUMPLIMIENTO DEL MOF (2 HORAS)", incMof, montos.incMof],
-    ["DESCUENTO", descuenttrab, montos.descuentos],
-    ["TOTAL DE DESCUENTO", totalDescuentoDias, totalDescuentoMonto],
-    ["BONIFICACIÓN", bondtrab, montos.bonos],
-    ["TOTAL DE BONIFICACIÓN", bondtrab, montos.bonos]
+    ["PERMISOS", permisos.toFixed(2), montos.permisos.toFixed(2)],
+    ["ADELANTO", adelanto.toFixed(2), montos.adelanto.toFixed(2)],
+    ["INCUMPLIMIENTO DEL LAB", conteoDiasNA.toFixed(2), montos.incumplimiento.toFixed(2)],
+    ["INCUMPLIMIENTO DEL MOF (2 HORAS)", incMof.toFixed(2), montos.incMof.toFixed(2)],
+    ["DESCUENTO", descuenttrab.toFixed(2), montos.descuentos.toFixed(2)],
+    ["TOTAL DE DESCUENTO", totalDescuentoDias.toFixed(2), totalDescuentoMonto.toFixed(2)],
+    ["BONIFICACIÓN", bondtrab.toFixed(2), montos.bonos.toFixed(2)],
+    ["TOTAL DE BONIFICACIÓN", bondtrab.toFixed(2), montos.bonos.toFixed(2)]
   ];
 };
 
@@ -222,6 +215,17 @@ const calcularSueldoNeto = (payload, datosDescuentos, proyectosData) => {
 // ============================================================================
 // GENERADOR DE PDF
 // ============================================================================
+const checkAndAddPage = (pdf, currentY, requiredHeight) => {
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const bottomMargin = 20; // Un margen de seguridad en la parte inferior de la página
+
+  if (currentY + requiredHeight > pageHeight - bottomMargin) {
+    pdf.addPage();
+    return 20; // Retornamos el margen superior para la nueva página
+  }
+
+  return currentY; // Aún hay espacio, continuamos en la misma posición
+};
 
 /**
  * Configura el encabezado del documento
@@ -359,68 +363,97 @@ const agregarTablaDescuentos = (pdf, descuentosData, startY) => {
 };
 
 /**
- * Agrega la información bancaria
+ * Dibuja la sección final del documento en un diseño de dos columnas.
+ * Izquierda: Info bancaria y texto final.
+ * Derecha: Firmas.
  */
-const agregarInfoBancaria = (pdf, usuario, startY) => {
-  if (!usuario.banco?.nombre || !usuario.banco?.cuenta) {
-    return startY; // Sin información bancaria
-  }
+const agregarSeccionFinalEnColumnas = async (pdf, payload, sueldoNeto, startY) => {
+  // 1. Definir las posiciones X de las columnas
+  const xColumnaIzquierda = 20; // Margen izquierdo para el texto
+  const xColumnaDerecha = 130;  // Dónde empieza la columna de firmas
 
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(11);
-  pdf.text("INFORMACIÓN BANCARIA:", 20, startY + 10);
+  // 2. Dibujar la columna de la izquierda
+  // Llama a las funciones que ya tienes, pasándoles la posición X correcta.
+  let yFinalIzquierda = agregarInfoBancaria(pdf, payload.usuario, startY, xColumnaIzquierda);
+  yFinalIzquierda = agregarSeccionFinal(pdf, payload, sueldoNeto, yFinalIzquierda, xColumnaIzquierda);
 
-  pdf.setFont("helvetica", "normal");
-  pdf.setFontSize(9);
-  pdf.text(`Banco: ${usuario.banco.nombre}`, 20, startY + 15);
-  pdf.text(`Número de Cuenta: ${usuario.banco.cuenta}`, 20, startY + 20);
+  // 3. Dibujar la columna de la derecha (firmas)
+  // Nota que empieza desde la misma 'startY' para que se alineen horizontalmente.
+  const yFinalDerecha = await agregarFirmas(pdf, payload, startY + 10, xColumnaDerecha);
 
-  if (usuario.banco.cci) {
-    pdf.text(`CCI: ${usuario.banco.cci}`, 20, startY + 25);
-    return startY + 30;
-  }
-
-  return startY + 30;
+  // 4. Determinar la altura final
+  // La nueva posición Y será la del elemento que haya quedado más abajo.
+  return Math.max(yFinalIzquierda, yFinalDerecha);
 };
 
 /**
- * Agrega el monto total y información final
+ * Agrega la información bancaria en una posición X específica.
  */
-const agregarSeccionFinal = (pdf, payload, sueldoNeto, startY) => {
+const agregarInfoBancaria = (pdf, usuario, startY, startX = 20) => {
+  if (!usuario.banco?.nombre || !usuario.banco?.cuenta) {
+    return startY;
+  }
+
+  let currentY = startY + 10;
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(11);
+  pdf.text("INFORMACIÓN BANCARIA:", startX, currentY);
+
+  currentY += 5;
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9);
+  pdf.text(`Banco: ${usuario.banco.nombre}`, startX, currentY);
+
+  currentY += 5;
+  pdf.text(`Número de Cuenta: ${usuario.banco.cuenta}`, startX, currentY);
+
+  if (usuario.banco.cci) {
+    currentY += 5;
+    pdf.text(`CCI: ${usuario.banco.cci}`, startX, currentY);
+  }
+
+  return currentY + 5; // Retornamos la Y final
+};
+/**
+ * Agrega el monto total y la información final en una posición X específica.
+ */
+const agregarSeccionFinal = (pdf, payload, sueldoNeto, startY, startX = 20) => {
   const { usuario } = payload;
+  let currentY = startY;
 
   // Monto total
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(11);
-  pdf.text("MONTO TOTAL DE PAGO: ", 20, startY + 5);
+  pdf.text("MONTO TOTAL DE PAGO: ", startX, currentY + 5);
   pdf.setFont("helvetica", "normal");
-  pdf.text(`S/ ${sueldoNeto}`, 75, startY + 5);
+  pdf.text(`S/ ${sueldoNeto}`, startX + 55, currentY + 5);
 
-  let currentY = startY + 10;
+  currentY += 10;
 
   // DNI
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(9);
-  pdf.text("DNI:", 20, currentY);
+  pdf.text("DNI:", startX, currentY);
   pdf.setFont("helvetica", "normal");
-  pdf.text(String(usuario.dni), 35, currentY);
+  pdf.text(String(usuario.dni), startX + 15, currentY);
 
   // Anexos
+  currentY += 5;
   pdf.setFont("helvetica", "bold");
-  pdf.text("ANEXOS:", 20, currentY + 5);
+  pdf.text("ANEXOS:", startX, currentY);
   pdf.setFont("helvetica", "normal");
-  pdf.text("LAP mensual, Recibo por Honorarios.", 40, currentY + 5);
+  pdf.text("LAP mensual, Recibo por Honorarios.", startX + 20, currentY);
 
   // Despedida
+  currentY += 10;
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8);
-  pdf.text("Sin otro particular aprovecho la oportunidad para reiterarle las muestras de mi", 20, currentY + 10);
-  pdf.text("especial consideración y estima personal.", 20, currentY + 15);
-  pdf.text("Atentamente,", 20, currentY + 25);
+  pdf.text("Sin otro particular aprovecho la oportunidad para reiterarle las muestras de mi", startX, currentY);
+  pdf.text("especial consideración y estima personal.", startX, currentY + 5);
+  pdf.text("Atentamente,", startX, currentY + 15);
 
-  return currentY + 45;
+  return currentY + 35;
 };
-
 /**
  * Agregar Firmas segun los checks en orden
  */
@@ -449,115 +482,119 @@ const loadImageAsBase64 = async (filename) => {
   }
 };
 
-const agregarFirmas = async (pdf, payload, startY) => {
+/**
+ * Agrega Firmas en una cuadrícula de 3 columnas, con tamaño reducido.
+ */
+const agregarFirmas = async (pdf, payload, startY, startX) => {
   try {
     const firmasDisponibles = payload.firmas_disponibles || [];
+    if (firmasDisponibles.length === 0) return startY;
 
-    if (firmasDisponibles.length === 0) {
-      console.warn("No hay firmas disponibles para mostrar");
-      return startY;
-    }
+    // --- CAMBIOS CLAVE ---
+    // 1. Reducción considerable del tamaño de la firma
+    const firmaWidth = 25; // Reducido de 40
+    const firmaHeight = 20; // Reducido de 30
 
-    // 📌 Ajustes
-    let currentY = startY - 80;
-    const firmaWidth = 30;
-    const firmaHeight = 20;
-    const spacingY = 28; // espacio vertical entre cada firma
-    const margenLateral = 10; // margen lateral de la hoja
+    // 2. Configuración para la cuadrícula de 3 columnas
+    const numColumns = 3;
+    const spacingX = 5; // Espacio horizontal entre firmas
+    const rowHeight = firmaHeight + 12; // Altura total de una fila (imagen + texto + espacio)
 
-    // Ancho de la página
-    const pageWidth = pdf.internal.pageSize.getWidth();
-
-    // Posiciones X de las columnas (izquierda y derecha)
-    const xColIzq = pageWidth - (firmaWidth * 2) - (margenLateral * 2);
-    const xColDer = pageWidth - firmaWidth - margenLateral;
-
-    let colIndex = 0; // 0 = izquierda, 1 = derecha
+    let currentY = startY;
+    let colIndex = 0; // Para contar en qué columna estamos (0, 1, o 2)
 
     for (const firmaData of firmasDisponibles) {
       try {
-        // Cargar imagen
+        // Al inicio de cada nueva fila (cuando la columna es 0),
+        // verificamos si hay espacio para una fila completa.
+        if (colIndex === 0) {
+          currentY = checkAndAddPage(pdf, currentY, rowHeight);
+        }
+
+        // 3. Cálculo dinámico de la posición X para cada columna
+        const currentX = startX + (colIndex * (firmaWidth + spacingX))-10;
         const firmaBase64 = await loadImageAsBase64(firmaData.archivo);
 
-        // Elegir X en función de la columna
-        const xPosition = colIndex === 0 ? xColIzq : xColDer;
+        // Dibuja la imagen de la firma
+        pdf.addImage(firmaBase64, "PNG", currentX, currentY, firmaWidth, firmaHeight);
 
-        // Agregar firma
-        pdf.addImage(firmaBase64, "PNG", xPosition, currentY, firmaWidth, firmaHeight);
-
-        // Texto debajo
+        // Dibuja el texto debajo de la firma
         pdf.setFontSize(7);
         pdf.setFont("helvetica", "bold");
-        pdf.text(firmaData.etapa, xPosition + firmaWidth / 2, currentY + firmaHeight + 3, { align: "center" });
+        pdf.text(
+          firmaData.etapa,
+          currentX + (firmaWidth / 2), // Centra el texto
+          currentY + firmaHeight + 4,
+          { align: "center" }
+        );
 
-        // Alternar columnas
-        if (colIndex === 0) {
-          colIndex = 1; // siguiente firma a la derecha
-        } else {
-          colIndex = 0; // volvemos a izquierda
-          currentY += spacingY; // bajar fila cuando ambas columnas ya tienen firma
+        // 4. Lógica para avanzar a la siguiente columna o fila
+        colIndex++;
+        if (colIndex >= numColumns) {
+          colIndex = 0; // Resetea el contador de columna
+          currentY += rowHeight; // Baja a la siguiente fila
         }
 
       } catch (firmaError) {
-        console.warn(`❌ Error con firma ${firmaData.etapa}:`, firmaError.message);
+        console.warn(`❌ Error con la firma ${firmaData.etapa}:`, firmaError.message);
       }
     }
 
-    return currentY + spacingY; // última posición usada
+    // Si la última fila no estaba completa, la posición Y final
+    // debe considerar la altura de esa fila parcial.
+    if (colIndex !== 0) {
+      return currentY + rowHeight;
+    }
+
+    return currentY; // Retorna la posición Y final
+
   } catch (error) {
     console.error("Error general al agregar firmas:", error);
     return startY;
   }
 };
 
-
 // ============================================================================
 // FUNCIÓN PRINCIPAL
 // ============================================================================
 
 /**
- * Genera el informe de pago en PDF
+ * Genera el informe de pago en PDF, manejando múltiples páginas y columnas.
  */
 const informe_pago_personal = async (payload) => {
   try {
-    //console.log("Generando PDF con payload:", payload);
-
-    // Validaciones básicas
     if (!payload?.usuario?.sueldo_base || !payload?.mes) {
       throw new Error("Datos insuficientes para generar el informe");
     }
 
-    // Procesar datos
     const proyectosData = procesarProyectosEfectuados(payload.tareas_aprobadas);
     const descuentosData = calcularDescuentosBonificaciones(payload);
     const sueldoNeto = calcularSueldoNeto(payload, descuentosData, proyectosData);
 
-    // Crear documento PDF
-    const pdf = new window.jspdf.jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+    const pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    // Configurar documento
+    // 1. Encabezado e Introducción
     let currentY = configurarEncabezado(pdf, payload);
     currentY = agregarIntroduccion(pdf, currentY);
-    currentY = agregarTablaProyectos(pdf, proyectosData, currentY);
+
+    // 2. Tabla de Proyectos
+    currentY = agregarTablaProyectos(pdf, (proyectosData), currentY);
+
+    // 3. Tabla de Descuentos
+    currentY = checkAndAddPage(pdf, currentY, 70);
     currentY = agregarTablaDescuentos(pdf, descuentosData, currentY);
-    currentY = agregarInfoBancaria(pdf, payload.usuario, currentY);
-    currentY = agregarSeccionFinal(pdf, payload, sueldoNeto, currentY);
-    currentY = await agregarFirmas(pdf, payload, currentY);
 
+    // 4. SECCIÓN FINAL CON COLUMNAS (IZQUIERDA: INFO, DERECHA: FIRMAS)
+    // Estimamos que esta sección combinada necesitará unos 100mm de alto
+    currentY = checkAndAddPage(pdf, currentY, 100);
+    currentY = await agregarSeccionFinalEnColumnas(pdf, payload, sueldoNeto, currentY);
 
-    // Generar nombre del archivo
+    // Generar nombre del archivo y descargar
     const fechaActual = new Date();
     const nombreMes = MESES[payload.mes];
     const nombreArchivo = `Informe_Pago_${payload.usuario.nombreCompleto.replace(/\s+/g, '_')}_${nombreMes}_${fechaActual.getFullYear()}.pdf`;
 
-    // Descargar PDF
     pdf.save(nombreArchivo);
-
-    //console.log(`PDF generado exitosamente: ${nombreArchivo}`);
     return true;
 
   } catch (error) {
@@ -574,8 +611,10 @@ const informe_pago_personal = async (payload) => {
  * Función principal para exportar desde Vue 3
  */
 const exportarIP = async (tramite, csrfToken, empresaId) => {
+  console.log(tramite.fecha_informe_sol)
   try {
-    const fechaActual = new Date();
+    const fecha = new Date();
+    const mesSolicitadoInfo = tramite.fecha_informe_sol || fecha.getMonth();
 
     const response = await fetch('/get-informe-pago-tramitado', {
       method: 'POST',
@@ -586,7 +625,7 @@ const exportarIP = async (tramite, csrfToken, empresaId) => {
       },
       body: JSON.stringify({
         user_id: tramite.user_id,
-        month: fechaActual.getMonth() + 1,
+        month: mesSolicitadoInfo,
         empresaId: empresaId,
         tramite_id: tramite.id,
         adelanto: 0,
@@ -602,7 +641,7 @@ const exportarIP = async (tramite, csrfToken, empresaId) => {
     }
 
     const data = await response.json();
-    //console.log(data);
+    console.log(data);
 
     if (data.status !== "success") {
       throw new Error(data.message || "Error al procesar datos del informe.");

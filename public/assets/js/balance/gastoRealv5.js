@@ -325,7 +325,7 @@ class GastoReal {
         this.configTable();
 
         // Eventos de cálculo
-        this.setupCalculationEvents();
+        //this.setupCalculationEvents();
 
         // Inicializar gráfico
         this.graficoResumen();
@@ -868,66 +868,6 @@ class GastoReal {
             }
         }
 
-        // function loadDataBalances(nombre_balance) {
-        //     console.log("Buscando balance:", nombre_balance);
-
-        //     $.ajax({
-        //         url: "/obtener-listado-balance",
-        //         type: "POST",
-        //         data: JSON.stringify({ nombre_balance }),
-        //         contentType: "application/json",
-        //         dataType: "json",
-        //         headers: {
-        //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-        //         },
-        //         success: (response) => {
-        //             console.log("Balance encontrado:", response);
-
-        //             // PROCESAR INGRESOS - Solo nodos padre
-        //             if (response.ingresos_financiamiento) {
-        //                 console.log(response.ingresos_financiamiento);
-        //                 const ingresosParent = this.extractParentNodes(response.ingresos_financiamiento);
-
-        //                 // Insertar datos en tabla de ingresos
-        //                 this.ingresoTable.replaceData(ingresosParent).then(() => {
-        //                     console.log("Ingresos padre insertados:", ingresosParent);
-
-        //                     // Opcional: Expandir primer nivel automáticamente
-        //                     this.ingresoTable.getRows().forEach(row => {
-        //                         if (this.hasChildren(row.getData())) {
-        //                             row.treeExpand();
-        //                         }
-        //                     });
-        //                 });
-        //             }
-
-        //             // PROCESAR GASTOS - Estructura completa
-        //             if (response.gastos_financiamiento) {
-        //                 // Insertar datos completos en tabla de gastos
-        //                 this.gastoTable.replaceData([response.gastos_financiamiento]).then(() => {
-        //                     console.log("Gastos completos insertados:", response.gastos_financiamiento);
-
-        //                     // Expandir automáticamente los primeros 2 niveles
-        //                     this.expandTreeLevels(this.gastoTable, 2);
-        //                 });
-        //             }
-
-        //             Swal.fire({
-        //                 icon: "success",
-        //                 title: "Datos insertados",
-        //                 text: "Se cargaron las estructuras de Ingresos y Gastos de Financiamiento",
-        //             });
-        //         },
-        //         error: (xhr) => {
-        //             Swal.fire({
-        //                 icon: "error",
-        //                 title: "Error",
-        //                 text: xhr.responseJSON?.message || "No se encontró el balance",
-        //             });
-        //         }
-        //     });
-        // }
-
         // Column definitions for both tables
         const columnas = [
             {
@@ -973,13 +913,15 @@ class GastoReal {
             },
             {
                 title: "act",
-                width: 60,
+                width: 70,
+                hozAlign: "center",
                 headerSort: false,
                 formatter: () => `
-                    <button class="add-row text-green-600 hover:scale-125">➕</button>
-                    <button class="delete-row text-red-600 hover:scale-125">🗑️</button>
-                `,
-                cellClick: function (e, cell) {
+                        <button class="add-row text-green-600 hover:scale-125" title="Agregar Fila Hija">➕</button>
+                        <button class="delete-row text-red-600 hover:scale-125" title="Eliminar Fila">🗑️</button>
+                    `,
+                // ✅ Usamos una función de flecha para mantener el contexto de 'this'
+                cellClick: async (e, cell) => {
                     const row = cell.getRow();
                     const target = e.target;
 
@@ -989,51 +931,66 @@ class GastoReal {
                     if (!action) return;
 
                     try {
-                        const parentRow = row;
-                        const parentData = parentRow.getData();
-                        const parentItem = parentData.item || "";
-                        const parentChildren = parentRow.getTreeChildren() || [];
-
                         if (action === 'add') {
+                            const parentRow = row;
+                            const parentData = parentRow.getData();
+                            const parentItem = parentData.item || "";
+                            const parentChildren = parentRow.getTreeChildren() || [];
+
                             const nextNumber = (parentChildren.length + 1).toString().padStart(2, '0');
                             const newItem = parentItem ? `${parentItem}.${nextNumber}` : nextNumber;
 
-                            const newRow = {
-                                id: Date.now(),
+                            const newRowData = {
+                                id: Date.now(), // ID único
                                 item: newItem,
                                 datos_bal: "Nuevo Item",
-                                registro: 0,
-                                total: 0,
-                                ene: 0, feb: 0, mar: 0, abr: 0, may: 0, jun: 0,
-                                jul: 0, ago: 0, sep: 0, oct: 0, nov: 0, dic: 0,
+                                // Inicializa todos los campos numéricos en 0
+                                ...['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic', 'total', 'registro'].reduce((obj, key) => ({ ...obj, [key]: 0 }), {}),
                                 children: []
                             };
 
-                            parentRow.addTreeChild(newRow);
+                            // ✅ 'await' espera a que la fila se agregue antes de continuar
+                            await parentRow.addTreeChild(newRowData);
+                            // Asegurarse de que el padre esté expandido para ver al nuevo hijo
+                            parentRow.treeExpand();
+                            // ✅ Actualizar los totales del padre después de agregar el hijo
+                            this.calculateParentTotals(parentRow);
                         }
 
                         if (action === 'delete') {
-                            const parent = row.getTreeParent();
-                            row.delete();
+                            // ✅ ¡AQUÍ ESTÁ LA ALERTA DE CONFIRMACIÓN!
+                            const confirmed = confirm("¿Estás seguro de que deseas eliminar esta fila y todos sus hijos?");
 
-                            // Si hay un padre, renumerar hijos hermanos
-                            if (parent) {
-                                const siblings = parent.getTreeChildren().filter(s => {
-                                    const sData = s.getData();
-                                    return sData.item && !sData.isDescriptionRow;
-                                });
+                            if (confirmed) {
+                                const parent = row.getTreeParent();
 
-                                siblings.forEach((sibling, index) => {
-                                    const sData = sibling.getData();
-                                    const base = (sData.item || "").split(".").slice(0, -1).join(".");
-                                    const newNum = (index + 1).toString().padStart(2, '0');
-                                    const newItem = base ? `${base}.${newNum}` : newNum;
-                                    sibling.update({ item: newItem });
-                                });
+                                // ✅ 'await' espera a que la fila se elimine por completo
+                                await row.delete();
+
+                                if (parent) {
+                                    // La lógica de renumeración ahora es más segura gracias a 'await'
+                                    const siblings = parent.getTreeChildren().filter(s => {
+                                        const sData = s.getData();
+                                        return sData.item && !sData.isDescriptionRow;
+                                    });
+
+                                    // Renumerar los items de los hermanos restantes
+                                    siblings.forEach((sibling, index) => {
+                                        const sData = sibling.getData();
+                                        const base = (sData.item || "").split(".").slice(0, -1).join(".");
+                                        const newNum = (index + 1).toString().padStart(2, '0');
+                                        const newItem = base ? `${base}.${newNum}` : newNum;
+                                        sibling.update({ item: newItem });
+                                    });
+
+                                    // ✅ Actualizar los totales del padre después de eliminar un hijo
+                                    this.calculateParentTotals(parent);
+                                }
                             }
                         }
                     } catch (error) {
-                        console.error("Error al procesar acción:", error);
+                        console.error("Error al procesar la acción:", error);
+                        alert("Ocurrió un error. Revisa la consola para más detalles.");
                     }
                 }
             },
@@ -1099,8 +1056,21 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
+
             {
                 title: "FEBRERO",
                 field: "feb",
@@ -1113,7 +1083,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "MARZO",
@@ -1127,7 +1108,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "ABRIL",
@@ -1141,7 +1133,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "MAYO",
@@ -1155,7 +1158,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "JUNIO",
@@ -1169,7 +1183,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "JULIO",
@@ -1183,7 +1208,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "AGOSTO",
@@ -1197,7 +1233,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "SEPTIEMBRE",
@@ -1211,7 +1258,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "OCTUBRE",
@@ -1225,7 +1283,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "NOVIEMBRE",
@@ -1239,7 +1308,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "DICIEMBRE",
@@ -1253,7 +1333,18 @@ class GastoReal {
                 formatterParams: { precision: 2 },
                 bottomCalc: "sum",
                 bottomCalcFormatter: "money",
-                bottomCalcFormatterParams: { precision: 2 }
+                bottomCalcFormatterParams: { precision: 2 },
+                cellEdited: (cell) => {
+                    const editedRow = cell.getRow();
+
+                    // 🔁 recalcular totales (meses + total) hacia arriba
+                    this.updateRowTotal(editedRow);
+
+                    // 📊 cálculos globales
+                    this.calculateEstado();
+                    this.calculateResumen();
+                    this.graficoResumen();
+                }
             },
             {
                 title: "TOTAL",
@@ -1410,19 +1501,19 @@ class GastoReal {
         this.calculateResumen();
     }
 
-    setupCalculationEvents() {
-        const tables = [this.ingresoTable, this.gastoTable];
-        tables.forEach(table => {
-            table.on("cellEdited", cell => {
-                const row = cell.getRow();
-                this.updateRowTotal(row);
-                this.recalculateHierarchy(row);
-                this.calculateEstado();
-                this.calculateResumen();
-                this.graficoResumen(); // Actualizar gráfico cuando hay cambios
-            });
-        });
-    }
+    // setupCalculationEvents() {
+    //     const tables = [this.ingresoTable, this.gastoTable];
+    //     tables.forEach(table => {
+    //         table.on("cellEdited", cell => {
+    //             const row = cell.getRow();
+    //             this.updateRowTotal(row);
+    //             this.recalculateHierarchy(row);
+    //             this.calculateEstado();
+    //             this.calculateResumen();
+    //             this.graficoResumen(); // Actualizar gráfico cuando hay cambios
+    //         });
+    //     });
+    // }
 
     recalculateHierarchy(startRow) {
         let currentRow = startRow;
@@ -1435,13 +1526,12 @@ class GastoReal {
         }
     }
 
-    calculateParentTotals(parentRow) {
+    // ✅ Convierte esta función a 'async' para que devuelva una Promise
+    async calculateParentTotals(parentRow) {
         const children = parentRow.getTreeChildren();
         const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-        let totals = {
-            total: 0
-        };
+        let totals = { total: 0 };
         months.forEach(month => totals[month] = 0);
 
         children.forEach(child => {
@@ -1451,31 +1541,58 @@ class GastoReal {
             });
         });
 
-        // Calcular el total de todos los meses
         totals.total = months.reduce((sum, month) => {
             return this.addPrecise(sum, totals[month]);
         }, 0);
 
-        // Actualizar solo los valores calculados, preservando el registro
         const currentData = parentRow.getData();
-        parentRow.update({
+
+        // ✅ La clave es devolver la Promise de la actualización
+        return parentRow.update({
             ...currentData,
             ...totals,
-            registro: currentData.registro // Mantener el valor original del registro
         });
     }
 
     updateRowTotal(row) {
-        const rowData = row.getData();
         const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-        // Solo calcular el total si es una fila hoja (sin hijos)
         if (!row.getTreeChildren().length) {
+            // --- Caso hoja: total = suma de meses propios ---
+            const rowData = row.getData();
             const total = months.reduce((sum, month) => {
                 return this.addPrecise(sum, Number(rowData[month] || 0));
             }, 0);
 
-            row.update({ total: total });
+            row.getCell("total")?.setValue(total, true);
+
+        } else {
+            // --- Caso con hijos: acumular meses de los hijos ---
+            let monthSums = {};
+            months.forEach(m => (monthSums[m] = 0));
+
+            let total = 0;
+            row.getTreeChildren().forEach(child => {
+                const childData = child.getData();
+
+                months.forEach(m => {
+                    monthSums[m] = this.addPrecise(monthSums[m], Number(childData[m] || 0));
+                });
+
+                total = this.addPrecise(total, Number(childData.total || 0));
+            });
+
+            // ✅ actualizar celdas de meses y total del padre
+            months.forEach(m => {
+                row.getCell(m)?.setValue(monthSums[m], true);
+            });
+            row.getCell("total")?.setValue(total, true);
+        }
+
+        // --- Subir recursivamente en la jerarquía ---
+        const parent = row.getTreeParent();
+        if (parent) {
+            this.updateRowTotal(parent);
         }
     }
 
@@ -2005,51 +2122,6 @@ class GastoReal {
             }
         });
     }
-
-    // loadDataBalances(nombre_balance) {
-    //     console.log("datos de la fila :", nombre_balance);
-    //     $.ajax({
-    //         url: "/obtener-listado-balance",
-    //         type: "POST",
-    //         data: JSON.stringify({ nombre_balance }),
-    //         contentType: "application/json",
-    //         dataType: "json",
-    //         headers: {
-    //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-    //         },
-    //         success: (response) => {
-    //             console.log("Balance encontrado:", response);
-
-    //             // if (response.status === "success" && response.data) {
-
-    //             //     // Cargar los datos en las tablas
-    //             //     this.ingresoTable.setData(this.dataGenerales.ingresos);
-    //             //     this.gastoTable.setData(this.dataGenerales.gastos);
-    //             //     this.estadoTable.setData(this.dataGenerales.estado);
-    //             //     this.resumenTable.setData(this.dataGenerales.resumen);
-
-    //             //     // Actualizar cálculos y gráficos
-    //             //     this.calculateEstado();
-    //             //     this.calculateResumen();
-    //             //     this.graficoResumen();
-    //             // } else {
-    //             //     Swal.fire({
-    //             //         icon: "error",
-    //             //         title: "Error",
-    //             //         text: "No se encontraron datos para este balance."
-    //             //     });
-    //             // }
-    //         },
-    //         error: (xhr, status, error) => {
-    //             console.error("Error al cargar datos:", error);
-    //             Swal.fire({
-    //                 icon: "error",
-    //                 title: "Error",
-    //                 text: "No se pudieron cargar los datos del balance."
-    //             });
-    //         }
-    //     });
-    // }
 
     saveData() {
         const id_contabilidad = $("#id_contabilidad").val();

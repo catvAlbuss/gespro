@@ -45,12 +45,13 @@
                     update: @json(route('proyectos.update', ':id')),
                     destroy: @json(route('proyectos.destroy', ':id')),
                     edit: @json(route('proyectos.edit', ':id')),
-                    redirect: @json(route('redirect_proyecto', ['id' => ':id', 'empresa_id' => ':empresa_id']))
+                    redirect: @json(route('redirect_proyecto', ['id' => ':id', 'empresa_id' => ':empresa_id'])),
+                    reportes: @json(route('gestor_reports_proyectos', ['empresaId' => $empresaId])) //
                 }
             };
         </script>
 
         {{-- ======================= VUE SCRIPTS ======================= --}}
-        @vite(['resources/js/proyectos/gestor-proyectos.js'])
+        @vite(['resources/js/proyectos/portadaproyectos.js'])
     </div>
 </x-app-layout>

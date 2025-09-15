@@ -6,6 +6,7 @@ use App\Models\especificacionesTecnicas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EspecificacionesTecnicasController extends Controller
 {
@@ -68,7 +69,8 @@ class EspecificacionesTecnicasController extends Controller
     /**
      * get ETTP.
      */
-    public function getDataETTP(Request $request){
+    public function getDataETTP(Request $request)
+    {
         try {
             $id = $request->input('id');
             if (!$id) {
@@ -91,7 +93,7 @@ class EspecificacionesTecnicasController extends Controller
     public function updateETTP($id, Request $request)
     {
         try {
-            
+
             $ettp = especificacionesTecnicas::findOrFail($id);
 
             // Asumiendo que la columna remuneraciones en la base de datos es de tipo JSON o texto
@@ -105,11 +107,12 @@ class EspecificacionesTecnicasController extends Controller
         }
     }
 
-    
+
     //OBTENER METRADOS PARA ETTP
     public function obtenerMetradosEttp(Request $request)
     {
         try {
+            // Log::info($request->all());
             // Obtener el ID del proyecto desde la solicitud
             $proyectoId = $request->input('proyecto_id');
 
@@ -171,6 +174,7 @@ class EspecificacionesTecnicasController extends Controller
                 ]
             ];
 
+            // Log::info($categorias);
             // Verificar si al menos una categoría está seleccionada
             $hasSelection = collect($categorias)->some(function ($categoria) {
                 return $categoria['enabled'] === true;
@@ -202,7 +206,7 @@ class EspecificacionesTecnicasController extends Controller
 
                 // Procesamos los datos manteniendo la estructura correcta
                 $processedData = $this->procesarDatosMetradoEttp($data, $categoria['json_key']);
-
+    
                 // Verificar si hay datos procesados
                 if (!empty($processedData)) {
                     $dataFound = true;
@@ -395,5 +399,4 @@ class EspecificacionesTecnicasController extends Controller
 
         return $result;
     }
-    
 }

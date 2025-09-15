@@ -302,6 +302,9 @@ Route::post('/get-Actividad-Personal', [TramitesController::class, 'getDataActiv
 //obtener informe de pago firmado y sellado
 Route::post('/get-informe-pago-tramitado', [TramitesController::class, 'getDataInformePago']);
 
+//Actualizar Bonificacion y descuentos 
+Route::post('/actividades-personal/guardar-descuentos', [TramitesController::class, 'updateBonificacionDescuento']);
+
 // Ruta para mostrar la vista de trámites de una empresa específica
 Route::get('/Tramites/{empresa_id}', function ($empresa_id) {
     return view('tramites.index', compact('empresa_id'));
@@ -388,7 +391,9 @@ Route::get('asistencia_list_trab/{empresaId}/{trabajadorId}', [CalendarioTrabaja
 Route::get('tareas_list_trab/{trabajadorId}', [CalendarioTrabajadoresController::class, 'listarTareasUser']);
 
 Route::get('gestor_reports_proyectos/{empresaId}', [ProyectoController::class, 'reports_proyectos'])->name('gestor_reports_proyectos');
-Route::get('reportes/proyecto/{grupo_id}/{nombre_proyecto}/{empresaId}', [ProyectoController::class, 'reporteDetalles'])->name('reporte_detalles');
+// Route::get('reportes/proyecto/{id}/{nombre_proyecto}/{empresaId}', [ProyectoController::class, 'reporteDetalles'])->name('reporte_detalles');
+Route::post('reportes/proyecto', [ProyectoController::class, 'reporteDetalles'])->name('reporte_detalles');
+
 Route::put('actualizarpresupuesto', [ProyectoController::class, 'actualizar_presupuesto_proyecto'])->name('actualizarpresupuesto');
 Route::put('actualizarinversion', [ProyectoController::class, 'actualizar_inversion'])->name('actualizarinversion');
 
@@ -427,6 +432,11 @@ Route::get('gestor-construye/{empresaId}', function ($empresaId) {
 Route::get('gestor-intalacionsanitarias/{empresaId}', function ($empresaId) {
     return view('gestor_vista.Construyehc.Sanitarias.instalacionS', compact('empresaId'));
 })->name('gestorinstalacions');
+//resources/views/gestor_vista/programasgespro/portadaprogramas.blade.php
+//======================PROGRAMAS GESPRO ======================================//
+Route::get('portada-programas-gespro/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.portadaprogramas', compact('empresaId'));
+})->name('gestorprogramasgespro');
 
 //======================CONSTRUYE PANEL ======================================//
 Route::get('gestor-construye/{empresaId}', function ($empresaId) {

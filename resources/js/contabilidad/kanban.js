@@ -1,4 +1,4 @@
-import { createApp, ref, reactive, computed, onMounted, nextTick, onUnmounted } from 'vue';
+import { createApp, ref, reactive, computed, onMounted, nextTick, onUnmounted, watch } from 'vue';
 
 const app = createApp({
     setup() {
@@ -19,9 +19,14 @@ const app = createApp({
         const reportType = ref('daily');
         const reportDescription = ref('');
 
+
         const newTask = reactive({
             name: '',
             project: '',
+            especialidad: '',
+            actividad: '',
+            modulosSeleccionados: [],
+            cantidad: 1,   // valor por defecto
             assignedTo: '',
             dias: 0,
             porcent: 0
@@ -57,6 +62,10 @@ const app = createApp({
         const tasks = ref([]);
         const workers = ref([]);
         const proyectos = ref([]);
+        const especialidades = ref([]);
+        const actividades = ref([]);
+        const tipoProyecto = ref("todo"); // por defecto
+        const modulos = ref([]);
 
         // Current date navigation
         const currentDate = ref(new Date());
@@ -150,19 +159,154 @@ const app = createApp({
             }
         };
 
+        const norm = (s) => String(s ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        // ======================= LOAD =======================
         const loadProyectos = async () => {
-            try {
-                const response = await fetch(`/listar_pro/${empresaId.value}`);
-                const data = await response.json();
-                proyectos.value = Array.isArray(data) ? data : [];
-            } catch (error) {
-                //console.error('Error cargando proyectos:', error);
-                showNotification('Error al cargar proyectos', 'error');
-            }
+            const response = await fetch(`/listar_pro/${empresaId.value}`);
+            const data = await response.json();
+
+            proyectos.value = (Array.isArray(data) ? data : [data]).map((p) => {
+                let doc = [];
+                let esp = [];
+                try {
+                    doc = JSON.parse(p.documento_proyecto || "[]");
+                } catch { }
+                try {
+                    esp = JSON.parse(p.especialidades || "[]");
+                } catch { }
+                return { ...p, documento_proyecto: doc, especialidades: esp };
+            });
+
+            especialidades.value = proyectos.value[0]?.especialidades ?? [];
         };
 
-        // Cargar tareas mejorado para búsqueda por trabajador
-        // Función auxiliar para crear fecha sin problemas de zona horaria
+        // ======================= WATCHERS =======================
+        // 1️⃣ Proyecto → especialidades
+        watch(
+            () => newTask.project,
+            (nuevoProyectoId) => {
+                const proyectoSeleccionado = proyectos.value.find(
+                    (p) => String(p.id_proyectos) === String(nuevoProyectoId)
+                );
+
+                especialidades.value = proyectoSeleccionado?.especialidades || [];
+                newTask.especialidad = "";
+                actividades.value = [];
+                newTask.actividad = "";
+                modulos.value = [];
+                newTask.modulosSeleccionados = [];
+            }
+        );
+
+        // 2️⃣ Especialidad → actividades
+        watch(
+            () => newTask.especialidad,
+            (nuevaEspecialidad) => {
+                if (!nuevaEspecialidad) {
+                    actividades.value = [];
+                    newTask.actividad = "";
+                    return;
+                }
+
+                const proyectoSeleccionado = proyectos.value.find(
+                    (p) => String(p.id_proyectos) === String(newTask.project)
+                );
+                if (!proyectoSeleccionado) return;
+
+                const doc = Array.isArray(proyectoSeleccionado.documento_proyecto)
+                    ? proyectoSeleccionado.documento_proyecto
+                    : [];
+
+                const target = norm(nuevaEspecialidad);
+
+                const especialidadData =
+                    doc.find((d) => norm(d.nombre) === target) ||
+                    doc.find((d) => norm(d.id).startsWith(target + "_"));
+
+                actividades.value = especialidadData?.datos ?? [];
+                newTask.actividad = "";
+                modulos.value = [];
+                newTask.modulosSeleccionados = [];
+            }
+        );
+
+        // 3️⃣ Actividad → módulos y porcentaje
+        watch(
+            () => newTask.actividad,
+            (nuevaActividad) => {
+                if (!nuevaActividad) {
+                    modulos.value = [];
+                    newTask.modulosSeleccionados = [];
+                    newTask.porcent = 0;
+                    return;
+                }
+
+                // Buscar proyecto actual
+                const proyectoSeleccionado = proyectos.value.find(
+                    (p) => String(p.id_proyectos) === String(newTask.project)
+                );
+                if (!proyectoSeleccionado) return;
+
+                // Buscar especialidad actual
+                const especialidadData = proyectoSeleccionado.documento_proyecto.find(
+                    (esp) => norm(esp.nombre) === norm(newTask.especialidad)
+                );
+                if (!especialidadData) return;
+
+                // Buscar actividad dentro de datos
+                const actividadData = especialidadData.datos.find(
+                    (act) => norm(act.nombre) === norm(nuevaActividad)
+                );
+                if (!actividadData) return;
+
+                const tipoProyecto = actividadData.tipoProyecto || "todo";
+
+                if (tipoProyecto === "todo") {
+                    const porcentaje = Number(actividadData.porcentaje ?? 0);
+
+                    // Guardamos también el porcentaje dentro del módulo "all"
+                    modulos.value = [{ id: "all", nombre: "Todos los módulos", porcentaje }];
+                    newTask.modulosSeleccionados = ["all"];
+                    newTask.porcent = porcentaje;
+                } else if (tipoProyecto === "partes") {
+                    // Extraer módulos desde las claves (modulo1, modulo2, ...)
+                    const modulosPartes = Object.keys(actividadData)
+                        .filter((k) => k.startsWith("modulo"))
+                        .map((k, i) => ({
+                            id: i + 1,
+                            nombre: `Módulo ${i + 1}`,
+                            porcentaje: Number(actividadData[k] ?? 0),
+                        }));
+
+                    modulos.value = modulosPartes;
+                    newTask.modulosSeleccionados = [];
+                    newTask.porcent = 0;
+                } else {
+                    modulos.value = [];
+                    newTask.modulosSeleccionados = [];
+                    newTask.porcent = 0;
+                }
+            }
+        );
+
+        // 4️⃣ Watch: cuando cambia selección de módulos → recalcula porcentaje
+        watch(
+            () => newTask.modulosSeleccionados,
+            (seleccionados) => {
+                const seleccion = Array.isArray(seleccionados) ? seleccionados : [];
+                const mods = modulos.value;
+
+                // Sumar porcentajes de los seleccionados
+                const total = mods
+                    .filter((m) => seleccion.includes(m.id))
+                    .reduce((acc, m) => acc + (m.porcentaje || 0), 0);
+
+                newTask.porcent = total;
+            },
+            { deep: true }
+        );
+
         const createLocalDate = (dateString) => {
             if (!dateString) return null;
 
@@ -204,7 +348,7 @@ const app = createApp({
 
                 const data = await response.json();
 
-                // console.log('Datos recibidos:', data);
+                console.log('Datos recibidos:', data);
 
                 // Limpiar tareas existentes
                 tasks.value = [];
@@ -249,6 +393,8 @@ const app = createApp({
                                 status: task.status || 'todo',
                                 fecha: task.fecha,
                                 taskDate: taskDate, // Agregar la fecha parseada para referencia
+                                especialidades: task.especialidad,
+                                cantidad: task.cantidad,
                                 diasAsignados: parseFloat(task.diasAsignados) || 0,
                                 diasRestantes: parseFloat(task.diasRestantes) || parseFloat(task.diasAsignados) || 0,
                                 porcentajeTarea: parseInt(task.porcentajeTarea) || 0,
@@ -282,25 +428,28 @@ const app = createApp({
             //console.log("📌 Datos capturados en newTask:", newTask);
 
             // Validación manual para ver qué campos faltan
-            if (!newTask.name || !newTask.project || !newTask.assignedTo || !newTask.dias || !newTask.porcent) {
+            if (!newTask.project || !newTask.assignedTo || !newTask.dias || !newTask.porcent) {
                 showNotification('Por favor completa todos los campos requeridos', 'warning');
                 return;
             }
 
             isLoadingTask.value = true;
             try {
+                console.log(newTask)
                 // Construir payload con nombres correctos para backend
                 const payload = {
-                    name: newTask.name,
+                    name: newTask.actividad,
                     project: newTask.project,
                     assignedTo: newTask.assignedTo,
+                    especialidad: newTask.especialidad,
+                    modulos: JSON.stringify(newTask.modulosSeleccionados), // puedes guardarlo como JSON en DB
                     status: "todo", // siempre inicia en todo
                     fecha: new Date().toISOString().split("T")[0], // fecha actual YYYY-MM-DD
                     diasTo: newTask.dias,         // mapear correctamente
                     porcentTo: newTask.porcent    // mapear correctamente
                 };
 
-                //console.log("📤 Payload enviado al backend:", payload);
+                console.log("📤 Payload enviado al backend:", payload);
 
                 const response = await fetch('/actividadpersonal', {
                     method: 'POST',
@@ -312,7 +461,7 @@ const app = createApp({
                     body: JSON.stringify(payload)
                 });
 
-                //console.log("📥 Respuesta cruda:", response);
+                console.log("📥 Respuesta cruda:", response);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -374,6 +523,8 @@ const app = createApp({
                             status: task.status || 'todo',
                             fecha: task.fecha,
                             taskDate: taskDate, // Agregar la fecha parseada para referencia
+                            especialidades: task.especialidad,
+                            cantidad: task.cantidad,
                             diasAsignados: parseFloat(task.diasAsignados || task.diasTo || newTask.dias) || 0,
                             diasRestantes: parseFloat(task.diasRestantes || task.diasAsignados || task.diasTo || newTask.dias) || 0,
                             porcentajeTarea: parseInt(task.porcentajeTarea || task.porcentTo || newTask.porcent) || 0,
@@ -877,6 +1028,10 @@ const app = createApp({
             tasks,
             workers,
             proyectos,
+            especialidades,
+            actividades,
+            tipoProyecto,
+            modulos,
             columns,
             meses,
 

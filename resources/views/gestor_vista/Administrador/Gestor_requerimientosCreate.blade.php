@@ -472,8 +472,8 @@
                 const total_requerimientos = parseFloat($('#req_total').val());
                 const empresaId = $('#empresaId').val();
                 const banco_req = $('#banco_req').val();
-                const nro_banco_req = parseInt($('#nro_banco_req').val(), 10);
-                const cci_req = parseInt($('#cci_req').val(), 10);
+                const nro_banco_req = ($('#nro_banco_req').val());
+                const cci_req = ($('#cci_req').val());
                 const titular_req = $('#titular_req').val();
                 const dni_req = parseInt($('#dni_req').val(), 10);
 

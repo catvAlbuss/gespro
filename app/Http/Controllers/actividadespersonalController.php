@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\actividadespersonal;
+use App\Models\BonificacionDescuento;
 use App\Models\Empresa;
 use App\Models\Proyecto;
 use App\Models\requerimiento;
@@ -85,7 +86,7 @@ class actividadespersonalController extends Controller
     {
         // Obtener solo los nombres y los IDs de los proyectos pertenecientes a la empresa especificada
         $proyectos = Proyecto::where('empresa_id', $empresaId)
-            ->select('id_proyectos', 'nombre_proyecto') // Seleccionar solo los campos id y nombre
+            ->select('id_proyectos', 'nombre_proyecto', 'especialidades', 'documento_proyecto') // Seleccionar solo los campos id y nombre
             ->get();
 
         // Retornar los proyectos como respuesta JSON
@@ -98,16 +99,19 @@ class actividadespersonalController extends Controller
             'name' => 'required|string|max:255',
             'project' => 'required|integer',
             'assignedTo' => 'required|integer',
+            'especialidad' => 'nullable|string|max:255',
+            'modulos' => 'nullable|string',
             'status' => 'required|string|in:todo,doing,done,approved',
             'fecha' => 'required|date',
             'diasTo' => 'required|integer',
-            'porcentTo' => 'required|integer',
+            'porcentTo' => 'required|numeric|min:0|max:100',
         ]);
 
         $task = actividadespersonal::create([
             'nameActividad' => $request->name,
             'projectActividad' => $request->project,
-            'elapsed_timeActividadId' => 0,
+            'especialidad' => $request->especialidad,
+            'cantidad' => $request->modulos,
             'status' => $request->status,
             'fecha' => $request->fecha,
             'diasAsignados' => $request->diasTo,
@@ -319,11 +323,12 @@ class actividadespersonalController extends Controller
 
     public function exportarIp(Request $request)
     {
-        // Validar los datos de entrada
+        // 1. Validar datos de entrada
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'month' => 'required|integer|min:1|max:12',
             'empresaId' => 'required|exists:empresas,id',
+            'tramiteId' => 'required|numeric|exists:tramites,id',
             'adelanto' => 'nullable|numeric',
             'permisos' => 'nullable|numeric',
             'incMof' => 'nullable|numeric',
@@ -331,10 +336,12 @@ class actividadespersonalController extends Controller
             'descuenttrab' => 'nullable|numeric',
         ]);
 
-        // Extraer datos validados
+        // 2. Extraer datos validados
         $userId = $validated['user_id'];
         $monthValue = $validated['month'];
         $empresaId = $validated['empresaId'];
+        $tramiteId = $validated['tramiteId'];
+
         $extras = [
             'adelanto' => $validated['adelanto'] ?? 0,
             'permisos' => $validated['permisos'] ?? 0,
@@ -343,12 +350,12 @@ class actividadespersonalController extends Controller
             'descuenttrab' => $validated['descuenttrab'] ?? 0,
         ];
 
-        // Obtener el usuario con su empresa
+        // 3. Obtener el usuario con su empresa asociada
         $user = User::with(['empresas' => function ($query) use ($empresaId) {
             $query->where('empresas.id', $empresaId);
         }])->findOrFail($userId);
 
-        // Obtener tareas del usuario en el mes seleccionado con el proyecto relacionado Aprobados
+        // 4. Obtener tareas aprobadas del mes
         $tareas = actividadespersonal::with(['proyecto' => function ($query) {
             $query->select('id_proyectos', 'nombre_proyecto');
         }])
@@ -358,17 +365,17 @@ class actividadespersonalController extends Controller
             ->get()
             ->map(function ($tarea) {
                 return [
-                    'id' => $tarea->actividadId, // Usar la clave primaria correcta
-                    'titulo' => $tarea->nameActividad, // Ajustar al campo correcto
-                    'descripcion' => $tarea->descripcion ?? 'Sin descripción', // Añadir valor por defecto
+                    'id' => $tarea->actividadId,
+                    'titulo' => $tarea->nameActividad,
+                    'descripcion' => $tarea->descripcion ?? 'Sin descripción',
                     'status' => $tarea->status,
                     'fecha' => $tarea->fecha,
                     'diasAsignados' => $tarea->diasAsignados,
-                    'nombre_proyecto' => $tarea->proyecto ? $tarea->proyecto->nombre_proyecto : 'Sin proyecto asignado',
+                    'nombre_proyecto' => $tarea->proyecto->nombre_proyecto ?? 'Sin proyecto asignado',
                 ];
             });
 
-        //Obtener tareas del usuario en el mes seleccionado con el proyecto relacionado No Aprobados Contados
+        // 5. Obtener tareas no aprobadas (done) del mes
         $tareasNoAprobadas = actividadespersonal::with(['proyecto' => function ($query) {
             $query->select('id_proyectos', 'nombre_proyecto');
         }])
@@ -378,16 +385,20 @@ class actividadespersonalController extends Controller
             ->get()
             ->map(function ($tarea) {
                 return [
-                    'id' => $tarea->actividadId, // Usar la clave primaria correcta
-                    'titulo' => $tarea->nameActividad, // Ajustar al campo correcto
-                    'descripcion' => $tarea->descripcion ?? 'Sin descripción', // Añadir valor por defecto
+                    'id' => $tarea->actividadId,
+                    'titulo' => $tarea->nameActividad,
+                    'descripcion' => $tarea->descripcion ?? 'Sin descripción',
                     'status' => $tarea->status,
                     'fecha' => $tarea->fecha,
                     'diasAsignados' => $tarea->diasAsignados,
-                    'nombre_proyecto' => $tarea->proyecto ? $tarea->proyecto->nombre_proyecto : 'Sin proyecto asignado',
+                    'nombre_proyecto' => $tarea->proyecto->nombre_proyecto ?? 'Sin proyecto asignado',
                 ];
             });
-        // Preparar respuesta
+
+        // 6. Obtener bonificaciones y descuentos asociados al trámite
+        $bonificacionDescuento = BonificacionDescuento::where('tramite_desing', $tramiteId)->first();
+
+        // 7. Preparar respuesta
         return response()->json([
             'status' => 'success',
             'message' => 'Datos obtenidos correctamente',
@@ -405,15 +416,17 @@ class actividadespersonalController extends Controller
                         'id' => $empresa->id,
                         'razonSocial' => $empresa->razonSocial,
                     ];
-                })->first() // Obtener solo la empresa específica
+                })->first()
             ],
             'tareas' => $tareas,
             'tareasnoaprobados' => $tareasNoAprobadas,
+            'bonificacion_descuento' => $bonificacionDescuento, // agregado aquí
             'mes' => $monthValue,
             'idEmpresa' => $empresaId,
             'extras' => $extras
         ], 200);
     }
+
 
     // En el controlador
     // public function actividadPersonal(Request $request)

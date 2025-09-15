@@ -1297,7 +1297,6 @@ $(document).ready(function () {
             series: [] // Inicia la serie vacía
         };
 
-        //console.log(reportrequetotal)
         reporterequerimientoProceso.forEach((item, index) => {
             // Convertir el valor de `totalmontoreque` a número y sumar a `montorequerimientoproceso`
             montorequerimientoproceso += parseFloat(item.totalmontoreque);
@@ -1637,7 +1636,6 @@ $(document).ready(function () {
         let valoresGastos = resumenProyectosData.map(proyecto => proyecto.total || 0);
         let nombresProyectos = resumenProyectosData.map(proyecto => proyecto.nombre || 'Sin nombre');
 
-
         // Sumar ambos montos y almacenarlo en `sumaTotalGasto`
         //sumaTotalGastototal = (parseFloat(montoAnterior) + parseFloat(montorequerimientoproceso) + parseFloat(montorequerimientosustentado) + parseFloat(sumaTotalGasto) + parseFloat(montoTareas)).toFixed(2);
         sumaTotalGastototal = (parseFloat(montogeneralprore) + parseFloat(totalmontoInverAnterior) + parseFloat(montorequerimientoproceso) + parseFloat(montorequerimientosustentado)).toFixed(2);
@@ -1738,7 +1736,6 @@ $(document).ready(function () {
         } else {
             colorGasto = 'black'; // Si no entra en ninguna de las condiciones anteriores
         }
-
 
         let g1 = {
             type: 'ring',
@@ -2017,31 +2014,6 @@ $(document).ready(function () {
                     backgroundColor: '#00BFFF',
                 }
             ],
-            /*series: [{
-                values: [porcentajeTotal],
-                tooltip: {
-                    text: '<span style="font-size:16px;color:#3CC1CF;">\u25CF</span> AVANCE PROYECTO %node-value%',
-                },
-                valueBox: {
-                    text: 'AVANCE %node-value%',
-                    fontColor: '#3CC1CF',
-                    fontWeight: 'bold',
-                },
-                backgroundColor: '#3CC1CF',
-            },
-            {
-                values: [porcentajeResto],
-                tooltip: {
-                    text: '<span style="font-size:16px;color:#999999;">\u25CF</span> TOTAL PROYECTO %node-value%',
-                },
-                valueBox: {
-                    text: 'RESTANTE %node-value%',
-                    fontColor: '#999999',
-                    fontWeight: 'bold',
-                },
-                backgroundColor: '#999999',
-            },
-            ],*/
         };
 
         let gresumenpro = {
@@ -2073,35 +2045,6 @@ $(document).ready(function () {
                 textAlign: 'center',
             },
         };
-
-        /*let gresumenadm = {
-            type: 'null',
-            backgroundColor: '#fbfcf7',
-            borderColor: '#384653',
-            borderRadius: '4px',
-            borderWidth: '1px',
-            height: '3%',
-            width: '30%',
-            x: '35%',
-            y: '6%',
-            title: {
-                text: 'ADMINISTRACIÓN',
-                backgroundColor: 'none',
-                fontColor: '#384653',
-                fontSize: '20px',
-                height: '70px',
-                textAlign: 'center',
-            },
-            subtitle: {
-                text: 'MONTO ADMINISTRATIVO INVERTIDO \\n S/:' + montoTareas,
-                bold: true,
-                fontColor: '#3CC1CF',
-                fontSize: '18px',
-                height: '40px',
-                paddingTop: '100%',
-                textAlign: 'center',
-            },
-        };*/
 
         let gresumenreq = {
             type: 'null',
@@ -2553,7 +2496,6 @@ $(document).ready(function () {
                 visible: true, // Habilitar el eje Y
                 maxValue: parseFloat(totalmonto) * 1.1, // Añadir un margen superior
             },
-
             series: [
                 {
                     values: [parseFloat(totalmonto) - parseFloat(sumaTotalGastototal)], // Presupuesto restante
@@ -2833,7 +2775,6 @@ $(document).ready(function () {
                     y: `${parseInt(g10.y) + parseInt(g10.height) + graphGap + index * (graphHeight + graphGap) + 3150}px`
                 }))],
         };
-
 
         zingchart.render({
             id: 'mytotal',

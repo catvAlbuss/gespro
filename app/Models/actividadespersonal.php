@@ -14,7 +14,8 @@ class actividadespersonal extends Model
     protected $fillable = [
         'nameActividad',
         'projectActividad',
-        'elapsed_timeActividadId',
+        'especialidad',
+        'cantidad',
         'status',
         'fecha',
         'diasAsignados',
@@ -23,9 +24,15 @@ class actividadespersonal extends Model
         'elapsed_time',
     ];
 
-     // Agregar relación con el modelo Proyecto
-     public function proyecto()
-     {
-         return $this->belongsTo(Proyecto::class, 'projectActividad', 'id_proyectos');
-     }
+    // Agregar relación con el modelo Proyecto
+    public function proyecto()
+    {
+        return $this->belongsTo(Proyecto::class, 'projectActividad', 'id_proyectos');
+    }
+
+    // Relación con Usuario
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'usuario_designado', 'id');
+    }
 }

@@ -276,7 +276,7 @@
                             <div
                                 class="flex flex-col items-center gap-3 px-8 py-10 bg-sky-500 hover:bg-sky-800 dark:bg-white dark:hover:bg-sky-500 rounded-3xl shadow-main">
                                 <span></span>
-                                <a href="{{ route('gestortrabajadorgen', ['id' => $id]) }}">
+                                <a href="{{ route('gestorprogramasgespro', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Cotizador</p>
                                 </a>
                             </div>

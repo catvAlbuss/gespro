@@ -120,6 +120,8 @@ class ettp {
 
     setupDataLoadingFromCheckboxes() {
         const fetchMetradosData = async (proyectoId, selectedOptions, token) => {
+            console.log(proyectoId);
+            console.log(selectedOptions);
             try {
                 $("#loading-indicator").show();
 
@@ -135,7 +137,7 @@ class ettp {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-
+                console.log(response)
                 $("#loading-indicator").hide();
 
                 if (response.error) {

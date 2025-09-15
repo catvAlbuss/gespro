@@ -52,64 +52,152 @@
                         {{-- Panel de Gestión de Tareas --}}
                         <transition name="slide-down">
                             <div v-show="showTaskPanel"
-                                class="flex flex-col bg-gray-800 text-white py-5 px-4 rounded-lg shadow-lg ring-1 ring-cyan-500/40 mt-4">
-                                <div class="w-full bg-gray-800 text-white p-2 rounded-2xl shadow-lg">
-                                    <form @submit.prevent="handleAddTask"
-                                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                                        <div class="flex flex-col">
-                                            <label class="text-sm font-medium mb-2">Nombre de la tarea</label>
-                                            <input v-model="newTask.name" type="text"
-                                                placeholder="Nombre de la tarea"
-                                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
-                                                required>
+                                class="flex flex-col bg-gray-800 text-white py-6 px-5 rounded-xl shadow-2xl ring-1 ring-cyan-500/40 mt-4">
+                                <div class="w-full bg-gray-800 text-white rounded-2xl">
+                                    <form @submit.prevent="handleAddTask" class="space-y-6">
+                                        <!-- First Row: Project, Specialty, Activity -->
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            <!-- Proyecto -->
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Seleccionar
+                                                    Proyecto</label>
+                                                <select v-model="newTask.project"
+                                                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                    required>
+                                                    <option value="">Seleccionar Proyecto</option>
+                                                    <option v-for="proyecto in proyectos" :key="proyecto.id_proyectos"
+                                                        :value="proyecto.id_proyectos">
+                                                        @{{ proyecto.nombre_proyecto }}
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Especialidad -->
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Seleccionar
+                                                    Especialidad</label>
+                                                <select v-model="newTask.especialidad"
+                                                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    :disabled="especialidades.length === 0" required>
+                                                    <option value="">Seleccionar Especialidad</option>
+                                                    <option v-for="(esp, index) in especialidades"
+                                                        :key="index" :value="esp">
+                                                        @{{ esp }}
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Actividad -->
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Seleccionar
+                                                    Actividad</label>
+                                                <select v-model="newTask.actividad"
+                                                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                    required>
+                                                    <option value="">Seleccionar Actividad</option>
+                                                    <option v-for="act in actividades" :key="act.id"
+                                                        :value="act.nombre">
+                                                        @{{ act.nombre }}
+                                                    </option>
+                                                </select>
+                                            </div>
                                         </div>
 
-                                        <div class="flex flex-col">
-                                            <label class="text-sm font-medium mb-2">Seleccionar Proyecto</label>
-                                            <select v-model="newTask.project"
-                                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
-                                                required>
-                                                <option value="">Seleccionar Proyecto</option>
-                                                <option v-for="proyecto in proyectos" :key="proyecto.id_proyectos"
-                                                    :value="proyecto.id_proyectos">
-                                                    @{{ proyecto.nombre_proyecto }}
-                                                </option>
-                                            </select>
+                                        <!-- Second Row: Modules (Full Width to Handle Variable Content) -->
+                                        <div v-if="modulos.length" class="w-full">
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Módulos</label>
+
+                                                <!-- Multi-select for parts -->
+                                                <div v-if="modulos[0]?.id !== 'all'" class="w-full">
+                                                    <select v-model="newTask.modulosSeleccionados" multiple
+                                                        size="4"
+                                                        class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500">
+                                                        <option v-for="mod in modulos" :key="mod.id"
+                                                            :value="mod.id" class="py-1 px-2 hover:bg-gray-600">
+                                                            @{{ mod.nombre }}
+                                                        </option>
+                                                    </select>
+                                                    <p class="text-xs text-gray-400 mt-1">Mantén Ctrl/Cmd presionado
+                                                        para seleccionar múltiples módulos</p>
+                                                </div>
+
+                                                <!-- Fixed value display -->
+                                                <div v-else class="w-full">
+                                                    <div
+                                                        class="p-3 bg-gray-700/50 border border-green-500/30 rounded-lg">
+                                                        <div class="flex items-center space-x-2">
+                                                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                                            <span
+                                                                class="text-green-400 font-medium">@{{ modulos[0].nombre }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div class="flex flex-col">
-                                            <label class="text-sm font-medium mb-2">Asignar a</label>
-                                            <select v-model="newTask.assignedTo"
-                                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
-                                                required>
-                                                <option value="">Seleccionar trabajador</option>
-                                                <option v-for="worker in workers" :key="worker.id"
-                                                    :value="worker.id">
-                                                    @{{ worker.name }}
-                                                </option>
-                                            </select>
+                                        <!-- Third Row: Assignment, Days, Percentage -->
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <!-- Asignar a -->
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Asignar a</label>
+                                                <select v-model="newTask.assignedTo"
+                                                    class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                    required>
+                                                    <option value="">Seleccionar trabajador</option>
+                                                    <option v-for="worker in workers" :key="worker.id"
+                                                        :value="worker.id">
+                                                        @{{ worker.name }}
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Días estimados -->
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Días estimados</label>
+                                                <div class="relative">
+                                                    <input v-model.number="newTask.dias" type="number" min="1"
+                                                        placeholder="0"
+                                                        class="w-full p-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                        required>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                        <span class="text-gray-400 text-sm">días</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Porcentaje de actividad -->
+                                            <div class="flex flex-col space-y-2">
+                                                <label class="text-sm font-medium text-gray-200">Porcentaje de
+                                                    actividad</label>
+                                                <div class="relative">
+                                                    <input v-model.number="newTask.porcent" type="number"
+                                                        min="0" max="100" step="any" disabled
+                                                        placeholder="0"
+                                                        class="w-full p-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                        required>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                        <span class="text-gray-500 text-sm">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div class="flex flex-col">
-                                            <label class="text-sm font-medium mb-2">Días estimados</label>
-                                            <input v-model.number="newTask.dias" type="number" min="1"
-                                                placeholder="Días estimados"
-                                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
-                                                required>
-                                        </div>
-
-                                        <div class="flex flex-col">
-                                            <label class="text-sm font-medium mb-2">Porcentaje de actividad</label>
-                                            <input v-model.number="newTask.porcent" type="number" min="0"
-                                                max="100" placeholder="Porcentaje de actividad"
-                                                class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
-                                                required>
-                                        </div>
-
-                                        <div class="flex items-end">
+                                        <!-- Submit Button -->
+                                        <div class="flex justify-end pt-4">
                                             <button type="submit" :disabled="isLoadingTask"
-                                                class="w-full bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 text-white py-3 px-6 rounded-lg font-semibold transition duration-200">
-                                                <span v-if="isLoadingTask">Añadiendo...</span>
+                                                class="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                                                <span v-if="isLoadingTask" class="flex items-center space-x-2">
+                                                    <svg class="animate-spin h-4 w-4" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                            stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                        </path>
+                                                    </svg>
+                                                    <span>Añadiendo...</span>
+                                                </span>
                                                 <span v-else>Añadir Tarea</span>
                                             </button>
                                         </div>
@@ -128,7 +216,8 @@
                                     <select v-model="selectedWorkerSearch" @change="searchTasksByWorker"
                                         class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white">
                                         <option value="">Seleccionar trabajador</option>
-                                        <option v-for="worker in workers" :key="worker.id" :value="worker.id">
+                                        <option v-for="worker in workers" :key="worker.id"
+                                            :value="worker.id">
                                             @{{ worker.name }}
                                         </option>
                                     </select>
@@ -143,7 +232,9 @@
 
                     {{-- Botón Informe --}}
                     <div class="flex justify-end mb-4 mt-6">
-                        <a href="{{ route('Tramites', ['empresaId' => $id]) }}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg shadow-md transition duration-200">📄 Iniciar Tramites Ip</a>
+                        <a href="{{ route('Tramites', ['empresaId' => $id]) }}"
+                            class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg shadow-md transition duration-200">📄
+                            Iniciar Tramites Ip</a>
                         {{-- <button @click="openReportModal"
                             class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg shadow-md transition duration-200">
                             
@@ -207,6 +298,8 @@
                                         <div class="text-xs text-gray-600 dark:text-gray-300 space-y-1">
                                             <div>Proyecto: @{{ task.project }}</div>
                                             <div>Asignado: @{{ task.assignedTo }}</div>
+                                            <div>Especialidad: @{{ task.especialidades }}</div>
+                                            <div>Modulos: @{{ task.cantidad }}</div>
                                             <div>Días Ejecutados: @{{ task.elapsed_time }} / Dias Asignado
                                                 @{{ task.diasAsignados }}</div>
                                             <div class="flex justify-between">
