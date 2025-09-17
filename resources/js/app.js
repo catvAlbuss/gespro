@@ -17,6 +17,10 @@ import './proyectos/reporteProyectos.js';
  */
 import './programasgespro/cotizador.js';
 
+/**
+ * BALANCES
+ */
+import './contabilidad/balanceGV.js';
 
 window.Alpine = Alpine;
 window.Swal = Swal;

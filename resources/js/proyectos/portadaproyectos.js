@@ -28,6 +28,7 @@ const app = createApp({
             { id: 'demolicion', name: 'Demolición', icon: '🧨' },           // dinamita/explosivo
             { id: 'estudiosuelo', name: 'Estudio de Suelos', icon: '🪨' },  // roca
             { id: 'costopresupuestp', name: 'Costos y Presupuestos', icon: '💰' }, // dinero
+            { id: 'campo', name: 'CAMPO', icon: '💰' }, // campo
             { id: 'procesos', name: 'PROCESOS', icon: '💰' }, // procesos
             { id: 'administracion', name: 'Administración', icon: '💰' }, // administracion
             { id: 'administracioncontratos', name: 'Administración de Contratos', icon: '💰' }, // administracion de contratos

@@ -319,9 +319,12 @@ class RequerimientoController extends Controller
             } elseif ($rolAsignado == 'administradores') {
                 // Si el rol es administrador, actualizar la columna aprobado_contabilidad
                 $requerimiento->aprobado_contabilidad = 1;
+                $requerimiento->aprobado_logistica = 1;
             } elseif ($rolAsignado == 'Gerente') {
                 // Si el rol es gerente, actualizar la columna aprobado_requerimiento
+                $requerimiento->aprobado_contabilidad = 1;
                 $requerimiento->aprobado_requerimiento = 1;
+                $requerimiento->aprobado_logistica = 1;
             }
 
             // Guardar los cambios en la base de datos
@@ -438,7 +441,6 @@ class RequerimientoController extends Controller
                     );
                     // Enviar notificación
                     $usuarioNotificado->notify(new RequirementDeleted($requerimientoInfo, $mensaje));
-                   
                 } else {
                     // \Log::warning('Usuario no encontrado para notificación', [
                     //     'nombre_busqueda' => $nombreCompleto[0],
@@ -508,7 +510,7 @@ class RequerimientoController extends Controller
 
         // Redirigir o mostrar mensaje de éxito
         return redirect()->route('gestorrequerimientos.show', $empresaId)
-        ->with('success', 'Requerimiento aprobado exitosamente.');
+            ->with('success', 'Requerimiento aprobado exitosamente.');
         //return redirect()->route('requerimientos.index')->with('success', 'Sustento actualizado correctamente.');
     }
 }

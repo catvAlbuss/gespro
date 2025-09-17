@@ -3,120 +3,313 @@
 namespace App\Http\Controllers;
 
 use App\Models\metradoelectricas;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class metradoelectricasController extends Controller
 {
     public function index()
     {
-        $metradoelectricas = metradoelectricas::select('idmeelectrica', 'nombre_proyecto', 'fecha', 'especialidad', 'localidad', 'modulo')->get();
-        // Retornar la vista con los datos
-        return view('gestor_vista.Construyehc.metradosElectricas.index', compact('metradoelectricas'));
+        try {
+            $metradoelectricas = metradoelectricas::orderBy('created_at', 'desc')->get();
+            return view('gestor_vista.Construyehc.metradosElectricas.index', compact('metradoelectricas'));
+        } catch (Exception $e) {
+            Log::error('Error al cargar metrados: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al cargar los metrados');
+        }
     }
 
     public function store(Request $request)
     {
-        // Validación de los datos (puedes agregar reglas de validación según tus necesidades)
-        $request->validate([
-            'nombre_proyecto' => 'required|string|max:255',
-            'entidadm' => 'required|integer',
-            'fecha' => 'required|date',
-            'especialidad' => 'required|string|max:255',
-            'cui' => 'required|integer',
-            'codigo_modular' => 'required|string|max:255',
-            'codigo_local' => 'required|integer',
-            'modulo' => 'required|string|max:255',
-            'localidad' => 'required|string|max:255',
-        ]);
+        Log::info('Datos recibidos para crear metrado:', $request->all());
 
-        // Estructura JSON que quieres almacenar en documentosdata
-        $documentosdata = [
-            "modulos" => [
-                [
-                    "id" => 1,
-                    "item" => "05",
-                    "descripcion" => "INSTALACIONES ELÉCTRICAS Y MECÁNICAS",
-                    "unidad" => null,
-                    "totalnieto" => "0.00",
-                    "total" => "0.00",
-                    "children" => [
-                        [
-                            "id" => 2,
-                            "item" => "05.01",
-                            "descripcion" => "CONEXIÓN A LA RED EXTERNA DE MEDIDORES",
-                            "unidad" => null,
-                            "totalnieto" => "0.00",
-                            "total" => "0.00",
-                            "children" => [
-                                [
-                                    "id" => 1736206694907,
-                                    "item" => "05.01.01",
-                                    "descripcion" => "Nueva Fila",
-                                    "unidad" => null,
-                                    "total" => "0.00",
-                                    "totalnieto" => "0.00",
-                                    "children" => [
-                                        [
-                                            "id" => 1736206922262,
-                                            "item" => "05.01.01.01",
-                                            "descripcion" => "Nueva Fila",
-                                            "unidad" => null,
-                                            "total" => "0.00",
-                                            "totalnieto" => "0.00",
-                                            "longitud" => null,
-                                            "volumen" => null,
-                                            "unidadcalculado" => null
-                                        ]
-                                    ],
-                                    "longitud" => null,
-                                    "volumen" => null,
-                                    "unidadcalculado" => null
-                                ]
-                            ],
-                            "longitud" => null,
-                            "volumen" => null,
-                            "unidadcalculado" => null
-                        ]
-                    ],
-                    "longitud" => null,
-                    "volumen" => null,
-                    "unidadcalculado" => null
-                ]
-            ]
-        ];
-
-
-        // Crear una nueva entrada en la base de datos
         try {
-            metradoelectricas::create([
-                'nombre_proyecto' => $request->input('nombre_proyecto'),
-                'unidad_ejecutora' => $request->input('entidadm'),
-                'fecha' => $request->input('fecha'),
-                'especialidad' => $request->input('especialidad'),
-                'cui' => $request->input('cui'),
-                'codigo_modular' => $request->input('codigo_modular'),
-                'codigo_local' => $request->input('codigo_local'),
-                'modulo' => $request->input('modulo'),
-                'localidad' => $request->input('localidad'),
-                'documentosdata' => json_encode($documentosdata), // Convertir a JSON
+            // Validación de los datos
+            $validatedData = $request->validate([
+                'nombre_proyecto' => 'required|string|max:500',
+                'uei' => 'required|string|max:255',
+                'codigo_snip' => 'required|string|max:255',
+                'codigo_cui' => 'required|string|max:255',
+                'unidad_ejecutora' => 'required|string|max:255',
+                'codigo_local' => 'required|string|max:255',
+                'codigo_modular' => 'required|string',
+                'especialidad' => 'required|string|max:255',
+                'fecha' => 'required|date',
+                'ubicacion' => 'required|string|max:255',
+                'proyecto_designado' => 'required|integer',
+            ], [
+                'nombre_proyecto.required' => 'El nombre del proyecto es obligatorio',
+                'nombre_proyecto.max' => 'El nombre del proyecto no puede exceder 500 caracteres',
+                'uei.required' => 'La UEI es obligatoria',
+                'codigo_snip.required' => 'El código SNIP es obligatorio',
+                'codigo_cui.required' => 'El código CUI es obligatorio',
+                'unidad_ejecutora.required' => 'La unidad ejecutora es obligatoria',
+                'codigo_local.required' => 'El código local es obligatorio',
+                'codigo_modular.required' => 'Debe seleccionar al menos un nivel educativo',
+                'especialidad.required' => 'La especialidad es obligatoria',
+                'fecha.required' => 'La fecha es obligatoria',
+                'fecha.date' => 'La fecha debe ser una fecha válida',
+                'ubicacion.required' => 'La ubicación es obligatoria'
             ]);
-        } catch (\Exception $e) {
-            dd($e->getMessage());
+
+            // Validar que el JSON de codigo_modular tenga al menos un nivel educativo
+            $codigoModular = json_decode($validatedData['codigo_modular'], true);
+            if (empty($codigoModular) || !is_array($codigoModular)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe seleccionar al menos un nivel educativo con su código correspondiente'
+                ], 422);
+            }
+
+            // Estructura de módulos por defecto
+            $modulo = [
+                "modulos" => [
+                    [
+                        "id" => 1,
+                        "item" => "07",
+                        "descripcion" => "INSTALACIONES DE COMUNICACION",
+                        "totalnieto" => "0.00",
+                        "children" => [
+                            [
+                                "id" => 2,
+                                "item" => "07.01",
+                                "descripcion" => "CABLEADO ESTRUCTURADO EN INTERIORES DE EDIFICIOS",
+                                "totalnieto" => "0.00",
+                                "children" => [
+                                    [
+                                        "id" => 3,
+                                        "item" => "07.01.01",
+                                        "descripcion" => "CABLES EN TUBERÍAS",
+                                        "totalnieto" => "0.00",
+                                        "unidad" => null,
+                                        "elesimil" => null,
+                                        "largo" => null,
+                                        "ancho" => null,
+                                        "alto" => null,
+                                        "longitud" => null,
+                                        "volumen" => null,
+                                        "kg" => null,
+                                        "unidadcalculado" => null,
+                                        "total" => "0.00"
+                                    ]
+                                ],
+                                "unidad" => null,
+                                "elesimil" => null,
+                                "largo" => null,
+                                "ancho" => null,
+                                "alto" => null,
+                                "longitud" => null,
+                                "volumen" => null,
+                                "kg" => null,
+                                "unidadcalculado" => null,
+                                "total" => "0.00"
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            // Iniciar transacción
+            DB::beginTransaction();
+
+            // Crear el metrado
+            $metrado = metradoelectricas::create([
+                'nombre_proyecto' => $validatedData['nombre_proyecto'],
+                'uei' => $validatedData['uei'],
+                'codigosnip' => $validatedData['codigo_snip'],
+                'codigocui' => $validatedData['codigo_cui'],
+                'unidad_ejecutora' => $validatedData['unidad_ejecutora'],
+                'codigo_local' => $validatedData['codigo_local'],
+                'codigo_modular' => $validatedData['codigo_modular'],
+                'especialidad' => $validatedData['especialidad'],
+                'fecha' => $validatedData['fecha'],
+                'ubicacion' => $validatedData['ubicacion'],
+                'documentosdata' => json_encode($modulo),
+                'proyectodesignado' => $validatedData['proyecto_designado'],
+            ]);
+
+            // Confirmar transacción
+            DB::commit();
+
+            Log::info('Metrado creado exitosamente:', ['id' => $metrado->idmeelectrica]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Metrado de electricas creado exitosamente',
+                'data' => $metrado
+            ]);
+        } catch (ValidationException $e) {
+            DB::rollback();
+            Log::warning('Error de validación al crear metrado:', $e->errors());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            DB::rollback();
+            Log::error('Error al crear metrado: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Redirigir al usuario o devolver una respuesta
-        return redirect()->route('metradoelectricas.index')->with('success', 'Metrado de comunicación agregado exitosamente');
     }
 
 
-    public function show($id)
+    public function show(string $id)
     {
-        // Obtener el metrado sanitario por su ID
-        $metradoelectricas = metradoelectricas::findOrFail($id);
+        try {
+            $metradoelectricas = metradoelectricas::findOrFail($id);
 
-        // Retornar la vista con el dato del metrado
-        return view('gestor_vista.Construyehc.metradosElectricas.show', compact('metradoelectricas'));
+            // Si es una petición AJAX, devolver JSON
+            if (request()->expectsJson()) {
+                // Preparar datos para el modal de edición
+                $data = [
+                    'nombre_proyecto' => $metradoelectricas->nombre_proyecto,
+                    'uei' => $metradoelectricas->uei,
+                    'codigo_snip' => $metradoelectricas->codigosnip,
+                    'codigo_cui' => $metradoelectricas->codigocui,
+                    'unidad_ejecutora' => $metradoelectricas->unidad_ejecutora,
+                    'codigo_local' => $metradoelectricas->codigo_local,
+                    'codigo_modular' => $metradoelectricas->codigo_modular,
+                    'especialidad' => $metradoelectricas->especialidad,
+                    'fecha' => $metradoelectricas->fecha,
+                    'ubicacion' => $metradoelectricas->ubicacion ?? $metradoelectricas->localidad,
+                ];
+
+                return response()->json($data);
+            }
+
+            // Para vista normal
+            return view('gestor_vista.Construyehc.metradosElectricas.show', compact('metradoelectricas'));
+        } catch (Exception $e) {
+            Log::error('Error al obtener metrado: ' . $e->getMessage());
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Metrado no encontrado'
+                ], 404);
+            }
+
+            return redirect()->back()->with('error', 'Metrado no encontrado');
+        }
     }
+
+    public function update(Request $request, string $id)
+    {
+        Log::info('Datos recibidos para actualizar metrado:', $request->all());
+
+        try {
+            // Validación de los datos
+            $validatedData = $request->validate([
+                'nombre_proyecto' => 'required|string|max:500',
+                'uei' => 'required|string|max:255',
+                'codigo_snip' => 'required|string|max:255',
+                'codigo_cui' => 'required|string|max:255',
+                'unidad_ejecutora' => 'required|string|max:255',
+                'codigo_local' => 'required|string',
+                'codigo_modular' => 'required|string|max:255',
+                'especialidad' => 'required|string|max:255',
+                'fecha' => 'required|date',
+                'ubicacion' => 'required|string|max:255',
+            ], [
+                'nombre_proyecto.required' => 'El nombre del proyecto es obligatorio',
+                'uei.required' => 'La UEI es obligatoria',
+                'codigo_snip.required' => 'El código SNIP es obligatorio',
+                'codigo_cui.required' => 'El código CUI es obligatorio',
+                'unidad_ejecutora.required' => 'La unidad ejecutora es obligatoria',
+                'codigo_local.required' => 'Debe seleccionar al menos un nivel educativo',
+                'codigo_modular.required' => 'El código modular es obligatorio',
+                'especialidad.required' => 'La especialidad es obligatoria',
+                'fecha.required' => 'La fecha es obligatoria',
+                'ubicacion.required' => 'La ubicación es obligatoria'
+            ]);
+
+            // Validar que el JSON de codigo_local tenga al menos un nivel educativo
+            $codigoModular = json_decode($validatedData['codigo_local'], true);
+            if (empty($codigoModular) || !is_array($codigoModular)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe seleccionar al menos un nivel educativo con su código correspondiente'
+                ], 422);
+            }
+
+            // Iniciar transacción
+            DB::beginTransaction();
+
+            // Buscar y actualizar el metrado
+            $metrado = metradoelectricas::findOrFail($id);
+
+            $metrado->update([
+                'nombre_proyecto' => $validatedData['nombre_proyecto'],
+                'uei' => $validatedData['uei'],
+                'codigosnip' => $validatedData['codigo_snip'],
+                'codigocui' => $validatedData['codigo_cui'],
+                'unidad_ejecutora' => $validatedData['unidad_ejecutora'],
+                'codigo_local' => $validatedData['codigo_local'],
+                'codigo_modular' => $validatedData['codigo_modular'],
+                'especialidad' => $validatedData['especialidad'],
+                'fecha' => $validatedData['fecha'],
+                'ubicacion' => $validatedData['ubicacion'],
+            ]);
+
+            // Confirmar transacción
+            DB::commit();
+
+            Log::info('Metrado actualizado exitosamente:', ['id' => $metrado->idmeelectrica]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Metrado de Electricas actualizado exitosamente',
+                'data' => $metrado
+            ]);
+        } catch (ValidationException $e) {
+            DB::rollback();
+            Log::warning('Error de validación al actualizar metrado:', $e->errors());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            DB::rollback();
+            Log::error('Error al actualizar metrado: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function destroy(string $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $metrado = metradoelectricas::findOrFail($id);
+            $metrado->delete();
+
+            DB::commit();
+
+            Log::info('Metrado eliminado exitosamente:', ['id' => $id]);
+
+            return redirect()->route('metradoelectricas.index')
+                ->with('success', 'Metrado eliminado exitosamente');
+        } catch (Exception $e) {
+            DB::rollback();
+            Log::error('Error al eliminar metrado: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el metrado: ' . $e->getMessage());
+        }
+    }
+
 
     public function actualizar_data_electricas(Request $request)
     {
@@ -140,15 +333,15 @@ class metradoelectricasController extends Controller
             $data = [
                 'modulos' => $modulos,
             ];
-            
+
             $resumenel = [
                 'resumenel' => $resumenel,
             ];
-            
+
             // Convertir los datos en formato JSON
             $documentosData = json_encode($data);
             $resumenData = json_encode($resumenel);
-            
+
             // Actualizar la columna 'documentosdata' en el registro encontrado
             $metrado->documentosdata = $documentosData;
             $metrado->resumenmetrados = $resumenData;
@@ -160,42 +353,5 @@ class metradoelectricasController extends Controller
             // Si no se encuentra el 'metrado', responder con un mensaje de error
             return response()->json(['message' => 'Registro no encontrado'], 404);
         }
-    }
-
-    public function edit(string $id)
-    {
-        $metrado = metradoelectricas::findOrFail($id);
-        return view('gestor_vista.Construyehc.metradosElectricas.edit', compact('metrado'));
-    }
-
-    public function update(Request $request, string $id)
-    {
-        $request->validate([
-            'nombre_proyecto' => 'required|string|max:255',
-            'cui' => 'required|integer',
-            'codigo_modular' => 'required|integer',
-            'codigo_local' => 'required|integer',
-            'unidad_ejecutora' => 'required|string',
-            'fecha' => 'required|date',
-            'especialidad' => 'required|string|max:255',
-            'localidad' => 'required|string|max:255',
-        ]);
-
-        $metrado = metradoelectricas::findOrFail($id);
-        $metrado->update($request->all());
-
-        return redirect()->route('metradoelectricas.index')->with('success', 'Metrado eléctrico actualizado correctamente.');
-    }
-
-    public function destroy(string $id)
-    {
-        // Encuentra el registro que deseas eliminar
-        $metrado = metradoelectricas::findOrFail($id);  // Encuentra el registro usando el ID
-
-        // Eliminar el registro
-        $metrado->delete();
-
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('metradoelectricas.index')->with('success', 'Registro eliminado exitosamente');
     }
 }

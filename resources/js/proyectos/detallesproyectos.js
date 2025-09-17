@@ -60,6 +60,54 @@ const DEFAULT_ROWS_BASE = [
     }
 ];
 
+const DEFAULT_ROWS_BASE_CAMPO = [
+    {
+        id: 'informes',
+        nombre: 'INFORMES',
+        porcentaje: 20,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    },
+    {
+        id: 'control',
+        nombre: 'CONTROL',
+        porcentaje: 30,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    },
+    {
+        id: 'liquidaciones',
+        nombre: 'LIQUIDACIONES',
+        porcentaje: 30,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    },
+    {
+        id: 'valorizacion',
+        nombre: 'VALORIZACION',
+        porcentaje: 10,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    },
+    {
+        id: 'requerimiento',
+        nombre: 'REQUERIMEINTO',
+        porcentaje: 10,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    },
+];
+
 const DEFAULT_ROWS_BASE_PROCESOS = [
     {
         id: 'mof',
@@ -252,7 +300,7 @@ const DEFAULT_ROWS_BASE_SISTEMAS = [
     }
 ];
 
-const DEFAULT_SPECIALTIES = ['Arquitectura', 'Estructuras', 'Electrica', 'Sanitarias', 'Gas', 'Comunicaciones', 'Electromecanica', 'Topografica', 'Contingencia', 'Democilion', 'Estudio de Suelos', 'Costos y Presupuestos', 'precesos', 'administracion', 'administracion de contratos', 'sistemas'];
+const DEFAULT_SPECIALTIES = ['Arquitectura', 'Estructuras', 'Electrica', 'Sanitarias', 'Gas', 'Comunicaciones', 'Electromecanica', 'Topografica', 'Contingencia', 'Democilion', 'Estudio de Suelos', 'Costos y Presupuestos', 'campo', 'precesos', 'administracion', 'administracion de contratos', 'sistemas'];
 
 const TIPOS_PROYECTO = [
     { value: 'todo', label: 'Todo' },
@@ -318,9 +366,11 @@ const parseEspecialidadesPorcentaje = (data) => {
 const createDefaultSpecialty = (name, id_especialidad, index, porcentaje = 0) => {
     // Usar el ID exacto del backend o generar uno temporal
     const finalId = id_especialidad || `esp-${index}`;
-
+    //campo
     let datosDefault;
-    if (id_especialidad === 'procesos') {
+    if (id_especialidad === 'campo') {
+        datosDefault = JSON.parse(JSON.stringify(DEFAULT_ROWS_BASE_CAMPO));
+    } else if (id_especialidad === 'procesos') {
         datosDefault = JSON.parse(JSON.stringify(DEFAULT_ROWS_BASE_PROCESOS));
     } else if (id_especialidad === 'administracion') {
         datosDefault = JSON.parse(JSON.stringify(DEFAULT_ROWS_BASE_ADMINISTRACION));
@@ -505,6 +555,11 @@ const mapActivityNameToId = (nameActividad) => {
         'EE.TT': 'eett',
         'Anexos': 'anexos',
         'documentoProyecto': 'anexos', // Mapear documentoProyecto a anexos
+        'INFORMES': 'informes',
+        'CONTROL': 'control',
+        'LIQUIDACIONES': 'liquidaciones',
+        'VALORIZACION': 'valorizacion',
+        'REQUERIMEINTO': 'requerimiento',
         'MOF': 'mof',
         'PROCESOS': 'procesos',
         'REVISIONES ACTIVIDADES ADMINSTRATIVAS': 'revisiones',

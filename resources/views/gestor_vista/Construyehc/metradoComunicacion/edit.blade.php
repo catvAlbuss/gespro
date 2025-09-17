@@ -85,11 +85,8 @@
                         <small class="text-red-500">{{ $message }}</small>
                     @enderror
                 </div>
-
-
-
                 <div class="flex justify-end space-x-2">
-                    <a href="{{ route('metradoelectricas.index') }}"
+                    <a href="{{ route('metradocomunicacion.index') }}"
                         class="px-4 py-2 bg-gray-500 text-white rounded">Cancelar</a>
                     <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Guardar</button>
                 </div>

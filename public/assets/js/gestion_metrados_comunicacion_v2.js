@@ -1,5 +1,5 @@
 $(document).ready(function () {
-        ///IMPORTAR DATAS EXCEL
+    ///IMPORTAR DATAS EXCEL
     let selectedFile;
     let jsonTree;
 
@@ -122,7 +122,7 @@ $(document).ready(function () {
 
         return tree;
     }
-    
+
     // Main database structure
     const inputElement = document.getElementById('datamodulos');
     const modulosData = inputElement ? inputElement.value : null;
@@ -148,7 +148,7 @@ $(document).ready(function () {
     }
 
     //const metradoComunicacion = database.modulos;
-    let metradoComunicacion = sortTreeData(database.modulos); 
+    let metradoComunicacion = sortTreeData(database.modulos);
 
     // Configuration object for managing calculation logic and color schemes
     const TableConfig = {
@@ -485,7 +485,11 @@ $(document).ready(function () {
             {
                 title: "",
                 formatter: function () {
-                    return `<button class="add-row">➕</button> <button class="add-row-descript">➕</button> <button class="delete-row">🗑️</button>`;
+                    return `<div class="action-buttons">
+                                <button class="add-row" title="Agregar nuevo ítem">➕</button> 
+                                <button class="add-row-descript" title="Agregar subpartida">📝</button> 
+                                <button class="delete-row" title="Eliminar registro">🗑️</button>
+                            </div>`;
                 },
                 width: 100,
                 cellClick: function (e, cell) {
@@ -1071,92 +1075,6 @@ $(document).ready(function () {
         });
     }
 
-
-    // Variables para controlar la actualización automática
-    let updateInterval = null;
-    const UPDATE_INTERVAL_TIME = 120000; // 2 minutos en milisegundos
-    let isAutoUpdateActive = false;
-
-    // Función para realizar la actualización
-    function updateMetrados() {
-        const id_metrado_comunicacion = document.getElementById('idmetradocomunicacion').value;
-        const datatable = metradoComunicacion;
-        const dataToSend = {
-            id: id_metrado_comunicacion,
-            modulos: datatable,
-        };
-
-        $.ajax({
-            url: '/update_metrados_comunicacion',
-            method: 'POST',
-            data: JSON.stringify(dataToSend),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (response) {
-                console.log('Auto-update successful:', response.message);
-            },
-            error: function (xhr) {
-                console.error('Auto-update error:', xhr.responseText);
-                // Si hay un error, detener la actualización automática
-                stopAutoUpdate();
-            }
-        });
-    }
-
-    // Función para iniciar la actualización automática
-    function startAutoUpdate() {
-        if (!updateInterval) {
-            updateInterval = setInterval(updateMetrados, UPDATE_INTERVAL_TIME);
-            isAutoUpdateActive = true;
-            console.log('Auto-update started');
-            // Cambiar el texto del botón para indicar que está activo
-            $('#actualizar_metrados').text('Detener Auto-actualización');
-        }
-    }
-
-    // Función para detener la actualización automática
-    function stopAutoUpdate() {
-        if (updateInterval) {
-            clearInterval(updateInterval);
-            updateInterval = null;
-            isAutoUpdateActive = false;
-            console.log('Auto-update stopped');
-            // Cambiar el texto del botón para indicar que está inactivo
-            $('#actualizar_metrados').text('Iniciar Auto-actualización');
-        }
-    }
-
-    // Modificar el evento click del botón para alternar la actualización automática
-    $('#actualizar_metrados').on('click', () => {
-        if (!isAutoUpdateActive) {
-            startAutoUpdate();
-            // Realizar una actualización inmediata
-            updateMetrados();
-        } else {
-            stopAutoUpdate();
-        }
-    });
-
-    // Control de visibilidad de la pestaña
-    document.addEventListener('visibilitychange', function () {
-        if (document.hidden) {
-            // Si la pestaña no está visible, detener la actualización
-            stopAutoUpdate();
-        } else {
-            // Si la pestaña vuelve a ser visible y estaba activa la actualización
-            if (isAutoUpdateActive) {
-                startAutoUpdate();
-            }
-        }
-    });
-
-    // Detener la actualización cuando se cierre la ventana
-    window.addEventListener('beforeunload', function () {
-        stopAutoUpdate();
-    });
-
     // Inicializar el objeto de resumen
     const resumenmetradocomunicacion = {};
     const resumenmetradocomunicacionTree = [];
@@ -1313,57 +1231,181 @@ $(document).ready(function () {
             },
         ],
     });
-    
-    $('#actualizar_metrados').on('click', () => {
+
+    // Variables para controlar la actualización automática
+    let updateInterval = null;
+    let countdownInterval = null;
+    let isAutoUpdateActive = false;
+    const UPDATE_INTERVAL_TIME = 120000; // 2 minutos en milisegundos
+    const COUNTDOWN_SECONDS = UPDATE_INTERVAL_TIME / 1000;
+    let remainingSeconds = COUNTDOWN_SECONDS;
+
+    // Actualiza visualmente el temporizador
+    function updateTimerDisplay() {
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = remainingSeconds % 60;
+        document.getElementById('timerDisplay').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Empieza la cuenta regresiva visual
+    function startCountdownTimer() {
+        countdownInterval = setInterval(() => {
+            remainingSeconds--;
+            updateTimerDisplay();
+
+            if (remainingSeconds <= 0) {
+                updateMetrados();
+                remainingSeconds = COUNTDOWN_SECONDS; // Reinicia para el siguiente ciclo
+            }
+        }, 1000);
+    }
+
+    // Detiene la cuenta regresiva visual
+    function stopCountdownTimer() {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+
+    // Manejo de botones individuales
+    document.getElementById('btnIniciarAuto').addEventListener('click', () => {
+        if (!isAutoUpdateActive) {
+            startAutoUpdate();
+            updateMetrados(); // Guardado inmediato al iniciar
+        }
+    });
+
+    document.getElementById('btnPausarAuto').addEventListener('click', () => {
+        if (isAutoUpdateActive) {
+            stopAutoUpdate();
+        }
+    });
+
+    document.getElementById('btnGuardarAhora').addEventListener('click', () => {
+        updateMetrados(); // Guardar manual inmediato
+    });
+
+    // Función para realizar la actualización
+    function updateMetrados() {
         const id_metrado_comunicacion = document.getElementById('idmetradocomunicacion').value;
-        if (metradoComunicacion && metradoComunicacion.length > 0) {
-            metradoComunicacion = sortTreeData(database.modulos) || jsonTree;
-        }
-
-        // ✅ Solo reasignamos si jsonTree tiene datos nuevos
-        if (jsonTree && jsonTree.length > 0) {
-            metradoComunicacion = jsonTree;  // Ahora sí se puede reasignar porque es `let`
-        }
-
         const datatableresumen = resumenmetradocomunicacionTree;
+        const datosActuales = table.getData();
+
+        // const dataToSend = {
+        //     id: id_metrado_comunicacion,
+        //     modulos: metradoComunicacion,
+        //     resumencm: datatableresumen,
+        // };
 
         const dataToSend = {
             id: id_metrado_comunicacion,
-            modulos: metradoComunicacion,
+            modulos: datosActuales,
             resumencm: datatableresumen,
         };
 
         const comprimido = JSON.stringify(dataToSend);
 
         $.ajax({
-            url: '/update_metrados_comunicacion', // Laravel route
+            url: '/update_metrados_comunicacion',
             method: 'POST',
-            data: comprimido, // Send data as JSON
+            data: comprimido,
             contentType: 'application/json',
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Include CSRF token for Laravel
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function (response) {
-                console.log('Response:', response.message); // Success message from the server
+                //console.log('Auto-update successful:', response.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Guardado exitoso',
+                    text: response.message || 'Los datos se han guardado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             },
             error: function (xhr) {
-                console.error('Error:', xhr.responseText); // Error response from the server
+                //console.error('Auto-update error:', xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: 'Ocurrió un error durante la actualización automática.' + xhr.responseText,
+                });
+                // Si hay un error, detener la actualización automática
+                stopAutoUpdate();
             }
         });
+    }
+
+    // Función para iniciar la actualización automática
+    function startAutoUpdate() {
+        if (!updateInterval) {
+            updateInterval = setInterval(updateMetrados, UPDATE_INTERVAL_TIME);
+            isAutoUpdateActive = true;
+            remainingSeconds = COUNTDOWN_SECONDS;
+            updateTimerDisplay();
+            startCountdownTimer();
+            console.log('Auto-update started');
+        }
+    }
+
+    // Función para detener la actualización automática
+    function stopAutoUpdate() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+        stopCountdownTimer();
+        isAutoUpdateActive = false;
+        //console.log('Auto-update stopped');
+        Swal.fire({
+            icon: 'info',
+            title: 'Actualización detenida',
+            text: 'La actualización automática ha sido detenida.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
+    // Modificar el evento click del botón para alternar la actualización automática
+    $('#actualizar_metrados').on('click', () => {
+        if (!isAutoUpdateActive) {
+            startAutoUpdate();
+            // Realizar una actualización inmediata
+            updateMetrados();
+        } else {
+            stopAutoUpdate();
+        }
     });
-    
-    /*$('#actualizar_metrados').on('click', () => {
+
+    // Control de visibilidad de la pestaña
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            // Si la pestaña no está visible, detener la actualización
+            stopAutoUpdate();
+        } else {
+            // Si la pestaña vuelve a ser visible y estaba activa la actualización
+            if (isAutoUpdateActive) {
+                startAutoUpdate();
+            }
+        }
+    });
+
+    // Detener la actualización cuando se cierre la ventana
+    window.addEventListener('beforeunload', function () {
+        stopAutoUpdate();
+    });
+
+    $('#actualizar_metrados').on('click', () => {
         const id_metrado_comunicacion = document.getElementById('idmetradocomunicacion').value;
-        const datatable = metradoComunicacion;
         const datatableresumen = resumenmetradocomunicacionTree;
+        const datosActuales = table.getData();
+
         const dataToSend = {
             id: id_metrado_comunicacion,
-            modulos: datatable,
+            modulos: datosActuales,
             resumencm: datatableresumen,
         };
-        
-        const comprimido = JSON.stringify(dataToSend)
 
+        const comprimido = JSON.stringify(dataToSend);
         $.ajax({
             url: '/update_metrados_comunicacion', // Laravel route
             method: 'POST',
@@ -1373,14 +1415,26 @@ $(document).ready(function () {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Include CSRF token for Laravel
             },
             success: function (response) {
-                console.log('Response:', response.message); // Success message from the server
+                //console.log('Response:', response.message); // Success message from the server
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Guardado exitoso',
+                    text: response.message || 'Los datos se han guardado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             },
             error: function (xhr) {
-                console.error('Error:', xhr.responseText); // Error response from the server
+                //console.error('Error:', xhr.responseText); // Error response from the server
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: xhr.responseText,
+                });
             }
         });
-    });*/
-    
+    });
+
     document.getElementById('download-xlsx').addEventListener('click', function () {
         //Datos Excel
         const data = metradoComunicacion;
@@ -1393,7 +1447,7 @@ $(document).ready(function () {
         const unidad_ejecutora = document.getElementById('unidad_ejecutora').value;
         const fecha = document.getElementById('fecha').value;
         const especialidad = document.getElementById('especialidad').value;
-        const modulo = document.getElementById('modulo').value;
+        const modulo = 20;//document.getElementById('modulo').value;
         const localidad = document.getElementById('localidad').value;
 
         //Inicio de documento

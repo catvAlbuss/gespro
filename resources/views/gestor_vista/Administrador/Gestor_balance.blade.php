@@ -28,8 +28,9 @@
     {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.2.2/echarts.min.js"></script> --}}
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-    <div class="">
+    <div class="" id="appBalances">
         <div class="w-full">
             <section id="balance_real">
                 <div class="w-full p-2 text-gray-900 dark:text-gray-100">
@@ -146,7 +147,20 @@
                     });
                 });
             </script>
+            <script>
+                window.APP_INIT = {
+                    contabilidad: {
+                        id: @json($contabilidad->id),
+                        nombre_balance: @json($contabilidad->nombre_balance),
+                        montoInicial: @json($contabilidad->montoInicial ?? 0),
+                    },
+                    empresaId: @json($empresaId),
+                    csrfToken: @json(csrf_token())
+                };
+               
+            </script>
+
         </div>
     </div>
 </x-app-layout>
-<script type="module" src="{{ asset('assets/js/gestion_balances.js') }}"></script>
+{{-- <script type="module" src="{{ asset('assets/js/gestion_balances.js') }}"></script> --}}

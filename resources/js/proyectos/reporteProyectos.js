@@ -1305,7 +1305,7 @@ createApp({
                 const userId = act.usuario.id;
                 const nombreUsuario = `${act.usuario.name} ${act.usuario.surname}`;
                 const fecha = new Date(act.fecha);
-                const dias = Number(act.diasAsignados) || 0;
+                const dias = Number(act.elapsed_time) || 0;
                 const sueldoBase = Number(act.usuario.sueldo_base) || 0;
                 const costoPorDia = sueldoBase / 26;
 

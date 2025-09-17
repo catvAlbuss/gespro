@@ -60,7 +60,7 @@
                             </div>
 
                             {{-- Informes --}}
-                            <div
+                            {{-- <div
                                 class="flex flex-col items-center gap-3 px-8 py-10 bg-sky-500 hover:bg-sky-800 dark:bg-white dark:hover:bg-sky-500 rounded-3xl shadow-main">
                                 <span>
                                     <img width="50" height="50"
@@ -69,7 +69,7 @@
                                 <a href="{{ route('gestor-informes-contabilidad', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Informes</p>
                                 </a>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
