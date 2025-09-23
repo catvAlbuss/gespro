@@ -57,6 +57,15 @@ const DEFAULT_ROWS_BASE = [
         diasEjecutados: 0,
         porcentajeAvance: 0,
         tipoProyecto: 'partes'
+    },
+    {
+        id: 'actividadgeneral',
+        nombre: 'Actividad general',
+        porcentaje: 100,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
     }
 ];
 
@@ -106,6 +115,15 @@ const DEFAULT_ROWS_BASE_CAMPO = [
         porcentajeAvance: 0,
         tipoProyecto: 'partes'
     },
+    {
+        id: 'actividadgeneral',
+        nombre: 'Actividad general',
+        porcentaje: 100,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    }
 ];
 
 const DEFAULT_ROWS_BASE_PROCESOS = [
@@ -145,6 +163,16 @@ const DEFAULT_ROWS_BASE_PROCESOS = [
         porcentajeAvance: 0,
         tipoProyecto: 'partes'
     },
+    {
+        id: 'actividadgeneral',
+        nombre: 'Actividad general',
+        porcentaje: 100,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    }
+    
 ];
 
 const DEFAULT_ROWS_BASE_ADMINISTRACION = [
@@ -201,6 +229,15 @@ const DEFAULT_ROWS_BASE_ADMINISTRACION = [
         diasEjecutados: 0,
         porcentajeAvance: 0,
         tipoProyecto: 'partes'
+    },
+    {
+        id: 'actividadgeneral',
+        nombre: 'Actividad general',
+        porcentaje: 100,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
     }
 ];
 
@@ -250,6 +287,15 @@ const DEFAULT_ROWS_BASE_CONTRATOS = [
         porcentajeAvance: 0,
         tipoProyecto: 'partes'
     },
+    {
+        id: 'actividadgeneral',
+        nombre: 'Actividad general',
+        porcentaje: 100,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    }
 ];
 
 const DEFAULT_ROWS_BASE_SISTEMAS = [
@@ -293,6 +339,15 @@ const DEFAULT_ROWS_BASE_SISTEMAS = [
         id: 'pruebas_soluciones',
         nombre: 'PRUEBAS Y SOLUCIONES',
         porcentaje: 5,
+        diasPlanificados: 0,
+        diasEjecutados: 0,
+        porcentajeAvance: 0,
+        tipoProyecto: 'partes'
+    },
+    {
+        id: 'actividadgeneral',
+        nombre: 'Actividad general',
+        porcentaje: 100,
         diasPlanificados: 0,
         diasEjecutados: 0,
         porcentajeAvance: 0,
@@ -580,6 +635,7 @@ const mapActivityNameToId = (nameActividad) => {
         'FRONT END': 'front_end',
         'BACK END': 'back_end',
         'PRUEBAS Y SOLUCIONES': 'pruebas_soluciones',
+        'Actividad general': 'actividadgeneral',
     };
 
     // Si hay mapeo directo, usarlo

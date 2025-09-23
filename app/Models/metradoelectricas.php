@@ -20,7 +20,6 @@ class metradoelectricas extends Model
         'codigo_local',
         'codigo_modular',
         'especialidad',
-        'localidad',
         'fecha',
         'ubicacion',
         'documentosdata',

@@ -8,16 +8,17 @@ use App\Models\materialrequerimiento;
 use App\Models\Proyecto;
 use App\Models\requerimiento;
 use App\Models\User;
+use App\Notifications\NotificacionAprobado;
+use App\Notifications\RequirementCreate;
 use App\Notifications\RequirementDeleted;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Input\Input;
 
 class RequerimientoController extends Controller
 {
-
-
     public function create($empresaId)
     {
         // Obtener proyectos relacionados a la empresa
@@ -75,7 +76,6 @@ class RequerimientoController extends Controller
             'empresa_designado' => $request->empresaId,
         ]);
 
-
         // Registrar en la tabla de materiales
         foreach ($materialesData as $material) {
             MaterialRequerimiento::create([
@@ -108,6 +108,25 @@ class RequerimientoController extends Controller
             'titular_req' => $request->titular_req,
             'dni_req' => $request->dni_req,
         ]);
+
+
+        // === NOTIFICACIÓN A USUARIOS DE ADMINISTRACIÓN ===
+        $usuariosAdministracion = User::where('area_laboral', 'Administracion')->get();
+
+        $usuarioCreador = auth()->user(); // Usuario actual autenticado
+
+        $mensaje = sprintf(
+            '%s %s ha creado un nuevo requerimiento: %s (#%s) el %s',
+            $usuarioCreador->name,
+            $usuarioCreador->surname,
+            $requerimiento->nombre_requerimiento,
+            $requerimiento->id_requerimiento,
+            now()->format('d/m/Y H:i:s')
+        );
+
+        foreach ($usuariosAdministracion as $usuario) {
+            $usuario->notify(new RequirementCreate($requerimiento, $mensaje));
+        }
 
         return response()->json([
             'success' => true,
@@ -297,44 +316,140 @@ class RequerimientoController extends Controller
         }
     }
 
+    // public function aprobar(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'empresaId' => 'required|integer',
+    //         'rolesAsignado' => 'required|string'
+    //     ]);
+
+    //     // Obtener el valor de los datos
+    //     $empresaId = $request->input('empresaId');
+    //     $rolAsignado = $request->input('rolesAsignado'); // El rol del usuario enviado en el formulario
+
+    //     try {
+    //         // Buscar el requerimiento por su ID
+    //         $requerimiento = requerimiento::findOrFail($id);
+
+    //         // Según el rol, actualizar la columna correspondiente
+    //         if ($rolAsignado == 'logistico') {
+    //             // Si el rol es logistica, actualizar la columna aprobado_logistica
+    //             $requerimiento->aprobado_logistica = 1;
+    //         } elseif ($rolAsignado == 'administradores') {
+    //             // Si el rol es administrador, actualizar la columna aprobado_contabilidad
+    //             $requerimiento->aprobado_contabilidad = 1;
+    //             $requerimiento->aprobado_logistica = 1;
+    //         } elseif ($rolAsignado == 'Gerente') {
+    //             // Si el rol es gerente, actualizar la columna aprobado_requerimiento
+    //             $requerimiento->aprobado_contabilidad = 1;
+    //             $requerimiento->aprobado_requerimiento = 1;
+    //             $requerimiento->aprobado_logistica = 1;
+    //         }
+
+    //         // Guardar los cambios en la base de datos
+    //         $requerimiento->save();
+
+    //         // Redirigir con éxito
+    //         return redirect()->route('gestorrequerimientos.show', $empresaId)
+    //             ->with('success', 'Requerimiento aprobado exitosamente.');
+    //     } catch (\Exception $e) {
+    //         // Manejar el error en caso de que algo falle
+    //         return redirect()->route('gestorrequerimientos.show', $empresaId)
+    //             ->with('error', 'Error al aprobar el requerimiento: ' . $e->getMessage());
+    //     }
+    // }
+
     public function aprobar(Request $request, $id)
     {
         $request->validate([
             'empresaId' => 'required|integer',
-            'rolesAsignado' => 'required|string'
+            'rolesAsignado' => 'required|string',
+            'sustento_requerimiento' => 'nullable|file|mimes:pdf,jpg,jpeg,png,gif|max:2048',
         ]);
 
-        // Obtener el valor de los datos
         $empresaId = $request->input('empresaId');
-        $rolAsignado = $request->input('rolesAsignado'); // El rol del usuario enviado en el formulario
+        $rolAsignado = $request->input('rolesAsignado');
 
         try {
-            // Buscar el requerimiento por su ID
-            $requerimiento = requerimiento::findOrFail($id);
+            $requerimiento = Requerimiento::findOrFail($id);
 
-            // Según el rol, actualizar la columna correspondiente
-            if ($rolAsignado == 'logistico') {
-                // Si el rol es logistica, actualizar la columna aprobado_logistica
-                $requerimiento->aprobado_logistica = 1;
-            } elseif ($rolAsignado == 'administradores') {
-                // Si el rol es administrador, actualizar la columna aprobado_contabilidad
-                $requerimiento->aprobado_contabilidad = 1;
-                $requerimiento->aprobado_logistica = 1;
-            } elseif ($rolAsignado == 'Gerente') {
-                // Si el rol es gerente, actualizar la columna aprobado_requerimiento
-                $requerimiento->aprobado_contabilidad = 1;
-                $requerimiento->aprobado_requerimiento = 1;
-                $requerimiento->aprobado_logistica = 1;
+            // === 1. Cargar o reemplazar el archivo de sustentación ===
+            if ($request->hasFile('sustento_requerimiento')) {
+                if (
+                    $requerimiento->sustento_requerimiento &&
+                    $requerimiento->sustento_requerimiento !== 'default.pdf'
+                ) {
+                    $oldFilePath = public_path('storage/sustento_requerimiento/' . $requerimiento->sustento_requerimiento);
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
+
+                $file = $request->file('sustento_requerimiento');
+                $fileName = time() . '.' . $file->extension();
+                $file->move(public_path('storage/sustento_requerimiento'), $fileName);
+                $requerimiento->sustento_requerimiento = $fileName;
             }
 
-            // Guardar los cambios en la base de datos
+            // === 2. Lógica de aprobación por rol ===
+            if ($rolAsignado === 'logistico') {
+                $requerimiento->aprobado_logistica = 1;
+            } elseif ($rolAsignado === 'administradores') {
+                $requerimiento->aprobado_logistica = 1;
+                $requerimiento->aprobado_contabilidad = 1;
+                $requerimiento->aprobado_requerimiento = 1;
+            } elseif ($rolAsignado === 'Gerente') {
+                $requerimiento->aprobado_logistica = 1;
+                $requerimiento->aprobado_contabilidad = 1;
+                $requerimiento->aprobado_requerimiento = 1;
+            }
+
             $requerimiento->save();
 
-            // Redirigir con éxito
+            // === 3. Notificación a administración y al solicitante ===
+            $usuarioActual = auth()->user();
+
+            $mensaje = sprintf(
+                '%s %s ha aprobado el requerimiento: "%s" (#%s) el %s',
+                $usuarioActual->name,
+                $usuarioActual->surname,
+                $requerimiento->nombre_requerimiento,
+                $requerimiento->id_requerimiento,
+                now()->format('d/m/Y H:i:s')
+            );
+
+            // Notificar a usuarios del área "Administracion"
+            $usuariosAdministracion = User::where('area_laboral', 'Administracion')->get();
+            foreach ($usuariosAdministracion as $user) {
+                $user->notify(new NotificacionAprobado($requerimiento, $mensaje));
+            }
+
+            // === 4. Buscar usuario que hizo el requerimiento (por nombre) y notificar ===
+            $solicitadoRequerimiento = $requerimiento->solicitado_requerimiento;
+
+            $nombreCompleto = explode(' ', $solicitadoRequerimiento);
+
+            $prepararTexto = function ($texto) {
+                return '%' . trim(str_replace(['%', '_'], ['\\%', '\\_'], $texto)) . '%';
+            };
+
+            if (count($nombreCompleto) >= 2) {
+                $nombre = $prepararTexto($nombreCompleto[0]);
+                $apellido = $prepararTexto(implode(' ', array_slice($nombreCompleto, 1)));
+
+                $usuarioNotificado = User::where(function ($query) use ($nombre, $apellido) {
+                    $query->whereRaw('LOWER(name) LIKE LOWER(?)', [$nombre])
+                        ->whereRaw('LOWER(surname) LIKE LOWER(?)', [$apellido]);
+                })->first();
+
+                if ($usuarioNotificado && $usuarioNotificado->id !== $usuarioActual->id) {
+                    $usuarioNotificado->notify(new NotificacionAprobado($requerimiento, $mensaje));
+                }
+            }
+
             return redirect()->route('gestorrequerimientos.show', $empresaId)
                 ->with('success', 'Requerimiento aprobado exitosamente.');
         } catch (\Exception $e) {
-            // Manejar el error en caso de que algo falle
             return redirect()->route('gestorrequerimientos.show', $empresaId)
                 ->with('error', 'Error al aprobar el requerimiento: ' . $e->getMessage());
         }

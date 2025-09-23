@@ -1,4 +1,4 @@
-export default class Cisterna {
+export default class Exterior {
     constructor(elementId, updateResumenCallback) {
         this.elementId = elementId;
         this.updateResumenCallback = updateResumenCallback;
@@ -21,33 +21,15 @@ export default class Cisterna {
         }
 
         // Validar que los datos de "exterior" existan
-        if (!database.cisterna || !Array.isArray(database.cisterna)) {
+        if (!database.exterior || !Array.isArray(database.exterior)) {
             console.error('La clave "exterior" no existe o no es un array en los datos proporcionados.');
             return;
         }
 
-        const cisternaData = sortTreeData(database.cisterna); // Datos de exterior
+        const exteriorData = sortTreeData(database.exterior); // Datos de exterior
 
-        // const TableConfig = {
-        //     colors: {
-        //         hierarchyLevels: {
-        //             0: '#800080', // Purple for top-level
-        //             1: '#FF0000', // Red for children
-        //             2: '#0000FF', // Blue for grandchildren
-        //             3: '#000000'  // Black for deeper levels
-        //         }
-        //     },
-        //     // Color and formatting utilities
-        //     utils: {
-        //         getHierarchyColor: function (depth) {
-        //             return TableConfig.colors.hierarchyLevels[depth] || TableConfig.colors.hierarchyLevels[3];
-        //         },
-        //         calculateItemDepth: function (item) {
-        //             return (item.match(/\./g) || []).length;
-        //         }
-        //     }
-        // };
 
+        // Configuration object for managing calculation logic and color schemes
         const TableConfig = {
             colors: {
                 hierarchyLevels: {
@@ -262,11 +244,12 @@ export default class Cisterna {
 
         this.table = new Tabulator(`#${elementId}`, {
             movableRows: true, //enable user movable rows
-            data: cisternaData,
+            data: exteriorData,
             layout: "fitColumns",
             dataTree: true,
-            dataTreeStartExpanded: true,
+            dataTreeStartExpanded: [true, true],
             dataTreeChildField: "children",
+            dataTreeSelectPropagate: true,
             columnHeaderVertAlign: "bottom",
             movableRowsConnectedTables: false, // Opcional: si necesitas mover entre tablas
             movableRowsReceiver: "add", // Especifica cómo se manejan las filas movidas
@@ -296,7 +279,6 @@ export default class Cisterna {
                     width: 250,
                     editor: "list",
                     editorParams: {
-                        // Valores iniciales desde listaNormativas
                         values: listaNormativas,
                         autocomplete: true, // Activar autocompletado
                         allowEmpty: true, // Permitir celdas vacías
@@ -497,7 +479,6 @@ export default class Cisterna {
                 );
             },
         });
-
         // Función para colorear y deshabilitar celdas según la unidad seleccionada
         function formatRow(row) {
             const data = row.getData();

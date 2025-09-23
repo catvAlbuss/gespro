@@ -22,7 +22,7 @@ const CHART_CONFIGS = {
     // Configuración específica para gráfico de resumen
     resumen: (data) => ({
         type: 'ring',
-        height: '6%',
+        height: '9%',
         width: '100%',
         y: '0%',
         x: '0%',
@@ -1648,7 +1648,7 @@ createApp({
 
                 // Gráfico 1: Resumen
                 const g1 = CHART_CONFIGS.resumen(datosGraficoResumen.value);
-                g1.height = '7%';
+                g1.height = '8%';
                 g1.width = '100%';
                 g1.y = `${posicionY}%`;
                 g1.x = '0%';

@@ -79,9 +79,10 @@ export default class Modulos {
                     case "m1":
                         return this.calculate1metros(data);
                     case "pto":
+                        const nvecespto = parseFloat(data.nveces) || 1;
                         return {
-                            unidadCalculado: parseFloat(data.nveces) || 1,
-                            displayValue: (parseFloat(data.nveces) || 1).toFixed(2)
+                            unidadCalculado: nvecespto,
+                            displayValue: nvecespto.toFixed(2)
                         };
                     case "m3":
                         const largo = parseFloat(data.largo) || 1;
@@ -220,7 +221,7 @@ export default class Modulos {
             data: sortTreeData(initialData),
             layout: "fitColumns",
             dataTree: true,
-            dataTreeStartExpanded: true,
+            dataTreeStartExpanded: [true, true],
             dataTreeChildField: "children",
             columnHeaderVertAlign: "bottom",
             movableRowsConnectedTables: false, // Opcional: si necesitas mover entre tablas
@@ -316,7 +317,7 @@ export default class Modulos {
                 {
                     title: "",
                     formatter: function () {
-                        return `<button class="add-row">➕</button> <button class="add-row-descript">➕</button> <button class="delete-row">🗑️</button>`;
+                        return `<button class="add-row" title="Agregar nuevo ítem">➕</button> <button class="add-row-descript" title=“Agregar subpartida”>➕</button> <button class="delete-row" title=“Eliminar registro”>🗑️</button>`;
                     },
                     width: 100,
                     cellClick: function (e, cell) {
@@ -807,7 +808,7 @@ export default class Modulos {
             children.forEach(child => {
                 const childData = child.getData();
                 if (!childData.item) {
-                    let unidadcalculado = 0, longitud = 0, volumen = 0, total = 0;
+                    let unidadcalculado = 0, nveces = 0, longitud = 0, volumen = 0, total = 0;
 
                     switch (childData.unidad) {
                         case "Und":
@@ -853,6 +854,23 @@ export default class Modulos {
                                 area: ""
                             });
                             total = longitud;
+                            break;
+
+                        case "pto":
+                            nveces = (parseFloat(childData.nveces) || 0);
+                            child.update({
+                                elesimil: '',
+                                largo: '',
+                                ancho: "",
+                                alto: "",
+                                nveces: nveces,
+                                longitud: "",
+                                area: "",
+                                volumen: "",
+                                kg: "",
+                                unidadcalculado: "",
+                            });
+                            total = nveces;
                             break;
 
                         case "m3":

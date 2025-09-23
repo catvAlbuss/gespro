@@ -10,16 +10,17 @@ class metradosanitarias extends Model
     use HasFactory;
     protected $table = 'metradosanitarias';
     public $primaryKey = 'idmetradosan';
-    
     protected $fillable = [
         'nombre_proyecto',
-        'entidadm',
-        'fecha',
-        'especialidad',
-        'cui',
-        'codigo_modular',
+        'uei',
+        'codigosnip',
+        'codigocui',
+        'unidad_ejecutora',
         'codigo_local',
-        'localidad',
+        'codigo_modular',
+        'especialidad',
+        'fecha',
+        'ubicacion',
         'cantidadModulo',
         'documentosdata',
         'resumenmetrados',

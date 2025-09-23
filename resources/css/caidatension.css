@@ -1,0 +1,133 @@
+/* Clases de botones reutilizables */
+.btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-500;
+}
+
+.btn-secondary {
+    @apply bg-gray-500 hover:bg-gray-600 text-white focus:ring-gray-500;
+}
+
+.btn-success {
+    @apply bg-green-500 hover:bg-green-600 text-white focus:ring-green-500;
+}
+
+.btn-warning {
+    @apply bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-500;
+}
+
+.btn-info {
+    @apply bg-cyan-500 hover:bg-cyan-600 text-white focus:ring-cyan-500;
+}
+
+/* Estilos de tabla */
+.table-header {
+    @apply px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider;
+}
+
+
+/* Transiciones personalizadas */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 1px;
+    margin-bottom: 2rem;
+}
+
+.table-inner {
+    background: white;
+    border-radius: 11px;
+    overflow: hidden;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table-title {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-radius: 11px 11px 0 0;
+}
+
+.editing-input {
+    transition: all 0.2s ease-in-out;
+}
+
+.editing-input:focus {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5b6471 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3);
+}
+
+.static-tg-row {
+    background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 20%);
+    border-left: 4px solid #f59e0b;
+    font-weight: 600;
+}
+
+.main-row {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 20%);
+    border-left: 4px solid #3b82f6;
+}
+
+.sub-row {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 20%);
+    border-left: 2px solid #9ca3af;
+}
+
+.calculated-cell {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+
+.totals-row {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-top: 2px solid #10b981;
+    font-weight: 700;
+}

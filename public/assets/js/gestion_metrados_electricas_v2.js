@@ -5,6 +5,7 @@ $(document).ready(function () {
     document.getElementById("fileUpload").addEventListener("change", function (event) {
         selectedFile = event.target.files[0];
     });
+    
     // Función para actualizar la tabla con nuevos datos
     function updateTableData(newData) {
         table.clearData(); // Limpiar la tabla
@@ -118,7 +119,6 @@ $(document).ready(function () {
 
         return tree;
     }
-
 
     // Main database structure
     const inputElement = document.getElementById('datamodulos');

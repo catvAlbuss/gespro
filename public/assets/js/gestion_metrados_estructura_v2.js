@@ -37,7 +37,7 @@ $(document).ready(function () {
 
             let rowObject = XLSX.utils.sheet_to_json(sheet, { defval: "" });
             let filteredData = rowObject.slice(8);
-
+            ////console.log(filteredData)
             jsonTree = buildHierarchy(filteredData);
 
             // Limpiar y actualizar la tabla con los datos del Excel
@@ -49,6 +49,7 @@ $(document).ready(function () {
 
     // Función para construir la jerarquía
     function buildHierarchy(data) {
+        ////console.log(data);
         let tree = [];
         let map = {};
 
@@ -125,7 +126,7 @@ $(document).ready(function () {
 
     // Validar y parsear el JSON
     if (!modulosData) {
-        console.error('El input #datamodulos no contiene datos válidos.');
+        ////console.error('El input #datamodulos no contiene datos válidos.');
         return;
     }
 
@@ -133,20 +134,20 @@ $(document).ready(function () {
     try {
         database = JSON.parse(modulosData); // Parsear el JSON
     } catch (error) {
-        console.error('Error al parsear los datos del input:', error.message);
+        ////console.error('Error al parsear los datos del input:', error.message);
         return;
     }
 
     // Validar que los datos de "modulo" existan
     if (!database.modulos || !Array.isArray(database.modulos)) {
-        console.error('La clave "modulo" no existe o no es un array en los datos proporcionados.');
+        ////console.error('La clave "modulo" no existe o no es un array en los datos proporcionados.');
         return;
     }
 
     //const metradoestructuras = database.modulos;
     //const metradoestructuras = sortTreeData(database.modulos);
     let metradoestructuras = sortTreeData(database.modulos);
-    
+
     // Configuration object for managing calculation logic and color schemes
     const TableConfig = {
         colors: {
@@ -212,7 +213,7 @@ $(document).ready(function () {
         m2: ["elesimil", "largo", "ancho", "alto", "nveces"],
         pto: ["nveces"],
         //m3: ["largo", "ancho", "alto", "nveces"],
-        m3: ["elesimil", "largo", "ancho", "alto","nveces"],
+        m3: ["elesimil", "largo", "ancho", "alto", "nveces"],
         GBL: ["elesimil", "nveces"],
     };
 
@@ -377,7 +378,6 @@ $(document).ready(function () {
         "7.907": "1 1/8' ",
     };
 
-
     const listaNormativas = [
         {
             item: "ESTRUCTURAS", children: [
@@ -493,7 +493,7 @@ $(document).ready(function () {
     ];
 
     // Tabulator table initialization with enhanced configuration
-    var table = new Tabulator("#metrados-comunicacion-table", {
+    var table = new Tabulator("#metrados-estructura-table", {
         movableRows: true, //enable user movable rows
         height: "500px",
         data: metradoestructuras,
@@ -646,7 +646,7 @@ $(document).ready(function () {
 
                             // Validar el orden jerárquico
                             if (!validateHierarchicalOrder(nextItem)) {
-                                console.error('Error: Orden jerárquico inválido');
+                                //console.error('Error: Orden jerárquico inválido');
                                 return;
                             }
 
@@ -680,7 +680,7 @@ $(document).ready(function () {
                             });
 
                         } catch (error) {
-                            console.error('Error al agregar fila:', error);
+                            //console.error('Error al agregar fila:', error);
                         }
 
                     } else if (action === "add-row-descript") {
@@ -751,7 +751,7 @@ $(document).ready(function () {
                         TableCalculator.calculateHierarchicalTotals([rootRow])
                     );
                 } catch (error) {
-                    console.error("Error al editar celda:", error);
+                    //console.error("Error al editar celda:", error);
                 }
             }
         },
@@ -1004,7 +1004,7 @@ $(document).ready(function () {
             if (shouldNumberRow(parentData)) {
                 const newLevel = parentData.item.split('.').length + 1;
                 if (newLevel > 5) {
-                    console.error('Error: Máxima profundidad alcanzada');
+                    //console.error('Error: Máxima profundidad alcanzada');
                     return;
                 }
             }
@@ -1013,7 +1013,7 @@ $(document).ready(function () {
         // Actualizar numeración
         updateRowNumbers(table, row);
 
-        console.log("Fila movida y numeración actualizada:", row.getData());
+        //console.log("Fila movida y numeración actualizada:", row.getData());
     });
 
     // Evento para manejar la edición de una celda
@@ -1035,7 +1035,7 @@ $(document).ready(function () {
         recalculateTableTotals(table);
     });
 
-        // Función de cálculo base para las filas hoja
+    // Función de cálculo base para las filas hoja
     function calculateRowTotal(row) {
         const data = row.getData();
         let unidadcalculado = 0, longitud = 0, volumen = 0, total = 0, kg = 0, area = 0;
@@ -1260,7 +1260,7 @@ $(document).ready(function () {
 
         return descriptiveTotal;
     }
-    
+
     // Main function to update hierarchical totals
     function updateHierarchicalTotals(row) {
         calculateRowTotal(row);
@@ -1280,126 +1280,10 @@ $(document).ready(function () {
         });
     }
 
-
-    // Variables para controlar la actualización automática
-    let updateInterval = null;
-    const UPDATE_INTERVAL_TIME = 120000; // 2 minutos en milisegundos
-    let isAutoUpdateActive = false;
-
-    // Función para realizar la actualización
-    function updateMetrados() {
-        const idmetradoestructuras = document.getElementById('idmetradoestructuras').value;
-        const datatable = metradoestructuras;
-        const dataToSend = {
-            id: idmetradoestructuras,
-            modulos: datatable,
-        };
-
-        $.ajax({
-            url: '/update_metrados_estructuras',
-            method: 'POST',
-            data: JSON.stringify(dataToSend),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (response) {
-                console.log('Auto-update successful:', response.message);
-            },
-            error: function (xhr) {
-                console.error('Auto-update error:', xhr.responseText);
-                // Si hay un error, detener la actualización automática
-                stopAutoUpdate();
-            }
-        });
-    }
-
-    // Función para iniciar la actualización automática
-    function startAutoUpdate() {
-        if (!updateInterval) {
-            updateInterval = setInterval(updateMetrados, UPDATE_INTERVAL_TIME);
-            isAutoUpdateActive = true;
-            console.log('Auto-update started');
-            // Cambiar el texto del botón para indicar que está activo
-            $('#actualizar_metrados').text('Detener Auto-actualización');
-        }
-    }
-
-    // Función para detener la actualización automática
-    function stopAutoUpdate() {
-        if (updateInterval) {
-            clearInterval(updateInterval);
-            updateInterval = null;
-            isAutoUpdateActive = false;
-            console.log('Auto-update stopped');
-            // Cambiar el texto del botón para indicar que está inactivo
-            $('#actualizar_metrados').text('Iniciar Auto-actualización');
-        }
-    }
-
-    // Modificar el evento click del botón para alternar la actualización automática
-    $('#actualizar_metrados').on('click', () => {
-        if (!isAutoUpdateActive) {
-            startAutoUpdate();
-            // Realizar una actualización inmediata
-            updateMetrados();
-        } else {
-            stopAutoUpdate();
-        }
-    });
-
-    // Control de visibilidad de la pestaña
-    document.addEventListener('visibilitychange', function () {
-        if (document.hidden) {
-            // Si la pestaña no está visible, detener la actualización
-            stopAutoUpdate();
-        } else {
-            // Si la pestaña vuelve a ser visible y estaba activa la actualización
-            if (isAutoUpdateActive) {
-                startAutoUpdate();
-            }
-        }
-    });
-
-    // Detener la actualización cuando se cierre la ventana
-    window.addEventListener('beforeunload', function () {
-        stopAutoUpdate();
-    });
-
-
-    /*$('#actualizar_metrados').on('click', () => {
-        const idmetradoestructuras = document.getElementById('idmetradoestructuras').value;
-        const datatable = metradoestructuras;
-        //const treeData = table.getData();
-        //Convertimos los datos planos en una estructura de árbol
-        //const datatable = convertToTree(treeData);
-        const dataToSend = {
-            id: idmetradoestructuras,
-            modulos: datatable,
-        };
-        console.log("Datos de la tabla:", datatable);
-
-        $.ajax({
-            url: '/update_metrados_estructuras', // Laravel route
-            method: 'POST',
-            data: JSON.stringify(dataToSend), // Send data as JSON
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Include CSRF token for Laravel
-            },
-            success: function (response) {
-                console.log('Response:', response.message); // Success message from the server
-            },
-            error: function (xhr) {
-                console.error('Error:', xhr.responseText); // Error response from the server
-            }
-        });
-    });*/
-
     // Inicializar el objeto de resumen
     const resumenmetradoestructuras = {};
     const resumenmetradoestructurasTree = [];
-    
+
     // Función para validar los items
     const isValidItem = (item) => {
         if (!item) return false;  // Si el item es null, undefined o una cadena vacía, es inválido
@@ -1499,7 +1383,7 @@ $(document).ready(function () {
     });
 
     // Mostrar el resumen en la tabla
-    var table2 = new Tabulator("#metrados-comunicacion-resumen", {
+    var table2 = new Tabulator("#metrados-estructura-resumen", {
         height: "500px",
         data: Object.values(resumenmetradoestructuras),
         layout: "fitColumns",
@@ -1552,21 +1436,203 @@ $(document).ready(function () {
             },
         ],
     });
-    
-    $('#actualizar_metrados').on('click', () => {
-        const idmetradoestructuras = document.getElementById('idmetradoestructuras').value;
 
-        // ✅ Solo reasignamos si jsonTree tiene datos nuevos
-        if (jsonTree && jsonTree.length > 0) {
-            metradoestructuras = jsonTree;  // Ahora sí se puede reasignar porque es `let`
+    // Variables para controlar la actualización automática
+    let updateInterval = null;
+    let countdownInterval = null;
+    let isAutoUpdateActive = false;
+    const UPDATE_INTERVAL_TIME = 120000; // 2 minutos en milisegundos
+    const COUNTDOWN_SECONDS = UPDATE_INTERVAL_TIME / 1000;
+    let remainingSeconds = COUNTDOWN_SECONDS;
+
+    // Actualiza visualmente el temporizador
+    function updateTimerDisplay() {
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = remainingSeconds % 60;
+        document.getElementById('timerDisplay').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Empieza la cuenta regresiva visual
+    function startCountdownTimer() {
+        countdownInterval = setInterval(() => {
+            remainingSeconds--;
+            updateTimerDisplay();
+
+            if (remainingSeconds <= 0) {
+                updateMetrados();
+                remainingSeconds = COUNTDOWN_SECONDS; // Reinicia para el siguiente ciclo
+            }
+        }, 1000);
+    }
+
+    // Detiene la cuenta regresiva visual
+    function stopCountdownTimer() {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+
+    // Manejo de botones individuales
+    document.getElementById('btnIniciarAuto').addEventListener('click', () => {
+        if (!isAutoUpdateActive) {
+            startAutoUpdate();
+            updateMetrados(); // Guardado inmediato al iniciar
         }
+    });
 
-        //const datatable = metradoestructuras;
+    document.getElementById('btnPausarAuto').addEventListener('click', () => {
+        if (isAutoUpdateActive) {
+            stopAutoUpdate();
+        }
+    });
+
+    document.getElementById('btnGuardarAhora').addEventListener('click', () => {
+        updateMetrados(); // Guardar manual inmediato
+    });
+
+    // Función para realizar la actualización
+    function updateMetrados() {
+        const idmetradoestructuras = document.getElementById('idmetradoestructuras').value;
         const datatableresumen = resumenmetradoestructurasTree;
+        const datosActuales = table.getData();
 
         const dataToSend = {
             id: idmetradoestructuras,
-            modulos: metradoestructuras,
+            modulos: datosActuales,
+            resumenestr: datatableresumen,
+        };
+
+        const comprimido = JSON.stringify(dataToSend)
+        //console.log(comprimido)
+        $.ajax({
+            url: '/update_metrados_estructuras',
+            method: 'POST',
+            data: comprimido,
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                ////console.log('Auto-update successful:', response.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Guardado exitoso',
+                    text: response.message || 'Los datos se han guardado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            error: function (xhr) {
+                ////console.error('Auto-update error:', xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: xhr.responseText,
+                });
+                // Si hay un error, detener la actualización automática
+                stopAutoUpdate();
+            }
+        });
+    }
+
+    // Función para iniciar la actualización automática
+    function startAutoUpdate() {
+        if (!updateInterval) {
+            updateInterval = setInterval(updateMetrados, UPDATE_INTERVAL_TIME);
+            isAutoUpdateActive = true;
+            remainingSeconds = COUNTDOWN_SECONDS;
+            updateTimerDisplay();
+            startCountdownTimer();
+            //console.log('Auto-update started');
+        }
+    }
+
+    // Función para detener la actualización automática
+    function stopAutoUpdate() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+        stopCountdownTimer();
+        isAutoUpdateActive = false;
+        // Alerta con SweetAlert2
+        Swal.fire({
+            icon: 'info',
+            title: 'Actualización detenida',
+            text: 'La actualización automática ha sido detenida.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        // //console.log('Auto-update stopped');
+    }
+
+    // Modificar el evento click del botón para alternar la actualización automática
+    $('#actualizar_metrados').on('click', () => {
+        if (!isAutoUpdateActive) {
+            startAutoUpdate();
+            // Realizar una actualización inmediata
+            updateMetrados();
+        } else {
+            stopAutoUpdate();
+        }
+    });
+
+    // Control de visibilidad de la pestaña
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            // Si la pestaña no está visible, detener la actualización
+            stopAutoUpdate();
+        } else {
+            // Si la pestaña vuelve a ser visible y estaba activa la actualización
+            if (isAutoUpdateActive) {
+                startAutoUpdate();
+            }
+        }
+    });
+
+    // Detener la actualización cuando se cierre la ventana
+    window.addEventListener('beforeunload', function () {
+        stopAutoUpdate();
+    });
+
+    // Modificar el evento click del botón para alternar la actualización automática
+    $('#actualizar_metrados').on('click', () => {
+        if (!isAutoUpdateActive) {
+            startAutoUpdate();
+            // Realizar una actualización inmediata
+            updateMetrados();
+        } else {
+            stopAutoUpdate();
+        }
+    });
+
+    // Control de visibilidad de la pestaña
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            // Si la pestaña no está visible, detener la actualización
+            stopAutoUpdate();
+        } else {
+            // Si la pestaña vuelve a ser visible y estaba activa la actualización
+            if (isAutoUpdateActive) {
+                startAutoUpdate();
+            }
+        }
+    });
+
+    // Detener la actualización cuando se cierre la ventana
+    window.addEventListener('beforeunload', function () {
+        stopAutoUpdate();
+    });
+
+
+    $('#actualizar_metrados').on('click', () => {
+        const idmetradoestructuras = document.getElementById('idmetradoestructuras').value;
+        //const datatable = metradoestructuras;
+        const datatableresumen = resumenmetradoestructurasTree;
+        const datosActuales = table.getData();
+
+        const dataToSend = {
+            id: idmetradoestructuras,
+            modulos: datosActuales,
             resumenestr: datatableresumen,
         };
 
@@ -1581,44 +1647,26 @@ $(document).ready(function () {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Include CSRF token for Laravel
             },
             success: function (response) {
-                console.log('Response:', response.message); // Success message from the server
+                ////console.log('Response:', response.message); // Success message from the server
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Guardado exitoso',
+                    text: response.message || 'Los datos se han guardado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             },
             error: function (xhr) {
-                console.error('Error:', xhr.responseText); // Error response from the server
+                ////console.error('Error:', xhr.responseText); // Error response from the server
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar',
+                    text: xhr.responseText,
+                });
             }
         });
     });
-    
-    /*$('#actualizar_metrados').on('click', () => {
-        const idmetradoestructuras = document.getElementById('idmetradoestructuras').value;
-        const datatable = metradoestructuras;
-        const datatableresumen = resumenmetradoestructurasTree;
 
-        const dataToSend = {
-            id: idmetradoestructuras,
-            modulos: datatable,
-            resumenestr: datatableresumen,
-        };
-
-        const comprimido = JSON.stringify(dataToSend)
-
-        $.ajax({
-            url: '/update_metrados_estructuras', // Laravel route
-            method: 'POST',
-            data: comprimido, // Send data as JSON
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Include CSRF token for Laravel
-            },
-            success: function (response) {
-                console.log('Response:', response.message); // Success message from the server
-            },
-            error: function (xhr) {
-                console.error('Error:', xhr.responseText); // Error response from the server
-            }
-        });
-    });*/
-    
     document.getElementById('download-xlsx').addEventListener('click', function () {
         //Datos Excel
         const data = metradoestructuras;
@@ -2588,7 +2636,7 @@ function sortTreeData(data) {
             if (lastItem && item.item) {
                 const isValidOrder = item.item > lastItem;
                 if (!isValidOrder) {
-                    console.warn(`Orden incorrecto detectado: ${lastItem} -> ${item.item}`);
+                    ////console.warn(`Orden incorrecto detectado: ${lastItem} -> ${item.item}`);
                     isValid = false;
                 }
             }
@@ -2601,7 +2649,7 @@ function sortTreeData(data) {
         function validateStructure(items) {
             items.forEach(item => {
                 if (!validateItem(item)) {
-                    console.warn(`Item inválido detectado:`, item);
+                    ////console.warn(`Item inválido detectado:`, item);
                     isValid = false;
                 }
                 if (item.children && item.children.length > 0) {
@@ -2619,7 +2667,7 @@ function sortTreeData(data) {
 
     // Validar la estructura
     if (!validateAndOrderTree(sortedData)) {
-        console.warn('Se detectaron inconsistencias en la numeración de items');
+        ////console.warn('Se detectaron inconsistencias en la numeración de items');
     }
 
     return sortedData;

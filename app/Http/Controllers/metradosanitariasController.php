@@ -3,201 +3,257 @@
 namespace App\Http\Controllers;
 
 use App\Models\metradosanitarias;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class metradosanitariasController extends Controller
 {
     public function index()
     {
-        $metradosanitarias = metradosanitarias::select('idmetradosan', 'nombre_proyecto', 'fecha', 'especialidad', 'localidad', 'cantidadModulo')
-            ->get();
-        // Retornar la vista con los datos
-        return view('gestor_vista.Construyehc.metradosSanitarias.index', compact('metradosanitarias'));
+        try {
+            $metradosanitarias = metradosanitarias::orderBy('created_at', 'desc')->get();
+            return view('gestor_vista.Construyehc.metradosSanitarias.index', compact('metradosanitarias'));
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Error al cargar los metrados');
+        }
     }
 
     // Método store para almacenar los datos
     public function store(Request $request)
     {
-        // Validación de los datos entrantes (opcional pero recomendable)
-        $request->validate([
-            'nombre_proyecto' => 'required|string|max:255',
-            'entidadm' => 'required|string|max:255',
-            'fecha' => 'required|date',
-            'especialidad' => 'required|string|max:255',
-            'cui' => 'required|numeric',
-            'codigo_modular' => 'required|numeric',
-            'codigo_local' => 'required|numeric',
-            'cantidadModulo' => 'required|numeric',
-            'localidad' => 'required|string|max:255',
-            'documentosdata' => 'nullable', // Si manejas archivos
-        ]);
-        
-        // Obtener la cantidad de módulos
-        $modulocant = $request->input('cantidadModulo');
+        try {
+            // Validación de los datos
+            $validatedData = $request->validate([
+                'nombre_proyecto' => 'required|string|max:500',
+                'uei' => 'required|string|max:255',
+                'codigo_snip' => 'required|string|max:255',
+                'codigo_cui' => 'required|string|max:255',
+                'unidad_ejecutora' => 'required|string|max:255',
+                'codigo_local' => 'required|string|max:255',
+                'codigo_modular' => 'required|string',
+                'especialidad' => 'required|string|max:255',
+                'fecha' => 'required|date',
+                'ubicacion' => 'required|string|max:255',
+                'cantidadModulo' => 'required|numeric',
+                'proyecto_designado' => 'required|integer',
+            ], [
+                'nombre_proyecto.required' => 'El nombre del proyecto es obligatorio',
+                'nombre_proyecto.max' => 'El nombre del proyecto no puede exceder 500 caracteres',
+                'uei.required' => 'La UEI es obligatoria',
+                'codigo_snip.required' => 'El código SNIP es obligatorio',
+                'codigo_cui.required' => 'El código CUI es obligatorio',
+                'unidad_ejecutora.required' => 'La unidad ejecutora es obligatoria',
+                'codigo_local.required' => 'El código local es obligatorio',
+                'codigo_modular.required' => 'Debe seleccionar al menos un nivel educativo',
+                'especialidad.required' => 'La especialidad es obligatoria',
+                'fecha.required' => 'La fecha es obligatoria',
+                'fecha.date' => 'La fecha debe ser una fecha válida',
+                'ubicacion.required' => 'La ubicación es obligatoria',
+                'cantidadModulo.required' => 'La cantidad de modulo debe ser mayor a 0 y es obligatoria'
+            ]);
 
-        // Estructura base del JSON
-        $docdata = [
-            "modulos" => [],
-            "cisterna" => [],
-            "exterior" => []
-        ];
+            // Validar que el JSON de codigo_modular tenga al menos un nivel educativo
+            $codigoModular = json_decode($validatedData['codigo_modular'], true);
+            if (empty($codigoModular) || !is_array($codigoModular)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe seleccionar al menos un nivel educativo con su código correspondiente'
+                ], 422);
+            }
 
-        // Crear los módulos dinámicamente
-        for ($i = 1; $i <= $modulocant; $i++) {
-            // Convertir el número de módulo a romano
-            $nombreModulo = "modulo_" . $this->numeroARomano($i);
+            // Estructura de módulos por defecto
+            // Obtener la cantidad de módulos
+            $modulocant = $request->input('cantidadModulo');
 
-            // Estructura de cada módulo
-            $modulo = [
-                "nombre" => $nombreModulo,
-                "datos" => [
-                    [
-                        "id" => 1,
-                        "item" => "04",
-                        "descripcion" => "INSTALACIONES SANITARIAS",
-                        "totalnieto" => "0.00",
-                        "children" => [
-                            [
-                                "id" => 2,
-                                "item" => "04.01",
-                                "descripcion" => "APARATOS SANITARIOS Y ACCESORIOS",
-                                "totalnieto" => "0.00",
-                                "children" => [
-                                    [
-                                        "id" => 3,
-                                        "item" => "04.01.01",
-                                        "descripcion" => "SUMINISTRO DE APARATOS SANITARIOS",
-                                        "totalnieto" => "0.00",
-                                        "unidad" => null,
-                                        "elesimil" => null,
-                                        "largo" => null,
-                                        "ancho" => null,
-                                        "alto" => null,
-                                        "longitud" => null,
-                                        "volumen" => null,
-                                        "kg" => null,
-                                        "unidadcalculado" => null,
-                                        "total" => "0.00"
-                                    ]
+            // Estructura base del JSON
+            $docdata = [
+                "modulos" => [],
+                "cisterna" => [],
+                "exterior" => []
+            ];
+
+            // Crear los módulos dinámicamente
+            for ($i = 1; $i <= $modulocant; $i++) {
+                // Convertir el número de módulo a romano
+                $nombreModulo = "modulo_" . $this->numeroARomano($i);
+
+                // Estructura de cada módulo
+                $modulo = [
+                    "nombre" => $nombreModulo,
+                    "datos" => [
+                        [
+                            "id" => 1,
+                            "item" => "04",
+                            "descripcion" => "INSTALACIONES SANITARIAS",
+                            "totalnieto" => "0.00",
+                            "children" => [
+                                [
+                                    "id" => 2,
+                                    "item" => "04.01",
+                                    "descripcion" => "APARATOS SANITARIOS Y ACCESORIOS",
+                                    "totalnieto" => "0.00",
+                                    "children" => [
+                                        [
+                                            "id" => 3,
+                                            "item" => "04.01.01",
+                                            "descripcion" => "SUMINISTRO DE APARATOS SANITARIOS",
+                                            "totalnieto" => "0.00",
+                                            "unidad" => null,
+                                            "elesimil" => null,
+                                            "largo" => null,
+                                            "ancho" => null,
+                                            "alto" => null,
+                                            "longitud" => null,
+                                            "volumen" => null,
+                                            "kg" => null,
+                                            "unidadcalculado" => null,
+                                            "total" => "0.00"
+                                        ]
+                                    ],
+                                    "unidad" => null,
+                                    "elesimil" => null,
+                                    "largo" => null,
+                                    "ancho" => null,
+                                    "alto" => null,
+                                    "longitud" => null,
+                                    "volumen" => null,
+                                    "kg" => null,
+                                    "unidadcalculado" => null,
+                                    "total" => "0.00"
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+
+                // Agregar el módulo creado al array de módulos
+                $docdata['modulos'][] = $modulo;
+            }
+
+            // Añadir sección de cisterna
+            $docdata['cisterna'] = [
+                [
+                    "id" => 1,
+                    "item" => "04",
+                    "descripcion" => "INSTALACIONES SANITARIAS",
+                    "totalnieto" => "0.00",
+                    "children" => [
+                        [
+                            "id" => 2,
+                            "item" => "04.01",
+                            "descripcion" => "APARATOS SANITARIOS Y ACCESORIOS",
+                            "totalnieto" => "0.00",
+                            "children" => [
+                                [
+                                    "id" => 3,
+                                    "item" => "04.01.01",
+                                    "descripcion" => "SUMINISTRO DE APARATOS SANITARIOS",
+                                    "totalnieto" => "0.00",
+                                    "unidad" => null,
+                                    "elesimil" => null,
+                                    "longitud" => null,
+                                    "volumen" => null,
+                                    "kg" => null,
+                                    "unidadcalculado" => null,
+                                    "total" => "0.00"
                                 ],
-                                "unidad" => null,
-                                "elesimil" => null,
-                                "largo" => null,
-                                "ancho" => null,
-                                "alto" => null,
-                                "longitud" => null,
-                                "volumen" => null,
-                                "kg" => null,
-                                "unidadcalculado" => null,
-                                "total" => "0.00"
+                                [
+                                    "id" => 11,
+                                    "item" => "04.01.02",
+                                    "descripcion" => "SUMINISTRO DE ACCESORIOS",
+                                    "totalnieto" => "0.00",
+                                    "unidad" => null,
+                                    "elesimil" => null,
+                                    "longitud" => null,
+                                    "volumen" => null,
+                                    "kg" => null,
+                                    "unidadcalculado" => null,
+                                    "total" => "0.00"
+                                ]
                             ]
                         ]
                     ]
                 ]
             ];
 
-            // Agregar el módulo creado al array de módulos
-            $docdata['modulos'][] = $modulo;
+            // Añadir sección de exterior
+            $docdata['exterior'] = [
+                [
+                    "id" => 1,
+                    "item" => "04",
+                    "descripcion" => "INSTALACIONES SANITARIAS",
+                    "children" => [
+                        [
+                            "id" => 2,
+                            "item" => "04.01",
+                            "descripcion" => "APARATOS SANITARIOS Y ACCESORIOS",
+                            "children" => [
+                                [
+                                    "id" => 3,
+                                    "item" => "04.01.01",
+                                    "descripcion" => "SUMINISTRO DE APARATOS SANITARIOS",
+                                    "unidad" => null,
+                                    "elesimil" => null,
+                                    "longitud" => null,
+                                    "volumen" => null,
+                                    "kg" => null,
+                                    "unidadcalculado" => null,
+                                    "totalnieto" => "0.00",
+                                    "total" => "0.00"
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            // Convertir el array a JSON para almacenarlo o devolverlo en una respuesta
+            $docdataJson = json_encode($docdata);
+
+            // Iniciar transacción
+            DB::beginTransaction();
+
+            // Crear el metrado
+            $metrado = metradosanitarias::create([
+                'nombre_proyecto' => $validatedData['nombre_proyecto'],
+                'uei' => $validatedData['uei'],
+                'codigosnip' => $validatedData['codigo_snip'],
+                'codigocui' => $validatedData['codigo_cui'],
+                'unidad_ejecutora' => $validatedData['unidad_ejecutora'],
+                'codigo_local' => $validatedData['codigo_local'],
+                'codigo_modular' => $validatedData['codigo_modular'],
+                'especialidad' => $validatedData['especialidad'],
+                'fecha' => $validatedData['fecha'],
+                'ubicacion' => $validatedData['ubicacion'],
+                'cantidadModulo' => $modulocant,
+                'documentosdata' => $docdataJson,
+                'proyectodesignado' => $validatedData['proyecto_designado'],
+            ]);
+
+            // Confirmar transacción
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Metrado de electricas creado exitosamente',
+                'data' => $metrado
+            ]);
+        } catch (ValidationException $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Añadir sección de cisterna
-        $docdata['cisterna'] = [
-            [
-                "id" => 1,
-                "item" => "04",
-                "descripcion" => "INSTALACIONES SANITARIAS",
-                "totalnieto" => "0.00",
-                "children" => [
-                    [
-                        "id" => 2,
-                        "item" => "04.01",
-                        "descripcion" => "APARATOS SANITARIOS Y ACCESORIOS",
-                        "totalnieto" => "0.00",
-                        "children" => [
-                            [
-                                "id" => 3,
-                                "item" => "04.01.01",
-                                "descripcion" => "SUMINISTRO DE APARATOS SANITARIOS",
-                                "totalnieto" => "0.00",
-                                "unidad" => null,
-                                "elesimil" => null,
-                                "longitud" => null,
-                                "volumen" => null,
-                                "kg" => null,
-                                "unidadcalculado" => null,
-                                "total" => "0.00"
-                            ],
-                            [
-                                "id" => 11,
-                                "item" => "04.01.02",
-                                "descripcion" => "SUMINISTRO DE ACCESORIOS",
-                                "totalnieto" => "0.00",
-                                "unidad" => null,
-                                "elesimil" => null,
-                                "longitud" => null,
-                                "volumen" => null,
-                                "kg" => null,
-                                "unidadcalculado" => null,
-                                "total" => "0.00"
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
-
-        // Añadir sección de exterior
-        $docdata['exterior'] = [
-            [
-                "id" => 1,
-                "item" => "04",
-                "descripcion" => "INSTALACIONES SANITARIAS",
-                "children" => [
-                    [
-                        "id" => 2,
-                        "item" => "04.01",
-                        "descripcion" => "APARATOS SANITARIOS Y ACCESORIOS",
-                        "children" => [
-                            [
-                                "id" => 3,
-                                "item" => "04.01.01",
-                                "descripcion" => "SUMINISTRO DE APARATOS SANITARIOS",
-                                "unidad" => null,
-                                "elesimil" => null,
-                                "longitud" => null,
-                                "volumen" => null,
-                                "kg" => null,
-                                "unidadcalculado" => null,
-                                "totalnieto" => "0.00",
-                                "total" => "0.00"
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
-
-        // Convertir el array a JSON para almacenarlo o devolverlo en una respuesta
-        $docdataJson = json_encode($docdata);
-
-        // Almacenar los datos en la base de datos
-        $metradosanitarias = new metradosanitarias([
-            'nombre_proyecto' => $request->input('nombre_proyecto'),
-            'entidadm' => $request->input('entidadm'),
-            'fecha' => $request->input('fecha'),
-            'especialidad' => $request->input('especialidad'),
-            'cui' => $request->input('cui'),
-            'codigo_modular' => $request->input('codigo_modular'),
-            'codigo_local' => $request->input('codigo_local'),
-            'cantidadModulo' => $modulocant,
-            'localidad' => $request->input('localidad'),
-            'documentosdata' => $docdataJson,  // Almacenamos el JSON generado
-        ]);
-
-        $metradosanitarias->save();
-
-        // Redirigir al usuario con un mensaje de éxito
-        return redirect()->route('metradosanitarias.index')->with('success', 'Metrado sanitario registrado exitosamente!');
     }
 
     // Función para convertir un número a su equivalente en números romanos
@@ -228,51 +284,149 @@ class metradosanitariasController extends Controller
         return $resultado;
     }
 
-    public function show($id)
+    public function show(string $id)
     {
-        // Obtener el metrado sanitario por su ID
-        $metradosanitarias = metradosanitarias::findOrFail($id);
+        try {
+            $metradosanitarias = metradosanitarias::findOrFail($id);
 
-        // Retornar la vista con el dato del metrado
-        return view('gestor_vista.Construyehc.metradosSanitarias.show', compact('metradosanitarias'));
-    }
+            // Si es una petición AJAX, devolver JSON
+            if (request()->expectsJson()) {
+                // Preparar datos para el modal de edición
+                $data = [
+                    'nombre_proyecto' => $metradosanitarias->nombre_proyecto,
+                    'uei' => $metradosanitarias->uei,
+                    'codigo_snip' => $metradosanitarias->codigosnip,
+                    'codigo_cui' => $metradosanitarias->codigocui,
+                    'unidad_ejecutora' => $metradosanitarias->unidad_ejecutora,
+                    'codigo_local' => $metradosanitarias->codigo_local,
+                    'codigo_modular' => $metradosanitarias->codigo_modular,
+                    'especialidad' => $metradosanitarias->especialidad,
+                    'fecha' => $metradosanitarias->fecha,
+                    'ubicacion' => $metradosanitarias->ubicacion ?? $metradosanitarias->localidad,
+                    'cantidadModulo' => $metradosanitarias->cantidadModulo,
+                ];
 
-    public function edit(string $id)
-    {
-        $metrado = metradosanitarias::findOrFail($id);
-        return view('gestor_vista.Construyehc.metradosSanitarias.edit', compact('metrado'));
+                return response()->json($data);
+            }
+
+            // Para vista normal
+            return view('gestor_vista.Construyehc.metradosSanitarias.show', compact('metradosanitarias'));
+        } catch (Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Metrado no encontrado'
+                ], 404);
+            }
+
+            return redirect()->back()->with('error', 'Metrado no encontrado');
+        }
     }
 
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'nombre_proyecto' => 'required|string|max:255',
-            'cui' => 'required|integer',
-            'codigo_modular' => 'required|integer',
-            'codigo_local' => 'required|integer',
-            'unidad_ejecutora' => 'required|string',
-            'fecha' => 'required|date',
-            'especialidad' => 'required|string|max:255',
-            'localidad' => 'required|string|max:255',
-            'cantidadModulo' => 'required|numeric',
-        ]);
 
-        $metrado = metradosanitarias::findOrFail($id);
-        $metrado->update($request->all());
+        try {
+            // Validación de los datos
+            $validatedData = $request->validate([
+                'nombre_proyecto' => 'required|string|max:500',
+                'uei' => 'required|string|max:255',
+                'codigo_snip' => 'required|string|max:255',
+                'codigo_cui' => 'required|string|max:255',
+                'unidad_ejecutora' => 'required|string|max:255',
+                'codigo_local' => 'required|string|max:255',
+                'codigo_modular' => 'required|string',
+                'especialidad' => 'required|string|max:255',
+                'fecha' => 'required|date',
+                'ubicacion' => 'required|string|max:255',
+                'cantidadModulo' => 'required|numeric',
+                'proyecto_designado' => 'required|integer',
+            ], [
+                'nombre_proyecto.required' => 'El nombre del proyecto es obligatorio',
+                'nombre_proyecto.max' => 'El nombre del proyecto no puede exceder 500 caracteres',
+                'uei.required' => 'La UEI es obligatoria',
+                'codigo_snip.required' => 'El código SNIP es obligatorio',
+                'codigo_cui.required' => 'El código CUI es obligatorio',
+                'unidad_ejecutora.required' => 'La unidad ejecutora es obligatoria',
+                'codigo_local.required' => 'El código local es obligatorio',
+                'codigo_modular.required' => 'Debe seleccionar al menos un nivel educativo',
+                'especialidad.required' => 'La especialidad es obligatoria',
+                'fecha.required' => 'La fecha es obligatoria',
+                'fecha.date' => 'La fecha debe ser una fecha válida',
+                'ubicacion.required' => 'La ubicación es obligatoria',
+                'cantidadModulo.required' => 'La cantidad de modulo debe ser mayor a 0 y es obligatoria'
+            ]);
 
-        return redirect()->route('metradosanitarias.index')->with('success', 'Metrado eléctrico actualizado correctamente.');
+            // Validar que el JSON de codigo_local tenga al menos un nivel educativo
+            $codigoModular = json_decode($validatedData['codigo_local'], true);
+            if (empty($codigoModular) || !is_array($codigoModular)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debe seleccionar al menos un nivel educativo con su código correspondiente'
+                ], 422);
+            }
+
+            // Iniciar transacción
+            DB::beginTransaction();
+
+            // Buscar y actualizar el metrado
+            $metrado = metradosanitarias::findOrFail($id);
+
+            $metrado->update([
+                'nombre_proyecto' => $validatedData['nombre_proyecto'],
+                'uei' => $validatedData['uei'],
+                'codigosnip' => $validatedData['codigo_snip'],
+                'codigocui' => $validatedData['codigo_cui'],
+                'unidad_ejecutora' => $validatedData['unidad_ejecutora'],
+                'codigo_local' => $validatedData['codigo_local'],
+                'codigo_modular' => $validatedData['codigo_modular'],
+                'especialidad' => $validatedData['especialidad'],
+                'fecha' => $validatedData['fecha'],
+                'ubicacion' => $validatedData['ubicacion'],
+                'cantidadModulo' => $validatedData['cantidadModulo'],
+            ]);
+
+            // Confirmar transacción
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Metrado de Electricas actualizado exitosamente',
+                'data' => $metrado
+            ]);
+        } catch (ValidationException $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy(string $id)
     {
-        // Encuentra el registro que deseas eliminar
-        $metrado = metradosanitarias::findOrFail($id);  // Encuentra el registro usando el ID
+        try {
+            DB::beginTransaction();
 
-        // Eliminar el registro
-        $metrado->delete();
+            $metrado = metradosanitarias::findOrFail($id);
+            $metrado->delete();
 
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('metradosanitarias.index')->with('success', 'Registro eliminado exitosamente');
+            DB::commit();
+
+            return redirect()->route('metradosanitarias.index')
+                ->with('success', 'Metrado eliminado exitosamente');
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el metrado: ' . $e->getMessage());
+        }
     }
 
     public function actualizar_data(Request $request)
@@ -290,11 +444,11 @@ class metradosanitariasController extends Controller
             'cisterna' => $request->cisterna,
             'exterior' => $request->exterior,
         ];
-        
+
         $resumendata = [
             'resumensa' => $request->resumensa,
         ];
-        
+
         // Convertir los datos en formato JSON
         $documentosData = json_encode($data);
         $resumenData = json_encode($resumendata);

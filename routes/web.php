@@ -438,6 +438,26 @@ Route::get('portada-programas-gespro/{empresaId}', function ($empresaId) {
     return view('gestor_vista.programasgespro.portadaprogramas', compact('empresaId'));
 })->name('gestorprogramasgespro');
 
+Route::get('calculo-agua/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.agua', compact('empresaId'));
+})->name('calculoagua');
+
+Route::get('calculo-desague/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.desague', compact('empresaId'));
+})->name('calculodesague');
+
+Route::get('calculo-aire-acondicionado/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.aireacondicionado', compact('empresaId'));
+})->name('calculoaireacondicionado');
+
+Route::get('calculo-caida-tension/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.caidatension', compact('empresaId'));
+})->name('calculocaidatension');
+
+Route::get('calculo-pozo-pararrayo/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.pozopararrayo', compact('empresaId'));
+})->name('calculopozopararrayo');
+
 //======================CONSTRUYE PANEL ======================================//
 Route::get('gestor-construye/{empresaId}', function ($empresaId) {
     return view('gestor_vista.Construyehc.index', compact('empresaId'));

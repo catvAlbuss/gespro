@@ -132,7 +132,6 @@ class Sistema {
         //console.log('Tablas creadas:', modulosTables);
     }
 
-
     generateSingleModuleData() {
         return [
             {
@@ -330,7 +329,6 @@ class Sistema {
             return resumenData[key];
         };
 
-
         const processNode = (node, options = {}) => {
             const { parentKey = '', sourceType = '', processChildren = true } = options;
 
@@ -389,7 +387,6 @@ class Sistema {
             }
         };
 
-
         function ordenarPorItem(data) {
             console.log(data);
             // Primero, ordenamos los elementos en cada nivel de la jerarquía
@@ -420,7 +417,6 @@ class Sistema {
                 }
             });
         }
-
 
         setTimeout(() => {
             this.modulosTables.forEach((modulo, index) => {
