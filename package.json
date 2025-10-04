@@ -16,7 +16,9 @@
         "vite": "^5.0"
     },
     "dependencies": {
-    "sweetalert2": "^11.14.2",
-    "vue": "^3.3.4"
+        "hyperformula": "^3.0.1",
+        "sweetalert2": "^11.14.2",
+        "tabulator-tables": "^6.3.1",
+        "vue": "^3.3.4"
     }
 }

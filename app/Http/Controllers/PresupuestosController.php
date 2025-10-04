@@ -353,35 +353,369 @@ class PresupuestosController extends Controller
         }
     }
 
-    /**
-     * Guardar los datos de Gastos Generales
-     */
-    public function guardarGastosGenerales($id, Request $request) {}
 
-    /**
-     * Obtener los datos de Gastos Generales
-     */
-    public function obtenerGastosGenerales($id) {}
 
-    /**
-     * Guardar los datos de supervicion
-     */
-    public function guardarGastosSupervicion($id, Request $request) {}
+    public function obtenerPresupuestoMOMAEQCompleto()
+    {
+        $presupuestos = presupuestos::select('id', 'datapresupuestos')->get();
 
-    /**
-     * Obtener los datos de supervicion
-     */
-    public function obtenerGastosSupervicion($id) {}
+        $estructuraManoObra = [];
+        $estructuraMateriales = [];
+        $estructuraEquipos = [];
 
-    /**
-     * Guardar los datos de gastos cuncurrentes
-     */
-    public function guardarGastosConcurrentes($id, Request $request) {}
+        foreach ($presupuestos as $presupuesto) {
+            $dataPresupuestos = json_decode($presupuesto->datapresupuestos, true);
 
-    /**
-     * Obtener los datos de gastos concurrentes
-     */
-    public function obtenerGastosConcurrentes($id) {}
+            if (is_array($dataPresupuestos)) {
+                $this->aplanarEstructuraManoObra($dataPresupuestos, $estructuraManoObra);
+                $this->aplanarEstructuraMateriales($dataPresupuestos, $estructuraMateriales);
+                $this->aplanarEstructuraEquipos($dataPresupuestos, $estructuraEquipos);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'mano_de_obra' => $estructuraManoObra,
+                'materiales' => $estructuraMateriales,
+                'equipos' => $estructuraEquipos
+            ]
+        ]);
+    }
+
+    // ESTRUCTURA COMPLETA PARA MANO DE OBRA
+    private function aplanarEstructuraManoObra($items, &$estructuraManoObra)
+    {
+        foreach ($items as $item) {
+            $fila = [
+                'id' => $item['id'] ?? null,
+                //'item' => $item['item'] ?? null,
+                '1' => $item['descripcion'] ?? null,
+                '2' => $item['unidad'] ?? null,
+                '3' => $item['cantidad'] ?? null,
+                // 'observacion' => $item['observacion'] ?? null,
+                // 'subtotal' => $item['subtotal'] ?? null,
+                // 'precio_original' => $item['precio'] ?? null,
+                // 'parcial_original' => $item['parcial'] ?? null,
+                // 'rendimiento' => null,
+                // 'unidadMD' => null,
+                '4' => 0, // Este será el precio calculado de mano de obra
+                // 'tiene_detalles' => false,
+                // 'tiene_mano_obra' => false
+            ];
+
+            // Si tiene detalles, procesar mano de obra
+            if (isset($item['detalles']) && is_array($item['detalles'])) {
+                // $fila['tiene_detalles'] = true;
+                // $fila['rendimiento'] = $item['detalles']['rendimiento'] ?? null;
+                // $fila['unidadMD'] = $item['detalles']['unidadMD'] ?? null;
+
+                // Calcular solo total Mano de Obra
+                if (isset($item['detalles']['manoObra']) && is_array($item['detalles']['manoObra']) && count($item['detalles']['manoObra']) > 0) {
+                    $totalManoObra = 0;
+                    foreach ($item['detalles']['manoObra'] as $mo) {
+                        if (isset($mo['parcial'])) {
+                            $totalManoObra += $mo['parcial'];
+                        }
+                    }
+                    $fila['4'] = $totalManoObra;
+                    //$fila['tiene_mano_obra'] = true;
+                }
+            }
+
+            $estructuraManoObra[] = $fila;
+
+            // Procesar hijos recursivamente
+            if (isset($item['_children']) && is_array($item['_children'])) {
+                $this->aplanarEstructuraManoObra($item['_children'], $estructuraManoObra);
+            }
+        }
+    }
+
+    // ESTRUCTURA COMPLETA PARA MATERIALES
+    private function aplanarEstructuraMateriales($items, &$estructuraMateriales)
+    {
+        foreach ($items as $item) {
+            // Si tiene materiales, crear una fila por cada material
+            if (isset($item['detalles']['materiales']) && is_array($item['detalles']['materiales']) && count($item['detalles']['materiales']) > 0) {
+
+                foreach ($item['detalles']['materiales'] as $material) {
+                    $fila = [
+                        'id' => $item['id'] ?? null,
+                        //'item' => $item['item'] ?? null,
+                        '1' => ($item['descripcion'] ?? '') . ' - ' . ($material['descripcion'] ?? ''),
+                        '2' => $material['und'] ?? null,
+                        '3' => $material['cantidad'] ?? null,
+                        //'3' => $item['cantidad'] ?? null,
+                        '4' => $material['precio'] ?? null,
+                        // 'parcial' => $material['parcial'] ?? null,
+                        // 'observacion' => $item['observacion'] ?? null,
+                        // 'subtotal' => $item['subtotal'] ?? null,
+                        // 'precio_original' => $item['precio'] ?? null,
+                        // 'parcial_original' => $item['parcial'] ?? null,
+                        // 'rendimiento' => $item['detalles']['rendimiento'] ?? null,
+                        // 'unidadMD' => $item['detalles']['unidadMD'] ?? null,
+                        // 'tiene_detalles' => true,
+                        // 'tiene_materiales' => true,
+                        // Información específica del material
+                        // 'material_id' => $material['id'] ?? null,
+                        // 'material_ind' => $material['ind'] ?? null,
+                        // 'material_descripcion' => $material['descripcion'] ?? null,
+                        // 'material_tipoinsumo' => $material['tipoinsumo'] ?? null,
+                        // 'material_recursos' => $material['recursos'] ?? null,
+                        // 'id_insumo' => $material['id_insumo'] ?? null,
+                        // 'tipoespecialidad' => $material['tipoespecialidad'] ?? null
+                    ];
+
+                    $estructuraMateriales[] = $fila;
+                }
+            } else {
+                // Si no tiene materiales, crear la fila normal del ítem
+                $fila = [
+                    'id' => $item['id'] ?? null,
+                    //'item' => $item['item'] ?? null,
+                    '1' => $item['descripcion'] ?? null,
+                    '2' => $item['unidad'] ?? null,
+                    '3' => $item['cantidad'] ?? null,
+                    '4' => $item['precio'] ?? null,
+                    // 'parcial' => $item['parcial'] ?? null,
+                    // 'observacion' => $item['observacion'] ?? null,
+                    // 'subtotal' => $item['subtotal'] ?? null,
+                    // 'precio_original' => $item['precio'] ?? null,
+                    // 'parcial_original' => $item['parcial'] ?? null,
+                    // 'rendimiento' => null,
+                    // 'unidadMD' => null,
+                    // 'tiene_detalles' => isset($item['detalles']) && is_array($item['detalles']),
+                    // 'tiene_materiales' => false,
+                    // Campos de material vacíos
+                    // 'material_id' => null,
+                    // 'material_ind' => null,
+                    // 'material_descripcion' => null,
+                    // 'material_tipoinsumo' => null,
+                    // 'material_recursos' => null,
+                    // 'id_insumo' => null,
+                    // 'tipoespecialidad' => null
+                ];
+
+                // Si tiene detalles, agregar información adicional
+                // if (isset($item['detalles']) && is_array($item['detalles'])) {
+                //     $fila['rendimiento'] = $item['detalles']['rendimiento'] ?? null;
+                //     $fila['unidadMD'] = $item['detalles']['unidadMD'] ?? null;
+                // }
+
+                $estructuraMateriales[] = $fila;
+            }
+
+            // Procesar hijos recursivamente
+            if (isset($item['_children']) && is_array($item['_children'])) {
+                $this->aplanarEstructuraMateriales($item['_children'], $estructuraMateriales);
+            }
+        }
+    }
+    
+    //Anterior CARGOS
+    // private function aplanarEstructuraMateriales($items, &$estructuraMateriales)
+    // {
+    //     foreach ($items as $item) {
+    //         $fila = [
+    //             'id' => $item['id'] ?? null,
+    //             'item' => $item['item'] ?? null,
+    //             'descripcion' => $item['descripcion'] ?? null,
+    //             'unidad' => $item['unidad'] ?? null,
+    //             'cantidad' => $item['cantidad'] ?? null,
+    //             'observacion' => $item['observacion'] ?? null,
+    //             'subtotal' => $item['subtotal'] ?? null,
+    //             'precio_original' => $item['precio'] ?? null,
+    //             'parcial_original' => $item['parcial'] ?? null,
+    //             'rendimiento' => null,
+    //             'unidadMD' => null,
+    //             'precio' => 0, // Este será el precio calculado de materiales
+    //             'tiene_detalles' => false,
+    //             'tiene_materiales' => false
+    //         ];
+
+    //         // Si tiene detalles, procesar materiales
+    //         if (isset($item['detalles']) && is_array($item['detalles'])) {
+    //             $fila['tiene_detalles'] = true;
+    //             $fila['rendimiento'] = $item['detalles']['rendimiento'] ?? null;
+    //             $fila['unidadMD'] = $item['detalles']['unidadMD'] ?? null;
+
+    //             // Calcular solo total Materiales
+    //             if (isset($item['detalles']['materiales']) && is_array($item['detalles']['materiales']) && count($item['detalles']['materiales']) > 0) {
+    //                 $totalMateriales = 0;
+    //                 foreach ($item['detalles']['materiales'] as $material) {
+    //                     if (isset($material['parcial'])) {
+    //                         $totalMateriales += $material['parcial'];
+    //                     }
+    //                 }
+    //                 $fila['precio'] = $totalMateriales;
+    //                 $fila['tiene_materiales'] = true;
+    //             }
+    //         }
+
+    //         $estructuraMateriales[] = $fila;
+
+    //         // Procesar hijos recursivamente
+    //         if (isset($item['_children']) && is_array($item['_children'])) {
+    //             $this->aplanarEstructuraMateriales($item['_children'], $estructuraMateriales);
+    //         }
+    //     }
+    // }
+
+    // ESTRUCTURA COMPLETA PARA EQUIPOS
+    private function aplanarEstructuraEquipos($items, &$estructuraEquipos)
+    {
+        foreach ($items as $item) {
+            $fila = [
+                'id' => $item['id'] ?? null,
+                //'item' => $item['item'] ?? null,
+                '1' => $item['descripcion'] ?? null,
+                '2' => $item['unidad'] ?? null,
+                '3' => $item['cantidad'] ?? null,
+                // 'observacion' => $item['observacion'] ?? null,
+                // 'subtotal' => $item['subtotal'] ?? null,
+                // 'precio_original' => $item['precio'] ?? null,
+                // 'parcial_original' => $item['parcial'] ?? null,
+                // 'rendimiento' => null,
+                // 'unidadMD' => null,
+                '4' => 0, // Este será el precio calculado de equipos
+                // 'tiene_detalles' => false,
+                // 'tiene_equipos' => false
+            ];
+
+            // Si tiene detalles, procesar equipos
+            if (isset($item['detalles']) && is_array($item['detalles'])) {
+                $fila['tiene_detalles'] = true;
+                $fila['rendimiento'] = $item['detalles']['rendimiento'] ?? null;
+                $fila['unidadMD'] = $item['detalles']['unidadMD'] ?? null;
+
+                // Calcular solo total Equipos
+                if (isset($item['detalles']['equipos']) && is_array($item['detalles']['equipos']) && count($item['detalles']['equipos']) > 0) {
+                    $totalEquipos = 0;
+                    foreach ($item['detalles']['equipos'] as $equipo) {
+                        if (isset($equipo['parcial'])) {
+                            $totalEquipos += $equipo['parcial'];
+                        }
+                    }
+                    $fila['4'] = $totalEquipos;
+                    //$fila['tiene_equipos'] = true;
+                }
+            }
+
+            $estructuraEquipos[] = $fila;
+
+            // Procesar hijos recursivamente
+            if (isset($item['_children']) && is_array($item['_children'])) {
+                $this->aplanarEstructuraEquipos($item['_children'], $estructuraEquipos);
+            }
+        }
+    }
+
+    // MÉTODOS INDIVIDUALES SI LOS NECESITAS POR SEPARADO
+
+    public function obtenerEstructuraManoObra()
+    {
+        $presupuestos = presupuestos::select('id', 'datapresupuestos')->get();
+        $estructuraManoObra = [];
+
+        foreach ($presupuestos as $presupuesto) {
+            $dataPresupuestos = json_decode($presupuesto->datapresupuestos, true);
+
+            if (is_array($dataPresupuestos)) {
+                $this->aplanarEstructuraManoObra($dataPresupuestos, $estructuraManoObra);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $estructuraManoObra
+        ]);
+    }
+
+    public function obtenerEstructuraMateriales()
+    {
+        $presupuestos = presupuestos::select('id', 'datapresupuestos')->get();
+        $estructuraMateriales = [];
+
+        foreach ($presupuestos as $presupuesto) {
+            $dataPresupuestos = json_decode($presupuesto->datapresupuestos, true);
+
+            if (is_array($dataPresupuestos)) {
+                $this->aplanarEstructuraMateriales($dataPresupuestos, $estructuraMateriales);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $estructuraMateriales
+        ]);
+    }
+
+    public function obtenerEstructuraEquipos()
+    {
+        $presupuestos = presupuestos::select('id', 'datapresupuestos')->get();
+        $estructuraEquipos = [];
+
+        foreach ($presupuestos as $presupuesto) {
+            $dataPresupuestos = json_decode($presupuesto->datapresupuestos, true);
+
+            if (is_array($dataPresupuestos)) {
+                $this->aplanarEstructuraEquipos($dataPresupuestos, $estructuraEquipos);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $estructuraEquipos
+        ]);
+    }
+
+    // MÉTODO PARA OBTENER SOLO FILAS CON PRECIOS (OPCIONAL)
+    public function obtenerPresupuestoSoloConPrecios()
+    {
+        $presupuestos = presupuestos::select('id', 'datapresupuestos')->get();
+
+        $manoObraConPrecio = [];
+        $materialesConPrecio = [];
+        $equiposConPrecio = [];
+
+        foreach ($presupuestos as $presupuesto) {
+            $dataPresupuestos = json_decode($presupuesto->datapresupuestos, true);
+
+            if (is_array($dataPresupuestos)) {
+                $estructuraManoObra = [];
+                $estructuraMateriales = [];
+                $estructuraEquipos = [];
+
+                $this->aplanarEstructuraManoObra($dataPresupuestos, $estructuraManoObra);
+                $this->aplanarEstructuraMateriales($dataPresupuestos, $estructuraMateriales);
+                $this->aplanarEstructuraEquipos($dataPresupuestos, $estructuraEquipos);
+
+                // Filtrar solo los que tienen precio > 0
+                $manoObraConPrecio = array_merge($manoObraConPrecio, array_filter($estructuraManoObra, function ($item) {
+                    return $item['precio'] > 0;
+                }));
+
+                $materialesConPrecio = array_merge($materialesConPrecio, array_filter($estructuraMateriales, function ($item) {
+                    return $item['precio'] > 0;
+                }));
+
+                $equiposConPrecio = array_merge($equiposConPrecio, array_filter($estructuraEquipos, function ($item) {
+                    return $item['precio'] > 0;
+                }));
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'mano_de_obra_con_precio' => array_values($manoObraConPrecio),
+                'materiales_con_precio' => array_values($materialesConPrecio),
+                'equipos_con_precio' => array_values($equiposConPrecio)
+            ]
+        ]);
+    }
+
 
     /**
      * Display a listing of the resource.

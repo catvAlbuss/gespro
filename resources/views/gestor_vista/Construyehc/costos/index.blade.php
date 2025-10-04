@@ -6,7 +6,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            {{ __('Gestor Campo Mantenimiento') }}
+            {{ __('Costos') }}
         </h2>
     </x-slot>
 
@@ -35,76 +35,75 @@
                 <div class="p-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Lista de Mantenimiento
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Lista de Proyecto Costos
                             </h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestiona los Mantenimiento de los
-                                proyectos</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestiona los proyectos</p>
                         </div>
                         <button onclick="openModal('create')"
                             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                            Agregar Mantenimiento
+                            Agregar Costos
                         </button>
                     </div>
 
                     <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                        <table id="pagination-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-center">
                                 <tr>
                                     <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        #</th>
+                                        class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Proyecto</th>
                                     <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Obra</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Contratista</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Ubicacion</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Fecha</th>
                                     <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Cotización</th>
+                                        class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        UEI</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        SNIP</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        unidad_ejecutora</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Ubicación</th>
                                     <th scope="col"
                                         class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Acciones</th>
                                 </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach ($mantenimientos as $index => $mantenimiento)
+                            </thead> 
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-center">
+                                @foreach ($costos as $costo)
                                     <tr class="hover:bg-gray-950 dark:hover:bg-gray-750 transition-colors duration-150">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900 dark:text-gray-100"> {{ $index + 1 }}
-                                            </div>
-                                        </td>
                                         <td class="px-6 py-4 max-w-xs whitespace-normal break-words">
                                             <div class="flex items-center">
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        {{ $mantenimiento->nombre_proyecto_mant }}
+                                                        {{ $costo->name }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900 dark:text-gray-100">
-                                                {{ $mantenimiento->propietario_mant }}
-                                            </div>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">{{ $costo->fecha }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                                {{ $mantenimiento->ubicacion_mant }}
+                                                {{ $costo->codigouei }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span
+                                                class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                {{ $costo->codigosnip }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 max-w-[12rem] whitespace-normal break-words">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
-                                                        {{ $mantenimiento->fecha_pro_mant }}
+                                                        {{ $costo->unidad_ejecutora }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -113,14 +112,14 @@
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 <div class="flex items-center">
                                                     <div class="ml-4">
-                                                        {{ $mantenimiento->cotizacion_mant }}
+                                                        {{ "$costo->region $costo->provincia $costo->distrito $costo->centropoblado" }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex justify-end space-x-3">
-                                                <a href="{{ route('mantenimientoCampo.show', $mantenimiento->id_mantimiento) }}"
+                                                <a href="{{ route('costos.show', $costo->id) }}"
                                                     class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
                                                     title="Visualizar">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
@@ -131,8 +130,7 @@
                                                             clip-rule="evenodd" />
                                                     </svg>
                                                 </a>
-                                                <button
-                                                    onclick="openModal('edit', {{ $mantenimiento->id_mantimiento }})"
+                                                <button onclick="openModal('edit', {{ $costo->id }})"
                                                     class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors duration-200"
                                                     title="Editar">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
@@ -141,9 +139,8 @@
                                                             d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                                     </svg>
                                                 </button>
-                                                <form
-                                                    action="{{ route('mantenimientoCampo.destroy', $mantenimiento->id_mantimiento) }}"
-                                                    method="POST" onsubmit="return confirmDelete(event, this);"
+                                                <form action="{{ route('costos.destroy', $costo->id) }}" method="POST"
+                                                    onsubmit="return confirmDelete(event, this);"
                                                     style="display: inline;">
                                                     @csrf
                                                     @method('DELETE')
@@ -166,22 +163,22 @@
                         </table>
                     </div>
 
-                    @if ($mantenimientos->count() === 0)
+                    @if ($costos->count() === 0)
                         <div class="text-center py-12">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No hay metrados
-                                registrados</h3>
-                            <p class="mt-1 text-gray-500 dark:text-gray-400">Comienza agregando un nuevo metrado de
-                                comunicación</p>
+                            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No hay Proyecto de
+                                COSTO registrados</h3>
+                            <p class="mt-1 text-gray-500 dark:text-gray-400">Comienza agregando un proyecto nuevo de
+                                COSTOS</p>
                             <div class="mt-6">
                                 <button id="agregar_ms_vacio" data-modal-target="crud-modal"
                                     data-modal-toggle="crud-modal"
                                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Agregar Metrado
+                                    Agregar Costos
                                 </button>
                             </div>
                         </div>
@@ -193,6 +190,7 @@
 
     <!-- Modal mejorado -->
     <div id="crud-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
         role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Fondo oscuro con animación -->
@@ -219,7 +217,7 @@
                                 </svg>
                             </div>
                             <h3 id="modal-title" class="ml-3 text-xl font-bold text-gray-900 dark:text-gray-100">
-                                Registrar Mantenimiento
+                                Registrar Costos
                             </h3>
                         </div>
                         <button type="button" onclick="closeModal()"
@@ -236,94 +234,181 @@
                 <form id="metrado-form" class="bg-white dark:bg-gray-800" onsubmit="handleSubmit(event)">
                     @csrf
                     <div class="px-6 py-4 max-h-96 overflow-y-auto">
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <!-- Nombre del Proyecto -->
                             <div class="sm:col-span-2">
-                                <label for="nombre_mant"
+                                <label for="nombre_proyecto"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Nombre del Proyecto <span class="text-red-500">*</span>
                                 </label>
-                                <textarea id="nombre_mant" name="nombre_mant" rows="3" required
+                                <textarea id="nombre_proyecto" name="nombre_proyecto" rows="3" required
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                                     placeholder="Escribe el nombre del proyecto"></textarea>
                             </div>
-                            <!-- Entidad -->
+                            <!-- UEI -->
                             <div>
-                                <label for="propietario_mant"
+                                <label for="uei"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Entidad<span class="text-red-500">*</span>
+                                    UEI <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="propietario_mant" id="propietario_mant" required
+                                <input type="text" name="uei" id="uei" required
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                    placeholder="entidad">
+                                    placeholder="Ej: 2999">
                             </div>
 
-                            <!-- Fecha -->
+                            <!-- Unidad Ejecutora -->
                             <div>
-                                <label for="fecha_pro_mant"
+                                <label for="unidad_ejecutora"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Fecha <span class="text-red-500">*</span>
+                                    Unidad Ejecutora <span class="text-red-500">*</span>
                                 </label>
-                                <input type="date" name="fecha_pro_mant" id="fecha_pro_mant" required
-                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                                <input type="text" name="unidad_ejecutora" id="unidad_ejecutora" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="Ej: 2999">
+                            </div>
+                            <div class="col-span-2 grid grid-cols-2 gap-1 sm:grid-cols-4">
+                                <!-- Código SNIP -->
+                                <div>
+                                    <label for="codigo_snip"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Código SNIP <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" name="codigo_snip" id="codigo_snip" required
+                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                        placeholder="Ej: SNIP123456">
+                                </div>
+
+                                <!-- Código CUI -->
+                                <div>
+                                    <label for="codigo_cui"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Código CUI <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" name="codigo_cui" id="codigo_cui" required
+                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                        placeholder="Ej: CUI123456">
+                                </div>
+
+                                <!-- Código Local (Input simple) -->
+                                <div>
+                                    <label for="codigo_local"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Código Local <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" name="codigo_local" id="codigo_local" required
+                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                        placeholder="Ej: CL-001234">
+                                </div>
+
+                                <!-- Fecha -->
+                                <div>
+                                    <label for="fecha"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Fecha <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" name="fecha" id="fecha" required
+                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                                </div>
+                            </div>
+                            <!-- Código Modular (Checklist) -->
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Código Modular <span class="text-red-500">*</span>
+                                </label>
+                                <div class="space-y-3 p-4 border border-gray-300 rounded-lg dark:border-gray-600">
+                                    <!-- Inicial -->
+                                    <div>
+                                        <div class="flex items-center">
+                                            <input id="check-inicial" name="nivel_educativo[]" type="checkbox"
+                                                value="inicial"
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                onchange="toggleNivelInput('inicial')">
+                                            <label for="check-inicial"
+                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                                                C. Inicial
+                                            </label>
+                                        </div>
+                                        <input type="text" id="input-inicial" name="codigo_modular_inicial"
+                                            class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                            placeholder="Código modular de nivel inicial">
+                                    </div>
+
+                                    <!-- Primaria -->
+                                    <div>
+                                        <div class="flex items-center">
+                                            <input id="check-primaria" name="nivel_educativo[]" type="checkbox"
+                                                value="primaria"
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                onchange="toggleNivelInput('primaria')">
+                                            <label for="check-primaria"
+                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                                                C. Primaria
+                                            </label>
+                                        </div>
+                                        <input type="text" id="input-primaria" name="codigo_modular_primaria"
+                                            class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                            placeholder="Código modular de nivel primaria">
+                                    </div>
+
+                                    <!-- Secundaria -->
+                                    <div>
+                                        <div class="flex items-center">
+                                            <input id="check-secundaria" name="nivel_educativo[]" type="checkbox"
+                                                value="secundaria"
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                onchange="toggleNivelInput('secundaria')">
+                                            <label for="check-secundaria"
+                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                                                C. Secundaria
+                                            </label>
+                                        </div>
+                                        <input type="text" id="input-secundaria" name="codigo_modular_secundaria"
+                                            class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                            placeholder="Código modular de nivel secundaria">
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Ubicación -->
-                            <div class="col-span-2">
-                                <label for="ubicacion_mant"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Ubicación <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="ubicacion_mant" id="ubicacion_mant" required
-                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                    placeholder="Ej: Huánuco">
-                            </div>
-
-                            <div class="col-span-2 grid grid-cols-4 gap-2">
-                                <!-- Cotización -->
+                            <div class="col-span-2 grid grid-cols-2 gap-1 sm:grid-cols-4">
                                 <div>
-                                    <label for="cotizacion_mant"
+                                    <label for="region"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Cotización<span class="text-red-500">*</span>
+                                        Región <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="number" name="cotizacion_mant" id="cotizacion_mant" required
+                                    <input type="text" name="region" id="region" required
                                         class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="cantidad de cotizaciones">
+                                        placeholder="Ej: Huánuco">
                                 </div>
-
-                                <!-- Materiales -->
                                 <div>
-                                    <label for="materiales_mant"
+                                    <label for="provincia"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Materiales<span class="text-red-500">*</span>
+                                        Provincia <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="number" name="materiales_mant" id="materiales_mant" required
+                                    <input type="text" name="provincia" id="provincia" required
                                         class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="cantidad de envio de materiales">
+                                        placeholder="Ej: Huánuco">
                                 </div>
-
-                                <!-- Maestros -->
                                 <div>
-                                    <label for="mano_obra_mant"
+                                    <label for="distrito"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Maestros<span class="text-red-500">*</span>
+                                        Distrito <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="number" name="mano_obra_mant" id="mano_obra_mant" required
+                                    <input type="text" name="distrito" id="distrito" required
                                         class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="cantidad de maestros en el mantenimiento">
+                                        placeholder="Ej: Huánuco">
                                 </div>
-
-                                <!-- Gastos Generales -->
                                 <div>
-                                    <label for="gastos_generales"
+                                    <label for="centropoblado"
                                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Gastos Generales<span class="text-red-500">*</span>
+                                        Centro Poblado <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="number" name="gastos_generales" id="gastos_generales" required
+                                    <input type="text" name="centropoblado" id="centropoblado"
                                         class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="cantidad de dias laburados">
+                                        placeholder="Ej: Huánuco">
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
@@ -336,7 +421,7 @@
                         </button>
                         <button type="submit" id="submit-btn"
                             class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <span id="submit-text">Guardar Mantenimiento</span>
+                            <span id="submit-text">Guardar Metrado</span>
                             <svg id="loading-spinner" class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -369,16 +454,16 @@
 
             // Configurar modal según el modo
             if (mode === 'create') {
-                modalTitle.textContent = 'Registrar Mantenimiento';
-                submitText.textContent = 'Guardar Mantenimiento';
+                modalTitle.textContent = 'Registrar Costos';
+                submitText.textContent = 'Guardar Costos';
                 form.reset();
                 clearNivelesEducativos();
                 // Establecer fecha actual por defecto
                 const today = new Date().toISOString().split('T')[0];
-                document.getElementById('fecha_pro_mant').value = today;
+                document.getElementById('fecha').value = today;
             } else if (mode === 'edit') {
-                modalTitle.textContent = 'Editar Mantenimiento';
-                submitText.textContent = 'Actualizar Mantenimiento';
+                modalTitle.textContent = 'Editar Costos';
+                submitText.textContent = 'Actualizar Costos';
                 loadMetradoData(id);
             }
 
@@ -443,15 +528,14 @@
             submitBtn.disabled = true;
             submitText.textContent = 'Cargando...';
             loadingSpinner.classList.remove('hidden');
-            console.log(id)
-            fetch(`{{ url('mantenimientoCampo') }}/${id}`, {
+
+            fetch(`{{ url('costos') }}/${id}`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     }
                 })
-
                 .then(response => {
                     if (!response.ok) throw new Error('No se pudo cargar el metrado');
                     return response.json();
@@ -460,14 +544,51 @@
                     console.log('Datos cargados:', data);
 
                     // Llenar campos básicos del formulario
-                    document.getElementById('nombre_mant').value = data.nombre_proyecto_mant || '';
-                    document.getElementById('propietario_mant').value = data.propietario_mant || '';
-                    document.getElementById('ubicacion_mant').value = data.ubicacion_mant || '';
-                    document.getElementById('fecha_pro_mant').value = data.fecha_pro_mant || '';
-                    document.getElementById('cotizacion_mant').value = data.cotizacion_mant || '';
-                    document.getElementById('materiales_mant').value = data.materiales_mant || '';
-                    document.getElementById('mano_obra_mant').value = data.mano_obra_mant || '';
-                    document.getElementById('gastos_generales').value = data.gastos_generales || '';
+                    document.getElementById('nombre_proyecto').value = data.name || '';
+                    document.getElementById('uei').value = data.codigouei || '';
+                    document.getElementById('codigo_snip').value = data.codigosnip || '';
+                    document.getElementById('codigo_cui').value = data.codigocui || '';
+                    document.getElementById('unidad_ejecutora').value = data.unidad_ejecutora || '';
+                    document.getElementById('codigo_local').value = data.codigolocal || '';
+                    document.getElementById('fecha').value = data.fecha || '';
+                    document.getElementById('region').value = data.region || '';
+                    document.getElementById('provincia').value = data.provincia || '';
+                    document.getElementById('distrito').value = data.distrito || '';
+                    document.getElementById('centropoblado').value = data.centropoblado || '';
+
+                    // Procesar codigo_modular 
+                    if (data.codigomodular) {
+                        console.log('codigo_modular original:', data.codigomodular);
+                        let codigoModular;
+                        try {
+                            codigoModular = typeof data.codigomodular === 'string' ? JSON.parse(data.codigomodular) :
+                                data.codigomodular;
+                        } catch (e) {
+                            console.warn('Error al parsear codigo_modular:', e);
+                            codigoModular = {};
+                        }
+
+                        // Limpiar niveles antes de llenar
+                        clearNivelesEducativos();
+
+                        // Llenar niveles educativos - AQUÍ ESTÁ LA CORRECCIÓN
+                        Object.keys(codigoModular).forEach(nivel => {
+                            const checkbox = document.getElementById(`check-${nivel}`);
+                            const input = document.getElementById(`input-${nivel}`);
+
+                            if (checkbox && input) {
+                                // Marcar checkbox
+                                checkbox.checked = true;
+
+                                // IMPORTANTE: Disparar manualmente el evento onchange
+                                // para que se ejecute toggleNivelInput
+                                toggleNivelInput(nivel);
+
+                                // Asignar valor
+                                input.value = codigoModular[nivel];
+                            }
+                        });
+                    }
                 })
                 .catch(error => {
                     console.error('Error al cargar datos:', error);
@@ -491,20 +612,64 @@
             const submitText = document.getElementById('submit-text');
             const loadingSpinner = document.getElementById('loading-spinner');
 
+            // VALIDACIÓN MEJORADA: Verificar checkboxes marcados directamente
+            const nivelesSeleccionados = [];
+            const codigoModular = {};
+
+            ['inicial', 'primaria', 'secundaria'].forEach(nivel => {
+                const checkbox = document.getElementById(`check-${nivel}`);
+                const input = document.getElementById(`input-${nivel}`);
+
+                if (checkbox && checkbox.checked) {
+                    nivelesSeleccionados.push(nivel);
+                    const codigo = input ? input.value.trim() : '';
+                    if (codigo) {
+                        codigoModular[nivel] = codigo;
+                    }
+                }
+            });
+
+            console.log('Niveles seleccionados:', nivelesSeleccionados);
+            console.log('Códigos modulares:', codigoModular);
+
+            // Validar que al menos un nivel educativo esté seleccionado
+            if (nivelesSeleccionados.length === 0) {
+                showAlert('error', 'Debe seleccionar al menos un nivel educativo');
+                return;
+            }
+
+            // Validar que se hayan ingresado códigos para los niveles seleccionados
+            if (Object.keys(codigoModular).length === 0) {
+                showAlert('error', 'Debe ingresar al menos un código para los niveles educativos seleccionados');
+                return;
+            }
+
+            // Validar que todos los niveles seleccionados tengan código
+            for (let nivel of nivelesSeleccionados) {
+                if (!codigoModular[nivel]) {
+                    showAlert('error', `Debe ingresar el código modular para el nivel ${nivel}`);
+                    return;
+                }
+            }
+
             // Mostrar loading
             submitBtn.disabled = true;
             submitText.textContent = currentMode === 'create' ? 'Guardando...' : 'Actualizando...';
             loadingSpinner.classList.remove('hidden');
 
             const data = {
-                nombre_proyecto_mant: formData.get('nombre_mant'),
-                propietario_mant: formData.get('propietario_mant'),
-                ubicacion_mant: formData.get('ubicacion_mant'),
-                fecha_pro_mant: formData.get('fecha_pro_mant'),
-                cotizacion_mant: formData.get('cotizacion_mant'),
-                materiales_mant: formData.get('materiales_mant'),
-                mano_obra_mant: formData.get('mano_obra_mant'),
-                gastos_generales: formData.get('gastos_generales'),
+                name: formData.get('nombre_proyecto'),
+                codigouei: formData.get('uei'),
+                codigosnip: formData.get('codigo_snip'),
+                codigocui: formData.get('codigo_cui'),
+                unidad_ejecutora: formData.get('unidad_ejecutora'),
+                codigolocal: formData.get('codigo_local'),
+                codigomodular: JSON.stringify(codigoModular),
+                fecha: formData.get('fecha'),
+                region: formData.get('region'),
+                provincia: formData.get('provincia'),
+                distrito: formData.get('distrito'),
+                centropoblado: formData.get('centropoblado'),
             };
 
             console.log('Datos a enviar:', data);
@@ -513,10 +678,10 @@
             let url = '';
             let method = '';
             if (currentMode === 'create') {
-                url = "{{ route('mantenimientoCampo.store') }}";
+                url = "{{ route('costos.store') }}";
                 method = 'POST';
             } else if (currentMode === 'edit') {
-                url = `{{ url('mantenimientoCampo') }}/${currentId}`;
+                url = `{{ url('costos') }}/${currentId}`;
                 method = 'PUT';
             }
 
@@ -620,7 +785,7 @@
 
             // Establecer fecha actual por defecto al abrir el modal de crear
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha_pro_mant').value = today;
+            document.getElementById('fecha').value = today;
         });
     </script>
 </x-app-layout>

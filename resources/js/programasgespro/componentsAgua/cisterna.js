@@ -207,15 +207,15 @@ export function initCisternaModule() {
 
             get alturaAguaMin() {
                 if (this.largo === 0 || this.ancho === 0) return 0;
-                return (this.volumenCisterna / (this.largo * this.ancho));
+                return parseFloat(this.volumenCisterna / (this.largo * this.ancho));
             },
 
             get volumenCalculado() {
-                return this.largo * this.ancho * this.alturaUtil;
+                return parseFloat(this.largo * this.ancho * this.alturaUtil);
             },
 
             get alturaTotal() {
-                return this.alturaUtil + this.bordeLibre + this.alturaTecho;
+                return parseFloat(this.alturaUtil + this.bordeLibre + this.alturaTecho);
             }
         },
 

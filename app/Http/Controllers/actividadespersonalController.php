@@ -139,9 +139,11 @@ class actividadespersonalController extends Controller
 
     public function update_fichas(Request $request, string $id)
     {
+        Log::info($request->all());
         try {
             $request->validate([
                 'nameActividad' => 'required|string|max:255',
+                'fecha' => 'required|date',
                 'diasAsignados' => 'required|integer',
                 'porcentajeTarea' => 'required|integer',
                 'projectActividad' => 'required|exists:proyectos,id_proyectos',
@@ -153,6 +155,7 @@ class actividadespersonalController extends Controller
 
             // Asignar los valores validados
             $actividad->nameActividad = $request['nameActividad'];
+            $actividad->fecha = $request['fecha'];
             $actividad->diasAsignados = $request['diasAsignados'];
             $actividad->porcentajeTarea = $request['porcentajeTarea'];
             $actividad->projectActividad = $request['projectActividad'];

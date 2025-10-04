@@ -28,6 +28,7 @@ const app = createApp({
             modulosSeleccionados: [],
             cantidad: 1,   // valor por defecto
             assignedTo: '',
+            fecha: new Date().getMonth() + 1,
             dias: 0,
             porcent: 0
         });
@@ -348,7 +349,7 @@ const app = createApp({
 
                 const data = await response.json();
 
-                console.log('Datos recibidos:', data);
+                //console.log(('Datos recibidos:', data);
 
                 // Limpiar tareas existentes
                 tasks.value = [];
@@ -425,31 +426,31 @@ const app = createApp({
 
         // Task management mejorado
         const handleAddTask = async () => {
-            //console.log("📌 Datos capturados en newTask:", newTask);
-
-            // Validación manual para ver qué campos faltan
+            // Validación de campos requeridos
             if (!newTask.project || !newTask.assignedTo || !newTask.dias || !newTask.porcent) {
                 showNotification('Por favor completa todos los campos requeridos', 'warning');
                 return;
             }
 
             isLoadingTask.value = true;
+
             try {
-                console.log(newTask)
-                // Construir payload con nombres correctos para backend
+                // Construir fecha con formato YYYY-MM-DD
+                const currentYear = new Date().getFullYear();
+                const month = String(newTask.fecha).padStart(2, '0');
+                const fullDate = `${currentYear}-${month}-01`;
+
                 const payload = {
                     name: newTask.actividad,
                     project: newTask.project,
                     assignedTo: newTask.assignedTo,
                     especialidad: newTask.especialidad,
-                    modulos: JSON.stringify(newTask.modulosSeleccionados), // puedes guardarlo como JSON en DB
-                    status: "todo", // siempre inicia en todo
-                    fecha: new Date().toISOString().split("T")[0], // fecha actual YYYY-MM-DD
-                    diasTo: newTask.dias,         // mapear correctamente
-                    porcentTo: newTask.porcent    // mapear correctamente
+                    modulos: JSON.stringify(newTask.modulosSeleccionados),
+                    status: "todo",
+                    fecha: fullDate,
+                    diasTo: newTask.dias,
+                    porcentTo: newTask.porcent
                 };
-
-                console.log("📤 Payload enviado al backend:", payload);
 
                 const response = await fetch('/actividadpersonal', {
                     method: 'POST',
@@ -461,68 +462,54 @@ const app = createApp({
                     body: JSON.stringify(payload)
                 });
 
-                console.log("📥 Respuesta cruda:", response);
-
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const result = await response.json();
-                //console.log("📥 JSON recibido:", result);
 
-                // Procesar la respuesta usando la misma estructura que loadTasks
+                // Procesar respuesta (tu lógica existente)
                 if (result && (Array.isArray(result) || result.task || result.actividadId)) {
                     let taskData;
 
-                    // Si la respuesta es un array (como en loadTasks)
                     if (Array.isArray(result) && result.length > 0) {
                         taskData = result[0];
-                    }
-                    // Si la respuesta tiene la estructura anidada de loadTasks
-                    else if (result.task) {
+                    } else if (result.task) {
                         taskData = result;
-                    }
-                    // Si la respuesta es directa (sin estructura anidada)
-                    else {
+                    } else {
                         taskData = {
                             task: result,
-                            project_name: newTask.project, // Usar los datos del formulario
+                            project_name: newTask.project,
                             project_id: newTask.project,
                             user_name: newTask.assignedTo,
                             user_id: newTask.assignedTo
                         };
                     }
 
-                    // Procesar usando la misma lógica que loadTasks
                     if (taskData && taskData.task) {
                         const task = taskData.task;
 
-                        // Validar fecha usando la misma lógica que loadTasks
                         if (!task.fecha || !/^\d{4}-\d{2}-\d{2}/.test(task.fecha)) {
-                            //console.warn('Tarea creada con fecha inválida:', task);
-                            // Usar la fecha del payload como fallback
                             task.fecha = payload.fecha;
                         }
 
-                        // Crear fecha local usando la misma función que loadTasks
                         const taskDate = createLocalDate(task.fecha);
 
                         if (!taskDate || isNaN(taskDate.getTime())) {
-                            //console.warn('No se pudo crear fecha válida para:', task.fecha);
+                            console.warn('No se pudo crear fecha válida para:', task.fecha);
                             return;
                         }
 
-                        // Procesar tarea con la misma estructura que loadTasks
                         const processedTask = {
                             id: task.actividadId || task.id,
-                            name: task.nameActividad || task.name || newTask.name,
+                            name: task.nameActividad || task.name || newTask.actividad,
                             project: taskData.project_name || newTask.project || 'Sin proyecto',
                             projectId: taskData.project_id || task.projectActividad,
                             assignedTo: taskData.user_name || newTask.assignedTo || 'Sin asignar',
                             assignedToId: taskData.user_id || task.usuario_designado,
                             status: task.status || 'todo',
                             fecha: task.fecha,
-                            taskDate: taskDate, // Agregar la fecha parseada para referencia
+                            taskDate: taskDate,
                             especialidades: task.especialidad,
                             cantidad: task.cantidad,
                             diasAsignados: parseFloat(task.diasAsignados || task.diasTo || newTask.dias) || 0,
@@ -531,27 +518,35 @@ const app = createApp({
                             elapsed_time: parseFloat(task.elapsed_time || task.elapsed_timeActividadId) || 0
                         };
 
-                        //console.log("📋 Tarea procesada:", processedTask);
+                        // ✅ NAVEGAR AL MES DE LA TAREA CREADA
+                        const taskMonth = parseInt(month);
+                        const taskYear = currentYear;
 
-                        // Agregar la tarea al array
-                        tasks.value.push(processedTask);
+                        await navigateToTaskMonth(taskMonth, taskYear, processedTask.id);
 
-                        // Limpiar formulario y actualizar interfaz
+                        // Agregar tarea solo si estamos en el mes correcto después de navegar
+                        const activeDate = selectedWorkerSearch.value ? searchDate.value : currentDate.value;
+                        const activeMonth = activeDate.getMonth() + 1;
+                        const activeYear = activeDate.getFullYear();
+
+                        if (activeMonth === taskMonth && activeYear === taskYear) {
+                            tasks.value.push(processedTask);
+                        }
+
+                        // Limpiar formulario
                         resetNewTask();
                         updateColumnDays();
                         showNotification('Tarea creada exitosamente', 'success');
 
                     } else {
-                        //console.error('❌ Estructura de respuesta inesperada:', result);
                         showNotification('Error: Estructura de respuesta inesperada', 'error');
                     }
                 } else {
-                    //console.error('❌ Respuesta vacía o inválida:', result);
                     showNotification('Error: Respuesta del servidor inválida', 'error');
                 }
 
             } catch (error) {
-                //console.error('❌ Error creando tarea:', error);
+                console.error('❌ Error creando tarea:', error);
                 showNotification(`Error al crear la tarea: ${error.message}`, 'error');
             } finally {
                 isLoadingTask.value = false;
@@ -569,13 +564,14 @@ const app = createApp({
         };
 
         const openEditModal = (task) => {
-            //console.log(task);
+            //console.log((task);
             editingTask.value = {
                 id: task.id,
                 name: task.name,
                 project: task.projectId,
                 assignedTo: task.assignedToId,
                 dias: task.diasAsignados,
+                fecha: new Date(task.fecha).toISOString().split('T')[0],
                 porcent: task.porcentajeTarea
             };
             showEditModal.value = true;
@@ -588,6 +584,7 @@ const app = createApp({
         };
 
         const handleEditTask = async () => {
+            //console.log((editingTask);
             if (!editingTask.value.name || !editingTask.value.project || !editingTask.value.assignedTo) {
                 showNotification('Por favor completa todos los campos requeridos', 'warning');
                 return;
@@ -607,12 +604,19 @@ const app = createApp({
                         usuario_designado: editingTask.value.assignedTo,
                         diasAsignados: editingTask.value.dias,
                         porcentajeTarea: editingTask.value.porcent,
+                        fecha: editingTask.value.fecha
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
+                    // Extraer mes y año de la tarea editada
+                    const taskDate = createLocalDate(editingTask.value.fecha);
+                    const taskMonth = taskDate.getMonth() + 1;
+                    const taskYear = taskDate.getFullYear();
+
+                    // Actualizar tarea en el array actual
                     const index = tasks.value.findIndex(t => t.id === editingTask.value.id);
                     if (index !== -1) {
                         tasks.value[index] = {
@@ -623,11 +627,17 @@ const app = createApp({
                             diasAsignados: parseFloat(editingTask.value.dias),
                             porcentajeTarea: parseFloat(editingTask.value.porcent),
                             project: getProjectName(editingTask.value.project),
-                            assignedTo: getWorkerName(editingTask.value.assignedTo)
+                            assignedTo: getWorkerName(editingTask.value.assignedTo),
+                            fecha: editingTask.value.fecha,
+                            taskDate: taskDate
                         };
                     }
 
                     showEditModal.value = false;
+
+                    // ✅ NAVEGAR AL MES DE LA TAREA EDITADA
+                    await navigateToTaskMonth(taskMonth, taskYear, editingTask.value.id);
+
                     updateColumnDays();
                     showNotification('Tarea actualizada exitosamente', 'success');
                 } else {
@@ -668,6 +678,64 @@ const app = createApp({
                 console.error('Error eliminando tarea:', error);
                 showNotification('Error al eliminar la tarea', 'error');
             }
+        };
+
+        const navigateToTaskMonth = async (taskMonth, taskYear, taskId) => {
+            // Determinar cuál fecha usar según el contexto
+            const dateToUpdate = selectedWorkerSearch.value ? searchDate : currentDate;
+
+            // Obtener mes y año actual de la fecha activa
+            const currentMonth = dateToUpdate.value.getMonth() + 1; // 1-12
+            const currentYear = dateToUpdate.value.getFullYear();
+
+            // Verificar si necesitamos cambiar de mes/año
+            if (currentMonth !== taskMonth || currentYear !== taskYear) {
+                //console.log((`📅 Navegando de ${currentMonth}/${currentYear} a ${taskMonth}/${taskYear}`);
+
+                // Actualizar la fecha correspondiente
+                dateToUpdate.value = new Date(taskYear, taskMonth - 1, 1);
+
+                // Recargar tareas del nuevo mes
+                await loadTasks(selectedWorkerSearch.value || null);
+
+                // Esperar a que el DOM se actualice
+                await nextTick();
+
+                // Resaltar la tarea
+                if (taskId) {
+                    highlightTask(taskId);
+                }
+
+                showNotification(`Navegado a ${meses[taskMonth - 1]} ${taskYear}`, 'info');
+            } else {
+                // Si ya estamos en el mes correcto, solo resaltar
+                if (taskId) {
+                    await nextTick();
+                    highlightTask(taskId);
+                }
+            }
+        };
+
+        const highlightTask = (taskId) => {
+            setTimeout(() => {
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+
+                if (taskElement) {
+                    // Scroll suave hacia la tarea
+                    taskElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+
+                    // Aplicar efecto de resaltado temporal
+                    taskElement.classList.add('task-highlight-pulse');
+
+                    // Remover el resaltado después de 2.5 segundos
+                    setTimeout(() => {
+                        taskElement.classList.remove('task-highlight-pulse');
+                    }, 2500);
+                }
+            }, 300);
         };
 
         // Actualizar estado de tarea mejorado

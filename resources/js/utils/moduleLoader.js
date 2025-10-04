@@ -33,7 +33,7 @@ class ModuleLoader {
 
     async loadModulesByRoute(path) {
         const modules = this.getModulesForRoute(path);
-        
+
         // Cargar módulos en paralelo
         const promises = modules.map(module => this.loadModule(module));
         return Promise.all(promises);

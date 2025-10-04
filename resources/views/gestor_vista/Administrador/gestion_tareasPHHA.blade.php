@@ -151,33 +151,62 @@
                                                     </option>
                                                 </select>
                                             </div>
-
-                                            <!-- Días estimados -->
-                                            <div class="flex flex-col space-y-2">
-                                                <label class="text-sm font-medium text-gray-200">Días estimados</label>
-                                                <div class="relative">
-                                                    <input v-model.number="newTask.dias" type="number" min="1"
-                                                        placeholder="0"
-                                                        class="w-full p-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
-                                                        required>
-                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                        <span class="text-gray-400 text-sm">días</span>
+                                            <div class="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <!-- Mes designado -->
+                                                <div class="flex flex-col space-y-2">
+                                                    <label class="text-sm font-medium text-gray-200">Mes
+                                                        Designado</label>
+                                                    <div class="relative">
+                                                        <select v-model.number="newTask.fecha" name="fecha"
+                                                            id="fecha"
+                                                            class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                            required>
+                                                            <option value="" disabled selected>Selecciona el Mes
+                                                                correspondiente</option>
+                                                            <option value="1">Enero</option>
+                                                            <option value="2">Febrero</option>
+                                                            <option value="3">Marzo</option>
+                                                            <option value="4">Abril</option>
+                                                            <option value="5">Mayo</option>
+                                                            <option value="6">Junio</option>
+                                                            <option value="7">Julio</option>
+                                                            <option value="8">Agosto</option>
+                                                            <option value="9">Septiembre</option>
+                                                            <option value="10">Octubre</option>
+                                                            <option value="11">Noviembre</option>
+                                                            <option value="12">Diciembre</option>
+                                                        </select>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- Porcentaje de actividad -->
-                                            <div class="flex flex-col space-y-2">
-                                                <label class="text-sm font-medium text-gray-200">Porcentaje de
-                                                    actividad</label>
-                                                <div class="relative">
-                                                    <input v-model.number="newTask.porcent" type="number"
-                                                        min="0" max="100" step="any" disabled
-                                                        placeholder="0"
-                                                        class="w-full p-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
-                                                        required>
-                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                        <span class="text-gray-500 text-sm">%</span>
+                                                <!-- Días estimados -->
+                                                <div class="flex flex-col space-y-2">
+                                                    <label class="text-sm font-medium text-gray-200">Días
+                                                        estimados</label>
+                                                    <div class="relative">
+                                                        <input v-model.number="newTask.dias" type="number"
+                                                            min="1" placeholder="0"
+                                                            class="w-full p-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                            required>
+                                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                            <span class="text-gray-400 text-sm">días</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Porcentaje de actividad -->
+                                                <div class="flex flex-col space-y-2">
+                                                    <label class="text-sm font-medium text-gray-200">Porcentaje de
+                                                        actividad</label>
+                                                    <div class="relative">
+                                                        <input v-model.number="newTask.porcent" type="number"
+                                                            min="0" max="100" step="any" disabled
+                                                            placeholder="0"
+                                                            class="w-full p-3 pr-12 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white transition-all duration-200 hover:border-gray-500"
+                                                            required>
+                                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                            <span class="text-gray-500 text-sm">%</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -190,8 +219,8 @@
                                                 <span v-if="isLoadingTask" class="flex items-center space-x-2">
                                                     <svg class="animate-spin h-4 w-4" fill="none"
                                                         viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                            stroke="currentColor" stroke-width="4"></circle>
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4"></circle>
                                                         <path class="opacity-75" fill="currentColor"
                                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                                         </path>
@@ -434,7 +463,18 @@
                                 required>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Fecha *
+                                </label>
+                                <input v-model="editingTask.fecha" type="date" required
+                                    class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <p class="text-xs text-gray-950 dark:text-white mt-1">
+                                    Formato: YYYY-MM-DD
+                                </p>
+                            </div>
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Días
                                     estimados</label>

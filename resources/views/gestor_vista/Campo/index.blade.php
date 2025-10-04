@@ -22,9 +22,10 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('mantenimientoCampo.rederigircampo', ['empresaId' => $empresaId]) }}">Gestion
+                                    href="{{ route('mantenimientoCampo.index') }}">Gestion
                                     Mantenimiento</a>
                             </div>
+                            
                             <div class="flex flex-col items-center gap-3 px-8 py-10 bg-white rounded-3xl shadow-main">
                                 <span>
                                     <svg width="80px" height="80px" viewBox="0 0 24 24" fill="none"

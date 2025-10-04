@@ -456,6 +456,7 @@ class Supervision {
     calcularTotales() {
         try {
             const data = this.tabla.getData();
+
             let etapaI = 0;
             let etapaII = 0;
             let costoDirectos = 0;
@@ -463,17 +464,17 @@ class Supervision {
 
             // Calculate direct costs, general expenses, and stages I and II
             data.forEach(row => {
-                if (row.romanIndex === "I") etapaI = parseFloat(row.total || 0);
-                if (row.romanIndex === "II") etapaII = parseFloat(row.total || 0);
-                if (row.romanIndex === "IV" && row.ggsupervicion) {
+                if (row.id === "I") etapaI = parseFloat(row.total || 0);
+                if (row.id === "II") etapaII = parseFloat(row.total || 0);
+                if (row.id === "IV" && row.ggsupervicion) {
                     gastosGenerales = parseFloat(row.ggsupervicion.totalGeneral || 0);
                 }
             });
+
             // Calculate direct costs as the sum of stages I and II
             costoDirectos = etapaI + etapaII;
 
-            console.log(costoDirectos);
-            // Calculat e profit as 5% of direct costs
+            // Calculate profit as 5% of direct costs
             let utilidad = costoDirectos * 0.05;
 
             // Calculate total before tax

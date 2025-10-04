@@ -165,6 +165,15 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
                                         relacionadas con HCO.</p>
                                 </div>
+
+                                <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
+                                    <h3 class="font-medium">Costos</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Costos</p>
+                                    <div class="mt-3">
+                                        <a href="{{ route('costos.index') }}"
+                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Mostrar</a>
+                                    </div>
+                                </div>
                             </div>
                         </section>
 
@@ -174,7 +183,8 @@
                             <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-2">
                                 <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
                                     <h3 class="font-medium">Cisterna / Tanque</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Acciones sobre cisterna y tanque.</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Acciones sobre cisterna y
+                                        tanque.</p>
                                     <div class="mt-3 space-x-2">
                                         <a href="{{ route('gestorcisterna', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Cisterna</a>
@@ -185,7 +195,8 @@
 
                                 <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
                                     <h3 class="font-medium">Agua / Desague</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Acciones sobre agua y desague</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Acciones sobre agua y desague
+                                    </p>
                                     <div class="mt-3 space-x-2">
                                         <a href="{{ route('calculoagua', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Agua</a>
@@ -196,9 +207,11 @@
 
                                 <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
                                     <h3 class="font-medium">Aire Acondicionado</h3>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades relacionadas con HCO.</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
+                                        relacionadas con HCO.</p>
                                     <a href="{{ route('calculoaireacondicionado', ['empresaId' => $empresaId]) }}"
-                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Aire Acondicionado</a>
+                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Aire
+                                        Acondicionado</a>
                                 </div>
 
                                 <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
@@ -206,7 +219,8 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
                                         relacionadas con HCO.</p>
                                     <a href="{{ route('calculocaidatension', ['empresaId' => $empresaId]) }}"
-                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Caida Tension </a>
+                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Caida
+                                        Tension </a>
                                 </div>
 
                                 <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
@@ -214,7 +228,15 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
                                         relacionadas con HCO.</p>
                                     <a href="{{ route('calculopozopararrayo', ['empresaId' => $empresaId]) }}"
-                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Pozo a tierra y pararrayo</a>
+                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Pozo
+                                        a tierra y pararrayo</a>
+                                </div>
+
+                                <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
+                                    <h3 class="font-medium">Pruebas de Metrados</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400"></p>
+                                    <a href="{{ route('calculometrados', ['empresaId' => $empresaId]) }}"
+                                        class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Metrados</a>
                                 </div>
                             </div>
                         </section>

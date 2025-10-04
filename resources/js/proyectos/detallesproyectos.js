@@ -6,7 +6,7 @@ import { createApp, ref, onMounted, computed, reactive, nextTick, watch } from '
 const DEFAULT_ROWS_BASE = [
     {
         id: 'calculos',
-        nombre: 'Cálculos',
+        nombre: 'CALCULOS',
         porcentaje: 10,
         diasPlanificados: 0,
         diasEjecutados: 0,
@@ -23,8 +23,8 @@ const DEFAULT_ROWS_BASE = [
         tipoProyecto: 'partes'
     },
     {
-        id: 'planeamiento',
-        nombre: 'Planeamiento',
+        id: 'planos',
+        nombre: 'PLANOS',
         porcentaje: 30,
         diasPlanificados: 0,
         diasEjecutados: 0,
@@ -33,7 +33,7 @@ const DEFAULT_ROWS_BASE = [
     },
     {
         id: 'metrados',
-        nombre: 'Metrados',
+        nombre: 'METRADOS',
         porcentaje: 30,
         diasPlanificados: 0,
         diasEjecutados: 0,
@@ -172,7 +172,7 @@ const DEFAULT_ROWS_BASE_PROCESOS = [
         porcentajeAvance: 0,
         tipoProyecto: 'partes'
     }
-    
+
 ];
 
 const DEFAULT_ROWS_BASE_ADMINISTRACION = [
@@ -355,7 +355,25 @@ const DEFAULT_ROWS_BASE_SISTEMAS = [
     }
 ];
 
-const DEFAULT_SPECIALTIES = ['Arquitectura', 'Estructuras', 'Electrica', 'Sanitarias', 'Gas', 'Comunicaciones', 'Electromecanica', 'Topografica', 'Contingencia', 'Democilion', 'Estudio de Suelos', 'Costos y Presupuestos', 'campo', 'precesos', 'administracion', 'administracion de contratos', 'sistemas'];
+const SPECIALTIES_MAP = {
+    arquitectura: 'Arquitectura',
+    estructuras: 'Estructuras',
+    electrica: 'Electrica',
+    sanitaria: 'Sanitarias',
+    gas: 'Gas',
+    comunicaciones: 'Comunicaciones',
+    electromecanica: 'Electromecanica',
+    topografica: 'Topografica',
+    contingencia: 'Contingencia',
+    democilion: 'Democilion',
+    estudio_suelos: 'Estudio de Suelos',
+    costos_presupuestos: 'Costos y Presupuestos',
+    campo: 'Campo',
+    precesos: 'Precesos',
+    administracion: 'Administracion',
+    administracion_contratos: 'Administracion de Contratos',
+    sistemas: 'Sistemas'
+};
 
 const TIPOS_PROYECTO = [
     { value: 'todo', label: 'Todo' },
@@ -601,12 +619,12 @@ const mapActivityNameToId = (nameActividad) => {
     // Limpiar el nombre de la actividad
     const cleanName = (nameActividad || '').trim();
 
-    // Mapeo directo de nombres conocidos
+    // Mapeo directo de nombres conocidosid: 'planos',nombre: 'PLANOS',
     const directMapping = {
-        'Cálculos': 'calculos',
+        'CALCULOS': 'calculos',
         'MD y MC': 'md_mc',
-        'Planeamiento': 'planeamiento',
-        'Metrados': 'metrados',
+        'PLANOS': 'planos',
+        'METRADOS': 'metrados',
         'EE.TT': 'eett',
         'Anexos': 'anexos',
         'documentoProyecto': 'anexos', // Mapear documentoProyecto a anexos
@@ -1032,7 +1050,8 @@ const initializeSpecialties = (configuracion) => {
         return configuracion.especialidades_porcentaje.map((esp, index) => {
             // CORRECCIÓN: Usar el ID exacto que viene del backend
             const id_especialidad = esp.id; // electrica, sanitaria, comunicaciones, gas, estructuras
-            const name = esp.nombre || id_especialidad; // Si no hay nombre, usar el ID
+            //const name = esp.nombre || id_especialidad; // Si no hay nombre, usar el ID
+            const name = SPECIALTIES_MAP[id_especialidad.toLowerCase()] || esp.nombre || id_especialidad;
 
             //console.log(`Creando especialidad: ${name} con ID: ${id_especialidad}`);
 
@@ -1412,6 +1431,16 @@ const app = createApp({
                 }
 
                 const data = await response.json();
+
+                // ✅ Mostrar SweetAlert2 de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado exitoso!',
+                    text: 'Los datos del proyecto se han guardado correctamente.',
+                    confirmButtonText: 'Aceptar',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
                 return true;
             } catch (error) {
                 console.error('Error guardando documento_proyecto:', error);

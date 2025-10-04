@@ -3,13 +3,13 @@ var pen_formatter = new Intl.NumberFormat("es-PE", {
     currency: "PEN",
 });
 
-var sun_currency_formatter = {
+const sun_currency_formatter = {
     formatter: "money",
     formatterParams: {
         decimal: ".",
         thousand: ",",
         symbol: "S/ ",
-        negativeSign: true,
+        precision: 2,
     },
 };
 

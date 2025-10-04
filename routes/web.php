@@ -6,6 +6,7 @@ use App\Http\Controllers\CalendarioJefesController;
 use App\Http\Controllers\CalendariotrabajadorController;
 use App\Http\Controllers\CalendarioTrabajadoresController;
 use App\Http\Controllers\ContabilidadController;
+use App\Http\Controllers\CostosController;
 use App\Http\Controllers\CronogramaController;
 use App\Http\Controllers\dml\EditorController;
 use App\Http\Controllers\dml\memoriaCalculo;
@@ -15,6 +16,7 @@ use App\Http\Controllers\EspecificacionesTecnicasController;
 use App\Http\Controllers\GastoGeneralController;
 use App\Http\Controllers\informesController;
 use App\Http\Controllers\instalacionSanitariaController;
+use App\Http\Controllers\InsumosAcuController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\MantenimientoCampoController;
@@ -110,20 +112,6 @@ Route::middleware(['auth', 'role.redirect'])->group(function () {
         return redirect()->route('crear.empresa')->with('error', 'No tienes empresas registradas.');
     })->name('administradores.dashboard')->middleware('verified');
 
-    /*Route::get('/logistico/dashboard', function () {
-        $empresas = session('empresa_id');
-
-        // Convertir la colección a un array de PHP si es necesario
-        $empresasArray = $empresas->toArray();  // Esto convierte la colección en un array simple
-
-        if (count($empresasArray) > 1) {
-            $empresaId = null;  // No asignamos un ID si hay más de una empresa
-        } else {
-            $empresaId = $empresasArray[0]['id'] ?? null;  // Si hay solo una empresa, selecciona el primer ID
-        }
-
-        return view('gestor_vista.Logistico.gestor_logistico', compact('empresaId', 'empresasArray'));
-    })->name('logistico.dashboard')->middleware('verified');*/
     Route::get('/logistico/dashboard', function () {
         // Obtener el ID de la empresa desde la sesión
         $empresaId = session('empresa_id');
@@ -401,19 +389,14 @@ Route::get('gestor-princampo/{empresaId}', function ($empresaId) {
     return view('gestor_vista.Campo.index', compact('empresaId'));
 })->name('gestorprincampo');
 
-Route::get('mantenimientoCampo/rederigircampo/{empresaId}', [MantenimientoCampoController::class, 'rederigircampo'])
-    ->name('mantenimientoCampo.rederigircampo');
-Route::post('mantenimientoCampo/traerdataman', [MantenimientoCampoController::class, 'ObtenerMant'])
-    ->name('mantenimientoCampo.traerdataman');
-Route::get('/gestor-mantenimiento/{id_mantimiento}', [MantenimientoCampoController::class, 'gestorMantenimiento'])->name('gestor.mantenimiento');
-Route::put('actualizarmantenimiento', [MantenimientoCampoController::class, 'guardar_mantenimiento'])->name('actualizarmantenimiento');
 Route::resource('mantenimientoCampo', MantenimientoCampoController::class);
+Route::put('actualizarmantenimiento', [MantenimientoCampoController::class, 'guardar_mantenimiento'])->name('actualizarmantenimiento');
 
 Route::get('valorizacionCampo/rederigircampoval/{empresaId}', [valorizacionCampoController::class, 'rederigircampoval'])
     ->name('valorizacionCampo.rederigircampoval');
-Route::put('actualizarvalorizacion', [valorizacionCampoController::class, 'actualizarvalorizaciones'])->name('actualizarvalorizacion');
-Route::resource('valorizacionCampo', valorizacionCampoController::class);
 
+Route::resource('valorizacionCampo', valorizacionCampoController::class);
+Route::put('actualizarvalorizacion', [valorizacionCampoController::class, 'actualizarvalorizaciones'])->name('actualizarvalorizacion');
 //======================COTIZACIONES Y PETICIONES DE CUENTAS =================//
 Route::post('/cotizarcuentas', [enviarCotizacionController::class, 'enviarCotizacion'])->name('cotizarcuentas');
 
@@ -457,6 +440,15 @@ Route::get('calculo-caida-tension/{empresaId}', function ($empresaId) {
 Route::get('calculo-pozo-pararrayo/{empresaId}', function ($empresaId) {
     return view('gestor_vista.programasgespro.pozopararrayo', compact('empresaId'));
 })->name('calculopozopararrayo');
+
+Route::get('calculo-metrados/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.programasgespro.metradosBase', compact('empresaId'));
+})->name('calculometrados');
+
+Route::resource('costos', CostosController::class);
+// Route::get('costos/{empresaId}', function ($empresaId) {
+//     return view('gestor_vista.Construyehc.costos.index', compact('empresaId'));
+// })->name('costos');
 
 //======================CONSTRUYE PANEL ======================================//
 Route::get('gestor-construye/{empresaId}', function ($empresaId) {
@@ -506,6 +498,27 @@ Route::get('presupuestos-acu/{empresaId}', function ($empresaId) {
 Route::post('/obtener-presupuestos', [PresupuestosController::class, 'index']);
 Route::post('/obtener-metrados', [PresupuestosController::class, 'obtenerMetrados']);
 Route::post('/actualizar-presupuestos', [PresupuestosController::class, 'actualizarMetrados']);
+Route::post('/obtenerPresupuestoMOMAEQ', [PresupuestosController::class, 'obtenerPresupuestoMOMAEQCompleto']);
+//================================ Insumos ==============================//
+Route::get('indice-view/{empresaId}', function ($empresaId) {
+    return view('gestor_vista.Construyehc.presupuestos.insumos.indice', compact('empresaId'));
+})->name('indiceview');
+
+Route::get('/indices', [InsumosAcuController::class, 'indexIndices'])->name('indices');
+Route::post('/indices', [InsumosAcuController::class, 'storeIndices'])->name('insumosAcu.store');
+Route::put('/indices/{id}', [InsumosAcuController::class, 'updateIndices'])->name('insumosAcu.update');
+Route::delete('/indices/{id}', [InsumosAcuController::class, 'destroyIndices'])->name('insumosAcu.destroy');
+
+Route::get('listar_indice', [InsumosAcuController::class, 'listar_indice'])->name('listar_indice');
+Route::get('listar_codigo_unico', [InsumosAcuController::class, 'codigoInsumos'])->name('listar_codigo_unico');
+Route::get('/insumos/tipo/{selectedTipoInsumo}', [InsumosAcuController::class, 'buscartipoinsumo']);
+Route::get('/detalles-acus/{id}', [InsumosAcuController::class, 'getDetailsById'])->name('detalles-acus.get');
+Route::post('/agregardetallesAcus', [InsumosAcuController::class, 'agregardetallesAcus']);
+Route::resource('insumos', InsumosAcuController::class);
+//=================================EXPORTACIONES ==============================================//
+Route::post('/exportar_insumo', [InsumosAcuController::class, 'exportarinsumo']);
+Route::post('/exportar_tipo_insumo', [InsumosAcuController::class, 'exportartipoinsumo']);
+Route::post('/exportar_gastos_generales', [InsumosAcuController::class, 'exportarGastosGenerales']);
 
 //================================GASTOS GENERALES ==============================//
 Route::post('/obtener-costo_directo', [GastoGeneralController::class, 'obtenerCostoDirecto']);

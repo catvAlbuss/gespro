@@ -33,7 +33,6 @@ class RequerimientoController extends Controller
         return view('gestor_vista.Administrador.Gestor_requerimientosCreate', compact('empresaId', 'proyectos', 'nuevoNumeroOrden'));
     }
 
-
     public function store(Request $request)
     {
         $request->validate([
@@ -135,7 +134,6 @@ class RequerimientoController extends Controller
         ]);
     }
 
-
     public function show($empresaId)
     {
         // Filtrar requerimientos por la empresa designada
@@ -167,7 +165,6 @@ class RequerimientoController extends Controller
         return view('gestor_vista.Administrador.Gestor_requerimiento', compact('requerimientos', 'empresaId'));
     }
 
-
     public function edit(string $id)
     {
         // Busca el requerimiento junto con los modelos relacionados
@@ -177,10 +174,8 @@ class RequerimientoController extends Controller
         return view('gestor_vista.Administrador.Gestor_requerimientosEdit', compact('requerimiento', 'id'));
     }
 
-
     public function actualizarmanoObra(Request $request)
     {
-        // Validar los datos del request
         $validatedData = $request->validate([
             'id_mano_obra' => 'required|integer',
             'descripcion_manoobra' => 'required|string|max:100',
@@ -190,26 +185,21 @@ class RequerimientoController extends Controller
         ]);
 
         try {
-            // Obtener el ID del requerimiento
             $id_requerimientos = $validatedData['id_requerimientos'];
-
-            // Buscar el modelo usando el ID de la mano de obra
             $obra = manoobrarequerimiento::findOrFail($validatedData['id_mano_obra']);
 
-            // Preparar los datos a actualizar
             $data = $request->only(['descripcion_manoobra', 'cantidad_manoobra', 'precio_uni_manoobra']);
-
-            // Calcular el total
             $data['total_manoobra'] = $validatedData['cantidad_manoobra'] * $validatedData['precio_uni_manoobra'];
 
-            // Actualizar el modelo
             $obra->update($data);
 
-            // Redireccionar a la ruta de edición del requerimiento con el ID correspondiente
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimientos,)
+            // *** ACTUALIZAR EL TOTAL DEL REQUERIMIENTO ***
+            $requerimiento = Requerimiento::findOrFail($id_requerimientos);
+            $requerimiento->actualizarTotal();
+
+            return redirect()->route('gestorrequerimientos.edit', $id_requerimientos)
                 ->with('success', 'Mano de obra actualizada exitosamente.');
         } catch (\Exception $e) {
-            // Manejo de errores en caso de excepción
             return redirect()->route('gestorrequerimientos.edit', $id_requerimientos)
                 ->with('error', 'Error al actualizar la mano de obra.');
         }
@@ -225,12 +215,18 @@ class RequerimientoController extends Controller
             $id_requerimiento = $request->input('id_requerimientos');
             $obra = ManoObraRequerimiento::findOrFail($id_mano_obra);
             $obra->delete();
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)->with('success', 'Mano de obra eliminada exitosamente.');
+
+            // *** ACTUALIZAR EL TOTAL DEL REQUERIMIENTO ***
+            $requerimiento = Requerimiento::findOrFail($id_requerimiento);
+            $requerimiento->actualizarTotal();
+
+            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
+                ->with('success', 'Mano de obra eliminada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)->with('error', 'Error al eliminar la mano de obra: ' . $e->getMessage());
+            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
+                ->with('error', 'Error al eliminar la mano de obra: ' . $e->getMessage());
         }
     }
-
 
     public function actualizarmaterial(Request $request)
     {
@@ -245,15 +241,17 @@ class RequerimientoController extends Controller
 
         try {
             $material = materialrequerimiento::findOrFail($validatedData['id_materiales_req']);
-            $data = $request->only(['descripciondescripcion_material_req_material', 'unidad', 'cantidad_material_req', 'precio_unitario_matreq']);
 
-            // Calcular el total
+            // CORRECCIÓN: Había un error de tipeo en el código original
+            $data = $request->only(['descripcion_material_req', 'unidad', 'cantidad_material_req', 'precio_unitario_matreq']);
             $data['total_material_req'] = $validatedData['cantidad_material_req'] * $validatedData['precio_unitario_matreq'];
 
-            // Actualizar el modelo
             $material->update($data);
 
-            // Redireccionar
+            // *** ACTUALIZAR EL TOTAL DEL REQUERIMIENTO ***
+            $requerimiento = Requerimiento::findOrFail($validatedData['id_requerimientos']);
+            $requerimiento->actualizarTotal();
+
             return redirect()->route('gestorrequerimientos.edit', $validatedData['id_requerimientos'])
                 ->with('success', 'Material actualizado exitosamente.');
         } catch (\Exception $e) {
@@ -264,22 +262,19 @@ class RequerimientoController extends Controller
 
     public function eliminarmateriales(Request $request, $id_materiales_req)
     {
-        // Validar que el id_requerimientos se ha enviado
         $request->validate([
             'id_requerimientos' => 'required|integer',
         ]);
 
         try {
-            // Captura el ID del requerimiento
             $id_requerimiento = $request->input('id_requerimientos');
-
-            // Encuentra el material por ID
             $material = MaterialRequerimiento::findOrFail($id_materiales_req);
-
-            // Elimina el material
             $material->delete();
 
-            // Redirecciona a la vista de edición del requerimiento
+            // *** ACTUALIZAR EL TOTAL DEL REQUERIMIENTO ***
+            $requerimiento = Requerimiento::findOrFail($id_requerimiento);
+            $requerimiento->actualizarTotal();
+
             return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
                 ->with('success', 'Material eliminado exitosamente.');
         } catch (\Exception $e) {
@@ -287,7 +282,7 @@ class RequerimientoController extends Controller
                 ->with('error', 'Error al eliminar el material: ' . $e->getMessage());
         }
     }
-
+    
     public function actualizardeposito(Request $request)
     {
         $validatedData = $request->validate([
@@ -296,18 +291,15 @@ class RequerimientoController extends Controller
             'nro_banco_req' => 'required|string|max:100',
             'cci_req' => 'required|string|max:100',
             'titular_req' => 'required|string|max:100',
-            'dni_req' => 'required|string|max:8', // Asegúrate de que el tamaño sea el adecuado
+            'dni_req' => 'required|string|max:8',
             'id_requerimientos' => 'required|integer',
         ]);
-        //var_dump($validatedData);
+
         try {
             $deposito = depositorequerimiento::findOrFail($validatedData['id_depositoreq']);
             $data = $request->only(['banco_req', 'nro_banco_req', 'cci_req', 'titular_req', 'dni_req']);
-
-            // Actualizar el modelo
             $deposito->update($data);
 
-            // Redireccionar
             return redirect()->route('gestorrequerimientos.edit', $validatedData['id_requerimientos'])
                 ->with('success', 'Depósito actualizado exitosamente.');
         } catch (\Exception $e) {
@@ -315,6 +307,8 @@ class RequerimientoController extends Controller
                 ->with('error', 'Error al actualizar el depósito.');
         }
     }
+
+    public function actualizarRequerimientos(Request $request) {}
 
     // public function aprobar(Request $request, $id)
     // {

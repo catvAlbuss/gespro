@@ -52,4 +52,25 @@ class requerimiento extends Model
     {
         return $this->hasMany(depositorequerimiento::class, 'deposito_desingreq', 'id_requerimiento');
     }
+    
+    /**
+     * Calcula y actualiza el total del requerimiento
+     * basándose en la suma de materiales y mano de obra
+     */
+    public function actualizarTotal()
+    {
+        // Suma total de materiales
+        $totalMateriales = $this->materiales()->sum('total_material_req');
+
+        // Suma total de mano de obra
+        $totalManoObra = $this->manoObra()->sum('total_manoobra');
+
+        // Calcula el total general
+        $totalGeneral = $totalMateriales + $totalManoObra;
+
+        // Actualiza el campo total_requerimientos
+        $this->update(['total_requerimientos' => $totalGeneral]);
+
+        return $totalGeneral;
+    }
 }

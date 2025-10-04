@@ -5,8 +5,6 @@ class TableDetails {
         this.tableEQ = null;
         this.callback = null;
         this.detailContainer = document.getElementById("tabla-detall");
-        this.detalleAcuId = 0;
-        this.tipoespecialidad = '';
     }
 
     showDetails(row, callback) {
@@ -14,22 +12,23 @@ class TableDetails {
         this.callback = callback;
         this.clearDetails();
         this.createDetailPanel(rowData);
+        console.log("datos obtenidos ", rowData)
         // Extraer el ID de detalle_acu desde detalles.id
-        this.detalleAcuId = rowData.id || null;
-        this.tipoespecialidad = rowData.item || null;
+        const detalleAcuId = rowData.id || null;
+        console.log("ID de detalle_acu: ", detalleAcuId);
 
         // Función que genera una estructura vacía por tipo de insumo
         const generateEmptyGroupedData = () => {
             return {
                 materiales: [],
-                manoObra: [],
+                mano_obra: [],
                 equipos: [],
                 sin_clasificar: []
             };
         };
 
         // Si no hay ID válido, cargar estructura vacía
-        if (!this.detalleAcuId) {
+        if (!detalleAcuId) {
             console.warn("No se proporcionó un ID válido para detalle_acu");
             const emptyGroupedData = generateEmptyGroupedData();
             this.createDetailTables(emptyGroupedData);
@@ -37,7 +36,7 @@ class TableDetails {
         }
 
         // Realizar la solicitud AJAX
-        fetch(`/detalles-acus/${this.detalleAcuId}`, {
+        fetch(`/detalles-acus/${detalleAcuId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -71,9 +70,7 @@ class TableDetails {
                         precio: precio,
                         tipoinsumo: item.tipoinsumo || 'sin_clasificar',
                         recursos: item.recursos || '-',
-                        parcial: cantidad * precio,
-                        id_insumo: item.id_insumo,
-                        tipoespecialidad: item.tipoespecialidad
+                        parcial: cantidad * precio
                     };
                 });
 
@@ -86,6 +83,7 @@ class TableDetails {
                     acc[tipo].push(item);
                     return acc;
                 }, generateEmptyGroupedData());
+
                 // Calcular suma total de parciales
                 const totalParcial = parsedData.reduce((sum, item) => sum + item.parcial, 0);
 
@@ -96,9 +94,8 @@ class TableDetails {
                     this.callback({
                         precio: totalParcial,
                         rendimiento: rowData.rendimiento || rowData.detalles?.rendimiento,
-                        detalle_acu_id: this.detalleAcuId,
-                        tipoespecialidad: this.tipoespecialidad,
-                        unidadMD: rowData.unidadMD || document.getElementById("unidadSelect").value,
+                        detalle_acu_id: detalleAcuId,
+                        unidad: rowData.unidad
                     });
                 }
             })
@@ -109,12 +106,20 @@ class TableDetails {
             });
     }
 
+    // showDetails(row, callback) {
+    //     const rowData = row.getData();
+    //     this.callback = callback;
+    //     this.clearDetails();
+    //     this.createDetailPanel(rowData);
+    //     const detalles = rowData.detalles || this.getDefaultDetails(rowData);
+    //     console.log("Detalles: ", detalles);
+    //     this.createDetailTables(detalles);
+    // }
     clearDetails() {
         this.detailContainer.innerHTML = '';
     }
 
     createDetailPanel(rowData) {
-        console.log("Creando panel de detalles para: ", rowData);
         this.detailContainer.innerHTML = `
             <div class="bg-gradient-to-br from-gray-800 via-gray-900 to-black p-4 rounded-xl text-xs shadow-lg text-gray-200">
                 <!-- Header -->
@@ -132,7 +137,7 @@ class TableDetails {
                         <span id="items" class="font-medium text-gray-200">${rowData.item} ${rowData.descripcion}</span>
                     </div>
                     <div class="flex flex-col text-right space-y-0.5">
-                        <span class="font-semibold text-gray-400">Costo Unitario (${rowData.unidadMD || rowData.unidad || 'm'}):</span>
+                        <span class="font-semibold text-gray-400">Costo Unitario (${rowData?.detalles?.unidadMD || 'm'}):</span>
                         <span id="costostotales" class="font-bold text-green-400">${rowData.precio || 0}</span>
                     </div>
                 </div>
@@ -144,7 +149,7 @@ class TableDetails {
                         type="number" 
                         id="rendimiento" 
                         class="w-16 text-center border border-gray-600 bg-gray-700 text-gray-300 rounded-md px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        value="${parseFloat(rowData.detalles?.rendimiento) || parseFloat(rowData.rendimiento) || 0}"
+                        value="${rowData?.detalles?.rendimiento || 0}" 
                     />
                     <select 
                         id="unidadSelect" 
@@ -152,12 +157,12 @@ class TableDetails {
                         <option value="hh">hh</option>
                         <option value="kg">kg</option>
                         <option value="m">m</option>
-                        <option value="m2">m²</option>
-                        <option value="m3">m³</option>
+                        <option value="m²">m²</option>
+                        <option value="m³">m³</option>
                         <option value="bol">bol</option>
-                        <option value="p2">p²</option>
-                        <option value="p3">p³</option>
-                        <option value="Und">Und</option>
+                        <option value="p²">p²</option>
+                        <option value="p³">p³</option>
+                        <option value="und">und</option>
                         <option value="lt">lt</option>
                         <option value="gal">gal</option>
                         <option value="hm">hm</option>
@@ -208,7 +213,7 @@ class TableDetails {
         `;
 
         const unidadSelect = document.getElementById('unidadSelect');
-        unidadSelect.value = rowData.unidadMD || rowData.unidad || 'm';
+        unidadSelect.value = rowData?.detalles?.unidadMD || 'm';
         unidadSelect.addEventListener('change', function () {
             console.log("Unidad seleccionada: ", unidadSelect.value);
         });
@@ -648,11 +653,9 @@ class TableDetails {
                     'X-CSRF-TOKEN': getCSRFToken()
                 },
                 success: function (response) {
-                    console.log(response);
                     const datosFormateadosremplazar = response.map((item, index) => {
                         return {
                             id: item.id,
-                            id_insumo: item.id,
                             numeracion: index + 1,
                             codigo: item.codigo?.toString().slice(-4), // Solo los últimos 4 dígitos
                             codigounico: item.codigo, // Solo los últimos 4 dígitos
@@ -691,7 +694,6 @@ class TableDetails {
                     const datosFormateados = response.map((item, index) => {
                         return {
                             id: item.id,
-                            id_insumo: item.id,
                             numeracion: index + 1,
                             codigo: item.codigo?.toString().slice(-4), // Solo los últimos 4 dígitos
                             codigounico: item.codigo, // Solo los últimos 4 dígitos
@@ -740,17 +742,15 @@ class TableDetails {
                     console.log('Insumo seleccionado:', insumo);
                     // Map insumo data to table row structure
                     const newRow = {
-                        id: null,                        // Este ID lo asignará la base de datos
-                        id_insumo: insumo.id,            // Guarda el ID original del insumo
-                        ind: insumo.codigounico,
+                        id: insumo.id,
+                        ind: insumo.codigounico,// insumo.tipoinsumo === 'manoobra' ? 'MO' : insumo.tipoinsumo === 'materiales' ? 'MT' : insumo.tipoinsumo === 'equipo' ? 'EQ' : 'UNKNOWN',
                         codelect: insumo.codelectrico || '',
                         descripcion: insumo.descripcion || 'Insumo sin descripción',
-                        und: insumo.unidad || 'und',     // Default to 'und' if unidad is empty
-                        recursos: insumo.tipoinsumo === 'manoobra' ? 0 : insumo.tipoinsumo === 'materiales' ? '-' : insumo.tipoinsumo === 'equipo' ? 0 : 'UNKNOWN',
+                        und: insumo.unidad || 'und', // Default to 'und' if unidad is empty
+                        recursos: insumo.tipoinsumo === 'manoobra' ? 0 : insumo.tipoinsumo === 'materiales' ? '-' : insumo.tipoinsumo === 'equipo' ? 0 : 'UNKNOWN',//insumo.tipoinsumo === 'materiales' ? '-' : '1', // Per your button logic
                         cantidad: 0,
                         precio: insumo.preciounitario || 0,
-                        parcial: 0,
-                        isNew: true                      // Marcar como nuevo para saber que debe guardarse
+                        parcial: 0
                     };
 
                     // Add to the appropriate table based on tipo_insumo
@@ -942,108 +942,65 @@ class TableDetails {
         return token;
     }
 
-    /*saveAllDetails() {
-        const id_presupuesto = document.getElementById('id_presupuestos').value;
+    saveAllDetails() {
+          const id_presupuesto = document.getElementById('id_presupuestos').value;
         // Recolectar datos de las tablas
         const manoObraData = this.tableMO.getData();
         const materialesData = this.tableMT.getData();
         const equiposData = this.tableEQ.getData();
 
-        // Mejorar la verificación de elementos nuevos o modificados
-        // y asegurar que el id_insumo se mantenga correctamente
+        // Combinar todos los datos en un solo array para el modelo detallesAcu
         const allItems = [
-            ...manoObraData
-                .filter(item => item.isNew || !item.id_detalle)
-                .map(item => ({
-                    indice: item.ind || item.indice || '',
-                    descripcion: item.descripcion || '',
-                    unidad: item.und || item.unidad || '',
-                    recursos: item.recursos || '-',
-                    cantidad: parseFloat(item.cantidad) || 0,
-                    precio: parseFloat(item.precio) || 0,
-                    total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
-                    tipoinsumo: 'manoObra',
-                    id_insumo: item.id_insumo || null,  // Asegurar que se usa el id_insumo correcto
-                    id_origen: item.id || null,  // Guardar el ID original para referencia
-                    presupuesto_designado: id_presupuesto || null,
-                    idgroupdetails: this.detalleAcuId
-                })),
-            ...materialesData
-                .filter(item => item.isNew || !item.id_detalle)
-                .map(item => ({
-                    indice: item.ind || item.indice || '',
-                    descripcion: item.descripcion || '',
-                    unidad: item.und || item.unidad || '',
-                    recursos: item.recursos || '-',
-                    cantidad: parseFloat(item.cantidad) || 0,
-                    precio: parseFloat(item.precio) || 0,
-                    total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
-                    tipoinsumo: 'materiales',
-                    id_insumo: item.id_insumo || null,  // Asegurar que se usa el id_insumo correcto
-                    id_origen: item.id || null,  // Guardar el ID original para referencia
-                    presupuesto_designado: id_presupuesto || null,
-                    idgroupdetails: this.detalleAcuId
-                })),
-            ...equiposData
-                .filter(item => item.isNew || !item.id_detalle)
-                .map(item => ({
-                    indice: item.ind || item.indice || '',
-                    descripcion: item.descripcion || '',
-                    unidad: item.und || item.unidad || '',
-                    recursos: item.recursos || '-',
-                    cantidad: parseFloat(item.cantidad) || 0,
-                    precio: parseFloat(item.precio) || 0,
-                    total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
-                    tipoinsumo: 'equipos',
-                    id_insumo: item.id_insumo || null,  // Asegurar que se usa el id_insumo correcto
-                    id_origen: item.id || null,  // Guardar el ID original para referencia
-                    presupuesto_designado: id_presupuesto || null,
-                    idgroupdetails: this.detalleAcuId
-                }))
+            ...manoObraData.map(item => ({
+                indice: item.ind || item.indice || '',
+                descripcion: item.descripcion || '',
+                unidad: item.und || item.unidad || '',
+                recursos: item.recursos || '-',
+                cantidad: parseFloat(item.cantidad) || 0,
+                precio: parseFloat(item.precio) || 0,
+                total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
+                tipoinsumo: 'mano_obra',
+                id_insumo: item.id_insumo || null, // Asumiendo que id_insumo puede ser null
+                presupuesto_designado:id_presupuesto || null,
+                idgroupdetails: this.detalleAcuId
+            })),
+            ...materialesData.map(item => ({
+                indice: item.ind || item.indice || '',
+                descripcion: item.descripcion || '',
+                unidad: item.und || item.unidad || '',
+                recursos: item.recursos || '-',
+                cantidad: parseFloat(item.cantidad) || 0,
+                precio: parseFloat(item.precio) || 0,
+                total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
+                tipoinsumo: 'materiales',
+                id_insumo: item.id_insumo || null,
+                presupuesto_designado:id_presupuesto || null,
+                idgroupdetails: this.detalleAcuId
+            })),
+            ...equiposData.map(item => ({
+                indice: item.ind || item.indice || '',
+                descripcion: item.descripcion || '',
+                unidad: item.und || item.unidad || '',
+                recursos: item.recursos || '-',
+                cantidad: parseFloat(item.cantidad) || 0,
+                precio: parseFloat(item.precio) || 0,
+                total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
+                tipoinsumo: 'equipos',
+                id_insumo: item.id_insumo || null,
+                presupuesto_designado:id_presupuesto || null,
+                idgroupdetails: this.detalleAcuId
+            }))
         ];
 
-        // Filtrado mejorado para evitar duplicados basados en id_insumo
-        // Criterio: Si tiene id_insumo, ese es el identificador único
-        const uniqueItems = [];
-        const processedIds = new Set();
+        // Datos mínimos para el JSON (callback)
+        const jsonDetails = {
+            id: this.detalleAcuId,
+            rendimiento: document.getElementById("rendimiento").value || '',
+            unidad: document.getElementById("unidadSelect").value || '',
+            precio: this.calculateTotalGeneral()
+        };
 
-        allItems.forEach(item => {
-            console.log(item);
-            // Identificador único: usar id_insumo si existe, de lo contrario usar combinación de descripción y tipo
-            const uniqueIdentifier = item.id_insumo
-                ? `insumo_${item.id_insumo}`
-                : `desc_${item.descripcion}_tipo_${item.tipoinsumo}`;
-
-            // Si no hemos procesado este identificador antes, añadirlo a los elementos únicos
-            if (!processedIds.has(uniqueIdentifier)) {
-                processedIds.add(uniqueIdentifier);
-                uniqueItems.push(item);
-            } else {
-                console.log(`Insumo duplicado detectado y filtrado: ${uniqueIdentifier}`);
-            }
-        });
-
-        // Si no hay elementos nuevos o únicos, no enviar la solicitud
-        if (uniqueItems.length === 0) {
-            console.log('No hay nuevos detalles únicos para guardar.');
-            if (this.callback) {
-                this.callback({
-                    id: this.detalleAcuId,
-                    id_insumo: this.detalleAcuId,
-                    rendimiento: document.getElementById("rendimiento").value || '',
-                    unidadMD: document.getElementById("unidadSelect").value,
-                    precio: this.calculateTotalGeneral(),
-                    manoObra: this.tableMO.getData(),
-                    materiales: this.tableMT.getData(),
-                    equipos: this.tableEQ.getData(),
-                });
-            }
-            return;
-        }
-
-        console.log('Enviando nuevos detalles únicos:', uniqueItems);
-
-        // Enviar datos al servidor mediante AJAX
+        // Enviar datos al servidor mediante AJAX para la base de datos
         const csrfToken = this.getCSRFToken();
         if (!csrfToken) {
             console.error('No se puede proceder con la solicitud AJAX sin el token CSRF');
@@ -1059,7 +1016,7 @@ class TableDetails {
             },
             body: JSON.stringify({
                 idgroupdetails: this.detalleAcuId,
-                items: uniqueItems
+                items: allItems
             })
         })
             .then(response => {
@@ -1072,46 +1029,20 @@ class TableDetails {
             })
             .then(data => {
                 console.log('Datos guardados exitosamente en la base de datos:', data);
-
-                // Actualizar los IDs de las filas en las tablas para evitar duplicidades en futuras operaciones
-                if (data.items && Array.isArray(data.items)) {
-                    this.updateTableRowsWithNewIds(data.items);
-                }
-
+                // Ejecutar callback con datos mínimos para el JSON
                 if (this.callback) {
-                    this.callback({
-                        id: this.detalleAcuId,
-                        rendimiento: document.getElementById("rendimiento").value || '',
-                        unidadMD: document.getElementById("unidadSelect").value,
-                        precio: this.calculateTotalGeneral(),
-                        manoObra: this.tableMO.getData(),
-                        materiales: this.tableMT.getData(),
-                        equipos: this.tableEQ.getData(),
-                    });
+                    this.callback(jsonDetails);
                 }
             })
             .catch(error => {
                 console.error('Error al guardar los datos en la base de datos:', error);
             });
-    } */
-    saveAllDetails() {
-        const id_presupuesto = document.getElementById('id_presupuestos').value;
+    }
 
-        // Recolectar datos de las tablas
-        const manoObraData = this.tableMO.getData();
-        const materialesData = this.tableMT.getData();
-        const equiposData = this.tableEQ.getData();
-
-        // Obtener valores de los campos comunes
-        const rendimiento = document.getElementById("rendimiento").value || '';
-        const unidadMD = document.getElementById("unidadSelect").value;
-        const totalGeneral = this.calculateTotalGeneral();
-
-        // Preparar los datos para el callback (como en la versión anterior)
+    /*saveAllDetails() {
         const allDetails = {
             detalles: {
-                id: this.detalleAcuId,
-                tipoespecialidad: this.tipoespecialidad,
+                id: 1736014370240,
                 rendimiento: document.getElementById("rendimiento").value,
                 unidadMD: document.getElementById("unidadSelect").value,
                 manoObra: this.tableMO.getData(),
@@ -1121,176 +1052,13 @@ class TableDetails {
             totalGeneral: this.calculateTotalGeneral()
         };
 
-        // PARTE 1: Ejecutar el callback con los datos completos (método anterior)
         if (this.callback) {
             this.callback({
                 ...allDetails,
                 precio: allDetails.totalGeneral
             });
         }
-
-        // PARTE 2: Guardar en el servidor (método nuevo)
-        // Mejorar la verificación de elementos nuevos o modificados
-        // y asegurar que el id_insumo se mantenga correctamente
-        const allItems = [
-            ...manoObraData
-                .filter(item => item.isNew || !item.id_detalle)
-                .map(item => ({
-                    indice: item.ind || item.indice || '',
-                    descripcion: item.descripcion || '',
-                    unidad: item.und || item.unidad || '',
-                    recursos: item.recursos || '-',
-                    cantidad: parseFloat(item.cantidad) || 0,
-                    precio: parseFloat(item.precio) || 0,
-                    total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
-                    tipoinsumo: 'manoObra',
-                    id_insumo: item.id_insumo || null,
-                    id_origen: item.id || null,
-                    presupuesto_designado: id_presupuesto || null,
-                    idgroupdetails: this.detalleAcuId,
-                    tipoespecialidad: this.tipoespecialidad
-                })),
-            ...materialesData
-                .filter(item => item.isNew || !item.id_detalle)
-                .map(item => ({
-                    indice: item.ind || item.indice || '',
-                    descripcion: item.descripcion || '',
-                    unidad: item.und || item.unidad || '',
-                    recursos: item.recursos || '-',
-                    cantidad: parseFloat(item.cantidad) || 0,
-                    precio: parseFloat(item.precio) || 0,
-                    total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
-                    tipoinsumo: 'materiales',
-                    id_insumo: item.id_insumo || null,
-                    id_origen: item.id || null,
-                    presupuesto_designado: id_presupuesto || null,
-                    idgroupdetails: this.detalleAcuId,
-                    tipoespecialidad: this.tipoespecialidad
-                })),
-            ...equiposData
-                .filter(item => item.isNew || !item.id_detalle)
-                .map(item => ({
-                    indice: item.ind || item.indice || '',
-                    descripcion: item.descripcion || '',
-                    unidad: item.und || item.unidad || '',
-                    recursos: item.recursos || '-',
-                    cantidad: parseFloat(item.cantidad) || 0,
-                    precio: parseFloat(item.precio) || 0,
-                    total: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0),
-                    tipoinsumo: 'equipos',
-                    id_insumo: item.id_insumo || null,
-                    id_origen: item.id || null,
-                    presupuesto_designado: id_presupuesto || null,
-                    idgroupdetails: this.detalleAcuId,
-                    tipoespecialidad: this.tipoespecialidad
-                }))
-        ];
-
-        // Filtrado mejorado para evitar duplicados basados en id_insumo
-        const uniqueItems = [];
-        const processedIds = new Set();
-
-        allItems.forEach(item => {
-            // Identificador único: usar id_insumo si existe, de lo contrario usar combinación de descripción y tipo
-            const uniqueIdentifier = item.id_insumo
-                ? `insumo_${item.id_insumo}`
-                : `desc_${item.descripcion}_tipo_${item.tipoinsumo}`;
-
-            // Si no hemos procesado este identificador antes, añadirlo a los elementos únicos
-            if (!processedIds.has(uniqueIdentifier)) {
-                processedIds.add(uniqueIdentifier);
-                uniqueItems.push(item);
-            } else {
-                console.log(`Insumo duplicado detectado y filtrado: ${uniqueIdentifier}`);
-            }
-        });
-
-        // Si no hay elementos nuevos o únicos, terminar aquí ya que ya ejecutamos el callback
-        if (uniqueItems.length === 0) {
-            console.log('No hay nuevos detalles únicos para guardar en el servidor.');
-            return;
-        }
-
-        console.log('Enviando nuevos detalles únicos al servidor:', uniqueItems);
-
-        // Enviar datos al servidor mediante AJAX
-        const csrfToken = this.getCSRFToken();
-        if (!csrfToken) {
-            console.error('No se puede proceder con la solicitud AJAX sin el token CSRF');
-            return;
-        }
-
-        fetch('/agregardetallesAcus', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                idgroupdetails: this.detalleAcuId,
-                items: uniqueItems
-            })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(`Error en la solicitud: ${response.status} - ${err.message || 'Sin mensaje'}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Datos guardados exitosamente en la base de datos:', data);
-
-                // Actualizar los IDs de las filas en las tablas para evitar duplicidades en futuras operaciones
-                if (data.items && Array.isArray(data.items)) {
-                    this.updateTableRowsWithNewIds(data.items);
-                }
-            })
-            .catch(error => {
-                console.error('Error al guardar los datos en la base de datos:', error);
-            });
-    }
-    // Método nuevo para actualizar los IDs de las filas después de guardar
-    updateTableRowsWithNewIds(savedItems) {
-        if (!savedItems || !Array.isArray(savedItems)) return;
-
-        savedItems.forEach(savedItem => {
-            // Solo procesar si tenemos id_origen para saber qué fila actualizar
-            if (!savedItem.id_origen) return;
-
-            // Determinar qué tabla contiene esta fila
-            let targetTable = null;
-            if (savedItem.tipoinsumo === 'manoObra') {
-                targetTable = this.tableMO;
-            } else if (savedItem.tipoinsumo === 'materiales') {
-                targetTable = this.tableMT;
-            } else if (savedItem.tipoinsumo === 'equipos') {
-                targetTable = this.tableEQ;
-            }
-
-            if (!targetTable) return;
-
-            // Buscar la fila correspondiente
-            const rows = targetTable.getRows();
-            for (let i = 0; i < rows.length; i++) {
-                const rowData = rows[i].getData();
-
-                // Comparar con id_origen
-                if (rowData.id == savedItem.id_origen) {
-                    // Actualizar la fila con los nuevos IDs
-                    rows[i].update({
-                        id: savedItem.id,              // ID de la base de datos
-                        id_detalle: savedItem.id,      // Marcar como ya guardado
-                        isNew: false                   // Ya no es nuevo
-                    });
-                    console.log(`Fila actualizada con nuevo ID: ${savedItem.id}`);
-                    break;
-                }
-            }
-        });
-    }
+    }*/
 
     calculateTotalGeneral() {
         const moTotal = this.tableMO.getCalcResults().bottom.parcial || 0;
@@ -1631,6 +1399,7 @@ class TableDetails {
                     materiales: this.tableMT.getData(),
                     equipos: this.tableEQ.getData()
                 },
+                id: 1736014370240,
                 precio: totalGeneral,
                 rendimiento: document.getElementById("rendimiento").value,
             });

@@ -12,6 +12,12 @@ import './proyectos/detallesproyectos.js';
 import './proyectos/reporteProyectos.js';
 
 import './contabilidad/balanceGV.js';
+
+//MANTENIMIENTO 
+import './programasgespro/mantenimiento.js';
+import './metrados/metrado_electricas.js';
+//COSTOSresources/js/costos/main.js
+import './costos/main.js';
 // Configurar globals ANTES de todo
 window.Alpine = Alpine;
 window.Swal = Swal;
@@ -21,9 +27,9 @@ const path = window.location.pathname;
 // Función para cargar módulos de manera segura
 async function loadModulesForRoute() {
     console.log('Cargando módulos para ruta:', path);
-    
+
     const loadPromises = [];
-    
+
     try {
         // CONTABILIDAD
         if (path.includes('/contabilidad') || path.includes('/kanban')) {
@@ -80,7 +86,7 @@ async function loadModulesForRoute() {
             await Promise.all(loadPromises);
             console.log(`✓ ${loadPromises.length} módulo(s) cargado(s) exitosamente`);
         }
-        
+
     } catch (error) {
         console.error('Error al cargar módulos:', error);
     }
@@ -89,16 +95,16 @@ async function loadModulesForRoute() {
 // Secuencia de inicialización correcta
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM cargado, iniciando secuencia...');
-    
+
     // 1. Primero cargar los módulos específicos de la ruta
     await loadModulesForRoute();
-    
+
     // 2. Pequeña pausa para asegurar que los módulos se registren
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     // 3. Finalmente iniciar Alpine
     Alpine.start();
-    
+
     console.log('Secuencia de inicialización completada');
 });
 

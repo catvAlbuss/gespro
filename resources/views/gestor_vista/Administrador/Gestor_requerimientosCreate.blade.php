@@ -409,9 +409,8 @@
             let contadorFilas = 1;
             let subtotalManoObra = 0;
             let subtotalMateriales = 0;
-            var materialesData = [];
-            var filasData = [];
             let totalGeneral = 0;
+
             // CÁLCULOS AUTOMÁTICOS - MANO DE OBRA
             function calcularTotalManoObra() {
                 const cantidad = parseFloat($("#cantidadmo").val()) || 0;
@@ -431,6 +430,48 @@
             }
 
             $("#cantidadInput, #precioUnitarioInput").on("input", calcularTotalMaterial);
+
+            // FUNCIÓN PARA OBTENER DATOS ACTUALES DE MANO DE OBRA
+            function obtenerDatosManoObra() {
+                const datosManoObra = [];
+                $("#manoobra tr[id^='filamo']").each(function() {
+                    const fila = $(this);
+                    const descripcion = fila.find("td:eq(1)").text().trim();
+                    const cantidad = parseFloat(fila.find("td:eq(2)").text()) || 0;
+                    const precio = parseFloat(fila.find("td:eq(3)").text().replace('S/ ', '')) || 0;
+                    const total = parseFloat(fila.find("td:eq(4)").text().replace('S/ ', '')) || 0;
+
+                    datosManoObra.push({
+                        descripcionmo: descripcion,
+                        cantidadmo: cantidad,
+                        precioUnitariomo: precio,
+                        totalmo: total
+                    });
+                });
+                return datosManoObra;
+            }
+
+            // FUNCIÓN PARA OBTENER DATOS ACTUALES DE MATERIALES
+            function obtenerDatosMateriales() {
+                const datosMateriales = [];
+                $("#materiales tr[id^='filam']").each(function() {
+                    const fila = $(this);
+                    const descripcion = fila.find("td:eq(1)").text().trim();
+                    const unidad = fila.find("td:eq(2)").text().trim();
+                    const cantidad = parseFloat(fila.find("td:eq(3)").text()) || 0;
+                    const precio = parseFloat(fila.find("td:eq(4)").text().replace('S/ ', '')) || 0;
+                    const total = parseFloat(fila.find("td:eq(5)").text().replace('S/ ', '')) || 0;
+
+                    datosMateriales.push({
+                        descripcionma: descripcion,
+                        unidadma: unidad,
+                        cantidadma: cantidad,
+                        precioUnitarioma: precio,
+                        totalma: total
+                    });
+                });
+                return datosMateriales;
+            }
 
             // AGREGAR MANO DE OBRA
             $("#agregarMano").click(function() {
@@ -464,13 +505,6 @@
                 contadorFilasmo++;
                 limpiarCamposManoObra();
                 actualizarTotales();
-
-                filasData.push({
-                    descripcionmo: descripcion,
-                    cantidadmo: cantidad,
-                    precioUnitariomo: precio,
-                    totalmo: total
-                });
             });
 
             // AGREGAR MATERIALES
@@ -507,25 +541,23 @@
                 contadorFilas++;
                 limpiarCamposMateriales();
                 actualizarTotales();
-
-                materialesData.push({
-                    cantidadma: cantidad,
-                    descripcionma: descripcion,
-                    unidadma: unidad,
-                    precioUnitarioma: precio,
-                    totalma: total
-                });
             });
 
-            // FUNCIONES DE ELIMINACIÓN
+            // FUNCIONES DE ELIMINACIÓN MEJORADAS
             window.eliminarFilaMO = function(id) {
-                $(`#filamo${id}`).remove();
-                actualizarTotales();
+                // Verificar si la fila existe antes de eliminar
+                if ($(`#filamo${id}`).length > 0) {
+                    $(`#filamo${id}`).remove();
+                    actualizarTotales();
+                }
             };
 
             window.eliminarFilaMaterial = function(id) {
-                $(`#filam${id}`).remove();
-                actualizarTotales();
+                // Verificar si la fila existe antes de eliminar
+                if ($(`#filam${id}`).length > 0) {
+                    $(`#filam${id}`).remove();
+                    actualizarTotales();
+                }
             };
 
             // ACTUALIZAR TODOS LOS TOTALES
@@ -565,14 +597,43 @@
                 $("#descripcionInput, #unidadInput, #cantidadInput, #precioUnitarioInput, #totalInput").val("");
             }
 
+            // VALIDACIÓN ANTES DEL ENVÍO
+            function validarDatos() {
+                const manoObraActual = obtenerDatosManoObra();
+                const materialesActuales = obtenerDatosMateriales();
+
+                if (manoObraActual.length === 0 && materialesActuales.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'Debe agregar al menos un ítem de mano de obra o material.',
+                    });
+                    return false;
+                }
+
+                return true;
+            }
+
             // INICIALIZAR TOTALES AL CARGAR
             actualizarTotales();
 
-            $('#formulario_requerimiento').submit(e => {
+            // ENVÍO DEL FORMULARIO MEJORADO
+            $('#formulario_requerimiento').submit(function(e) {
                 e.preventDefault();
+
+                // Validar antes del envío
+                if (!validarDatos()) {
+                    return;
+                }
+
+                // Obtener datos actuales (solo los visibles en pantalla)
+                const filasDataActuales = obtenerDatosManoObra();
+                const materialesDataActuales = obtenerDatosMateriales();
+
+                // Datos del formulario
                 const numero_orden_requerimiento = $('#numero_orden_requerimiento').val();
                 const solicitado_requerimiento = $('#solicitado_requerimiento').val();
-                const proyecto_designado = $('#proyecto_designado').val(); // Debería ser un número entero
+                const proyecto_designado = $('#proyecto_designado').val();
                 const nombre_requerimiento = $('#nombre_requerimiento').val();
                 const departamento_requerimiento = $('#departamento_requerimiento').val();
                 const correo_requerimiento = $('#correo_requerimiento').val();
@@ -580,17 +641,28 @@
                 const total_requerimientos = parseFloat(totalGeneral);
                 const empresaId = $('#empresaId').val();
                 const banco_req = $('#banco_req').val();
-                const nro_banco_req = ($('#nro_banco_req').val());
-                const cci_req = ($('#cci_req').val());
+                const nro_banco_req = $('#nro_banco_req').val();
+                const cci_req = $('#cci_req').val();
                 const titular_req = $('#titular_req').val();
                 const dni_req = parseInt($('#dni_req').val(), 10);
 
+                // Datos agrupados CON LA INFORMACIÓN ACTUAL
                 const datosAgrupados = {
-                    filasData: filasData,
-                    materialesData: materialesData,
+                    filasData: filasDataActuales,
+                    materialesData: materialesDataActuales,
+                    totales: {
+                        subtotalManoObra: subtotalManoObra,
+                        subtotalMateriales: subtotalMateriales,
+                        totalGeneral: totalGeneral,
+                        cantidadManoObra: filasDataActuales.length,
+                        cantidadMateriales: materialesDataActuales.length
+                    }
                 };
 
-                const formData = new FormData($('#formulario_requerimiento')[0]);
+                console.log('Datos que se enviarán:', datosAgrupados);
+
+                // Crear FormData
+                const formData = new FormData(this);
                 formData.append('numero_orden_requerimiento', numero_orden_requerimiento);
                 formData.append('solicitado_requerimiento', solicitado_requerimiento);
                 formData.append('proyecto_designado', proyecto_designado);
@@ -607,6 +679,17 @@
                 formData.append('dni_req', dni_req);
                 formData.append('datosAgrupados', JSON.stringify(datosAgrupados));
 
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Procesando...',
+                    text: 'Enviando requerimiento',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Enviar datos
                 $.ajax({
                     type: 'POST',
                     url: `/requerimiento_register/store`,
@@ -617,14 +700,17 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        console.log(response); // Maneja la respuesta del servidor
-                        if (response.success) { // Cambia 'status' por 'success'
+                        console.log('Respuesta del servidor:', response);
+                        Swal.close();
+
+                        if (response.success) {
                             Swal.fire({
                                 icon: 'success',
                                 title: '¡Éxito!',
                                 text: response.message,
+                                timer: 2000,
+                                timerProgressBar: true
                             }).then(() => {
-                                // Usa 'response.empresaId' en lugar de 'data.empresaId'
                                 window.location.href =
                                     `/gestor-requerimientog/${response.empresaId}`;
                             });
@@ -632,13 +718,22 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: response.message,
+                                text: response.message ||
+                                    'Ocurrió un error al procesar el requerimiento',
                             });
                         }
                     },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la petición:', error);
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de conexión',
+                            text: 'No se pudo conectar con el servidor. Intente nuevamente.',
+                        });
+                    }
                 });
             });
-
-        })
+        });
     </script>
 </x-app-layout>
