@@ -31,7 +31,7 @@
         class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-lg">
             <h2 class="text-lg font-semibold mb-4">Registrar Inventarios</h2>
-            <form id="productForm" action="{{ route('gestorinventarioReg.insertarexcel') }}" method="POST"
+            <form id="productForm" action="{{ route('inventarios.registrar.excel') }}" method="POST"
                 enctype="multipart/form-data">
                 @csrf
                 <div class="mb-4">
@@ -233,7 +233,7 @@
         });
 
 
-        const insertUrl = "{{ route('gestorinventarioReg.insertarexcel') }}";
+        const insertUrl = "{{ route('inventarios.registrar.excel') }}";
 
         document.getElementById('productForm').addEventListener('submit', (event) => {
             event.preventDefault(); // Previene el envío por defecto

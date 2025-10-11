@@ -53,7 +53,7 @@
                             x-transition:leave-end="opacity-0 transform scale-95"
                             class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 border border-gray-200 dark:border-gray-700 z-50">
                             <div class="p-2">
-                                <a href="{{ route('permissions.index') }}"
+                                <a href="{{ route('admin.permissions.index') }}"
                                     class="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200 group">
                                     <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-cyan-500" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +62,7 @@
                                     </svg>
                                     {{ __('Permisos') }}
                                 </a>
-                                <a href="{{ route('roles.index') }}"
+                                <a href="{{ route('admin.roles.index') }}"
                                     class="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200 group">
                                     <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-cyan-500" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +71,7 @@
                                     </svg>
                                     {{ __('Roles') }}
                                 </a>
-                                <a href="{{ route('users.index') }}"
+                                <a href="{{ route('admin.users.index') }}"
                                     class="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200 group">
                                     <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-cyan-500" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +120,7 @@
                     </x-nav-link>
 
                     {{-- Requerimientos --}}
-                    <x-nav-link :href="route('gestorrequerimientog', ['empresaId' => session('empresa_id')])"
+                    <x-nav-link :href="route('logistica.requerimientos.gestor', ['empresaId' => session('empresa_id')])"
                         class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -130,7 +130,7 @@
                     </x-nav-link>
 
                     {{-- Planner --}}
-                    <x-nav-link :href="route('gestorkanbangen', ['id' => session('empresa_id')])"
+                    <x-nav-link :href="route('actividades.kanban.gestor', ['id' => session('empresa_id')])"
                         class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +140,7 @@
                     </x-nav-link>
 
                     {{-- Kanban --}}
-                    <x-nav-link :href="route('kanban', ['id' => session('empresa_id')])"
+                    <x-nav-link :href="route('actividades.kanban', ['id' => session('empresa_id')])"
                         class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -150,7 +150,7 @@
                     </x-nav-link>
 
                     {{-- Proyectos --}}
-                    <x-nav-link :href="route('gestorproyectos', ['id' => session('empresa_id')])"
+                    <x-nav-link :href="route('proyectos.empresa', ['empresaId' => session('empresa_id')])"
                         class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -160,7 +160,7 @@
                     </x-nav-link>
 
                     {{-- Reportes --}}
-                    <x-nav-link :href="route('gestoreportesGen', ['id' => session('empresa_id')])"
+                    <x-nav-link :href="route('reportes.general', ['id' => session('empresa_id')])"
                         class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -170,7 +170,7 @@
                     </x-nav-link>
 
                     {{-- Trámites --}}
-                    <x-nav-link :href="route('Tramites', ['empresaId' => session('empresa_id')])"
+                    <x-nav-link :href="route('tramites.view', ['empresaId' => session('empresa_id')])"
                         class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -181,7 +181,7 @@
 
                     {{-- Programas (empresa_id 1 o 2) --}}
                     @if (session('empresa_id') == 1 || session('empresa_id') == 2)
-                        <x-nav-link :href="route('gestorconstruye', ['empresaId' => session('empresa_id')])"
+                        <x-nav-link :href="route('construye.principal', ['empresaId' => session('empresa_id')])"
                             class="px-1 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -214,7 +214,7 @@
                         </svg>
                         {{ __('Inicio') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('kanban', ['id' => session('empresa_id')])"
+                    <x-nav-link :href="route('actividades.kanban', ['id' => session('empresa_id')])"
                         class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -222,7 +222,7 @@
                         </svg>
                         {{ __('Kanban') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('Tramites', ['empresaId' => session('empresa_id')])"
+                    <x-nav-link :href="route('tramites.view', ['empresaId' => session('empresa_id')])"
                         class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-all duration-200">
                         <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -431,7 +431,7 @@
                         <span
                             class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ __('Gestión Administrativa') }}</span>
                     </div>
-                    <a href="{{ route('permissions.index') }}"
+                    <a href="{{ route('admin.permissions.index') }}"
                         class="flex items-center px-4 py-3 ml-4 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -439,7 +439,7 @@
                         </svg>
                         {{ __('Permisos') }}
                     </a>
-                    <a href="{{ route('roles.index') }}"
+                    <a href="{{ route('admin.roles.index') }}"
                         class="flex items-center px-4 py-3 ml-4 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -447,7 +447,7 @@
                         </svg>
                         {{ __('Roles') }}
                     </a>
-                    <a href="{{ route('users.index') }}"
+                    <a href="{{ route('admin.users.index') }}"
                         class="flex items-center px-4 py-3 ml-4 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -492,7 +492,7 @@
                         {{ __('Inicio') }}
                     </a>
 
-                    <a href="{{ route('gestorrequerimientog', ['empresaId' => session('empresa_id')]) }}"
+                    <a href="{{ route('logistica.requerimientos.gestor', ['empresaId' => session('empresa_id')]) }}"
                         class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -501,7 +501,7 @@
                         {{ __('Requerimientos') }}
                     </a>
 
-                    <a href="{{ route('gestorkanbangen', ['id' => session('empresa_id')]) }}"
+                    <a href="{{ route('actividades.kanban.gestor', ['id' => session('empresa_id')]) }}"
                         class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -510,7 +510,7 @@
                         {{ __('Planner') }}
                     </a>
 
-                    <a href="{{ route('kanban', ['id' => session('empresa_id')]) }}"
+                    <a href="{{ route('actividades.kanban', ['id' => session('empresa_id')]) }}"
                         class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -519,7 +519,7 @@
                         {{ __('Kanban') }}
                     </a>
 
-                    <a href="{{ route('gestorproyectos', ['id' => session('empresa_id')]) }}"
+                    <a href="{{ route('proyectos.empresa', ['empresaId' => session('empresa_id')]) }}"
                         class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -528,7 +528,7 @@
                         {{ __('Proyectos') }}
                     </a>
 
-                    <a href="{{ route('gestoreportesGen', ['id' => session('empresa_id')]) }}"
+                    <a href="{{ route('reportes.general', ['id' => session('empresa_id')]) }}"
                         class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -537,7 +537,7 @@
                         {{ __('Reportes') }}
                     </a>
 
-                    <a href="{{ route('Tramites', ['empresaId' => session('empresa_id')]) }}"
+                    <a href="{{ route('tramites.view', ['empresaId' => session('empresa_id')]) }}"
                         class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -547,7 +547,7 @@
                     </a>
 
                     @if (session('empresa_id') == 1 || session('empresa_id') == 2)
-                        <a href="{{ route('gestorconstruye', ['empresaId' => session('empresa_id')]) }}"
+                        <a href="{{ route('construye.principal', ['empresaId' => session('empresa_id')]) }}"
                             class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -579,7 +579,7 @@
                     </svg>
                     {{ __('Inicio') }}
                 </a>
-                <a href="{{ route('kanban', ['id' => session('empresa_id')]) }}"
+                <a href="{{ route('actividades.kanban', ['id' => session('empresa_id')]) }}"
                     class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -587,7 +587,7 @@
                     </svg>
                     {{ __('Kanban') }}
                 </a>
-                <a href="{{ route('Tramites', ['empresaId' => session('empresa_id')]) }}"
+                <a href="{{ route('tramites.view', ['empresaId' => session('empresa_id')]) }}"
                     class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-cyan-600 dark:hover:text-cyan-400 rounded-lg transition-all duration-200">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

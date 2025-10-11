@@ -12,19 +12,8 @@ class metradocomunicacion extends Model
     public $primaryKey = 'idmetradocomunicacion';
 
     protected $fillable = [
-        'nombre_proyecto',
-        'uei',
-        'codigosnip',
-        'codigocui',
-        'unidad_ejecutora',
-        'codigo_local',
-        'codigo_modular',
         'especialidad',
-        'localidad',
-        'fecha',
-        'ubicacion',
         'documentosdata',
         'resumenmetrados',
-        'proyectodesignado',
     ];
 }

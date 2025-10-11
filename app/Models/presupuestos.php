@@ -11,10 +11,6 @@ class presupuestos extends Model
     protected $table = 'presupuestos';
 
     protected $fillable = [
-        'nombreproyecto',
-        'propietario',
-        'ubicacion',
-        'fecha',
         'gastosgenerales',
         'utilidades',
         'igv',
@@ -22,5 +18,12 @@ class presupuestos extends Model
         'gastosupervicion',
         'costo_directo',
         'datapresupuestos',
+        'costos_pres_id',
+        'pres_mant_id',
     ];
+
+    public function costo()
+    {
+        return $this->belongsTo(Costos::class, 'costos_pres_id');
+    }
 }

@@ -22,7 +22,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-purple-blue-500"
-                                    href="{{ route('gestorcalendariogen', ['id' => $id]) }}">Calendarios</a>
+                                    href="{{ route('calendarios.trabajador.show', ['trabajador' => $id]) }}">Calendarios</a>
                             </div>
 
                             {{--  --}}
@@ -37,7 +37,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-purple-blue-500"
-                                    href="{{ route('gestorkanbangen', ['id' => $id]) }}">Planner Mensual</a>
+                                    href="{{ route('actividades.kanban.gestor', ['id' => $id]) }}">Planner Mensual</a>
                             </div> --}}
 
                             {{-- kamban --}}
@@ -72,7 +72,7 @@
                                             stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('kanban', ['id' => $id]) }}">
+                                <a href="{{ route('actividades.kanban', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Kamban</p>
                                 </a>
                             </div>
@@ -130,7 +130,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-purple-blue-500"
-                                    href="{{ route('gestoreportesGen', ['id' => $id]) }}">Reportes</a>
+                                    href="{{ route('reportes.general', ['id' => $id]) }}">Reportes</a>
                             </div>
 
 

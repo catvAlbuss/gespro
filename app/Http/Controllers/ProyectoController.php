@@ -107,10 +107,10 @@ class ProyectoController extends Controller
 
             Proyecto::create($data);
 
-            return redirect()->route('gestor-proyectos', ['empresaId' => $data['empresa_id']])
+            return redirect()->route('proyectos.empresa', ['empresaId' => $data['empresa_id']])
                 ->with('success', 'Proyecto creado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestor-proyectos', ['empresaId' => $request->empresa_id])
+            return redirect()->route('proyectos.empresa', ['empresaId' => $request->empresa_id])
                 ->with('error', 'Error al crear el Proyecto.');
         }
     }
@@ -135,10 +135,10 @@ class ProyectoController extends Controller
             $data = $request->only(['nombre_proyecto', 'descripcion_proyecto', 'tipoproyecto', 'empresa_id']);
 
             $proyecto->update($data);
-            return redirect()->route('gestor-proyectos', ['empresaId' => $proyecto->empresa_id])
+            return redirect()->route('proyectos.empresa', ['empresaId' => $proyecto->empresa_id])
                 ->with('success', 'Proyecto actualizado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestor-proyectos', ['empresaId' => $request->empresa_id])
+            return redirect()->route('proyectos.empresa', ['empresaId' => $request->empresa_id])
                 ->with('error', 'Error al actualizar el Proyecto.');
         }
     }
@@ -148,7 +148,7 @@ class ProyectoController extends Controller
         $empresaId = $proyecto->empresa_id;
         $proyecto->delete();
 
-        return redirect()->route('gestor-proyectos', ['empresaId' => $empresaId])
+        return redirect()->route('proyectos.empresa', ['empresaId' => $empresaId])
             ->with('success', 'Proyectos eliminada exitosamente.');
     }
 

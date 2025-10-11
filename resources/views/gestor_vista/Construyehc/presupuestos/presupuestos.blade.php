@@ -109,7 +109,7 @@
                 </a>
 
                 <!-- Campos ocultos -->
-                <input type="hidden" name="proyecto_id" id="proyecto_id" value="1">
+                <input type="hidden" name="proyecto_id" id="proyecto_id" value="1"> 
                 <input type="hidden" name="id_presupuestos" id="id_presupuestos" value="1">
                 <input type="hidden" name="costodirectovalue" id="costodirectovalue">
                 <input type="hidden" name="gastoGeneralTotal" id="gastoGeneralTotal" value="2">

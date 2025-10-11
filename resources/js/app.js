@@ -4,8 +4,13 @@ import Swal from 'sweetalert2';
 import Alpine from 'alpinejs';
 import '../css/app.css';
 
+/**Dashboard */
+import './dashboard/dashboardGeneral.js';
+
+/**Contabilidad */
 import './contabilidad/kanban.js';
 import './tramites/tramites.js';
+import './programasgespro/cotizador.js';
 
 import './proyectos/portadaproyectos.js';
 import './proyectos/detallesproyectos.js';
@@ -16,6 +21,7 @@ import './contabilidad/balanceGV.js';
 //MANTENIMIENTO 
 import './programasgespro/mantenimiento.js';
 import './metrados/metrado_electricas.js';
+import './metrados/metrado_comunicacion.js';
 //COSTOSresources/js/costos/main.js
 import './costos/main.js';
 // Configurar globals ANTES de todo

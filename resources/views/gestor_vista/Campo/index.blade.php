@@ -36,7 +36,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('valorizacionCampo.rederigircampoval', ['empresaId' => $empresaId]) }}">Gestion de
+                                    href="{{ route('campo.valorizacion.redirigir', ['empresaId' => $empresaId]) }}">Gestion de
                                     Valorización</a>
                             </div>
                             <div class="flex flex-col items-center gap-3 px-8 py-10 bg-white rounded-3xl shadow-main">
@@ -49,7 +49,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('gestorinventarioprin', ['empresaId' => $empresaId]) }}">Actas de Inicio Y Entrega</a>
+                                    href="{{ route('inventarios.principal', ['empresaId' => $empresaId]) }}">Actas de Inicio Y Entrega</a>
                             </div>
 
                         </div>

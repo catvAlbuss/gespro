@@ -81,14 +81,14 @@
                                         <td class="px-4 py-2 font-medium text-gray-900  dark:text-white">
                                             {{ $metrado->modulo }}</td>
                                         <td class="px-4 py-2 font-medium text-gray-900  dark:text-white">
-                                            <a href="{{route('metrado_gas.show', $metrado->idmetradogas)}}" class="btn text-blue-500">Visualizar</a>
+                                            <a href="{{route('metrados.gas.show', $metrado->idmetradogas)}}" class="btn text-blue-500">Visualizar</a>
                                         </td>
                                           <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">
-                                            <a href="{{ route('metrado_gas.edit', $metrado->idmetradogas) }}" class="btn text-yellow-500">Editar</a>
+                                            <a href="{{ route('metrados.gas.edit', $metrado->idmetradogas) }}" class="btn text-yellow-500">Editar</a>
                                         </td>
                                         <td class="px-4 py-2">
                                             <form
-                                                action="{{ route('metrado_gas.destroy', $metrado->idmetradogas) }}"
+                                                action="{{ route('metrados.gas.destroy', $metrado->idmetradogas) }}"
                                                 method="POST"
                                                 onsubmit="return confirm('¿Estás seguro de eliminar este registro?');">
                                                 @csrf
@@ -129,7 +129,7 @@
                     </button>
                 </div>
                 <!-- Modal body -->
-                <form class="p-4 md:p-5" method="POST" action="{{ route('metrado_gas.store') }}">
+                <form class="p-4 md:p-5" method="POST" action="{{ route('metrados.gas.store') }}">
                     @csrf
                     <div class="grid gap-4 mb-4 grid-cols-2">
                         <div class="col-span-2">

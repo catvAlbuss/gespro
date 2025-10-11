@@ -34,7 +34,7 @@
                                         </g>
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestoradmin', ['id' => $id]) }}">
+                                <a href="{{ route('gestion.admin', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Area Administracion</p>
                                 </a>
                             </div>
@@ -58,7 +58,7 @@
                                             stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestorcontabilidad', ['id' => $id]) }}">
+                                <a href="{{ route('gestion.contabilidad', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Area Contabilidad</p>
                                 </a>
                             </div>
@@ -78,7 +78,7 @@
                                         </g>
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestorproyectos', ['id' => $id]) }}">
+                                <a href="{{ route('proyectos.empresa', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Area Proyectos</p>
                                 </a>
                             </div>
@@ -133,7 +133,7 @@
                                         </g>
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestorlogisticoGen', ['empresaId' => $id]) }}">
+                                <a href="{{ route('logistica.general', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Area Logistica</p>
                                 </a>
                             </div>
@@ -170,7 +170,7 @@
                                             stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestortrabajadorgen', ['id' => $id]) }}">
+                                <a href="{{ route('personal.gestor', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Area Trabajador</p>
                                 </a>
                             </div>
@@ -187,7 +187,7 @@
                                             fill="#1C274C" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestorconstruye', ['empresaId' => $id]) }}">
+                                <a href="{{ route('construye.principal', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Programas</p>
                                 </a>
                             </div>
@@ -205,7 +205,7 @@
                                             fill="#1C274C" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestorprincampo', ['empresaId' => $id]) }}">
+                                <a href="{{ route('campo.principal', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Programas</p>
                                 </a>
                             </div>
@@ -223,7 +223,7 @@
                                             fill="#1C274C" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestordml', ['empresaId' => $id]) }}">
+                                <a href="{{ route('dml.principal', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Programas</p>
                                 </a>
                             </div>

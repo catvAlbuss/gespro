@@ -15,7 +15,7 @@
                         <div class="overflow-auto">
                             <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Requerimiento</h3>
                             <form method="POST"
-                                action="{{ isset($gestioninventario) ? route('gestorinventarioge.update', $gestioninventario->id_gestion_inv) : route('gestorinventarioge.store') }}">
+                                action="{{ isset($gestioninventario) ? route('inventarios.update', $gestioninventario->id_gestion_inv) : route('inventarios.store') }}">
                                 @csrf
                                 @if (isset($gestioninventario))
                                     @method('PUT')
@@ -72,15 +72,15 @@
                                                 <td class="px-6 py-4">{{ $gestioninventario->area_desiganda }}</td>
 
                                                 <td class="px-6 py-4">
-                                                    <a href="{{ route('gestorinventario', $gestioninventario->id_gestion_inv) }}" class="text-green-600">Abrir</a>
+                                                    <a href="{{ route('inventarios.detalle', $gestioninventario->id_gestion_inv) }}" class="text-green-600">Abrir</a>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <a href="{{ route('gestorinventarioge.edit', $gestioninventario->id_gestion_inv) }}"
+                                                    <a href="{{ route('inventarios.edit', $gestioninventario->id_gestion_inv) }}"
                                                         class="text-blue-600">Editar</a>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <form
-                                                        action="{{ route('gestorinventarioge.destroy', $gestioninventario->id_gestion_inv) }}"
+                                                        action="{{ route('inventarios.destroy', $gestioninventario->id_gestion_inv) }}"
                                                         method="POST" class="inline">
                                                         @csrf
                                                         @method('DELETE')

@@ -24,35 +24,35 @@
                 Marcar Asistencia
             </button>-->
 
-            <a href="{{ route('kanban', ['id' => $empresaId]) }}"
+            <a href="{{ route('actividades.kanban.gestor', ['id' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50">
                 Gestion Actividades
             </a>
 
 
-            <a href="{{ route('gestorrequerimientog', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('logistica.requerimientos.gestor', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50">
                 Requerimientos
             </a>
 
             <?php if ($empresaId == 3): ?>
-            <a href="{{ route('gestorprincampo', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('campo.principal', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50">
                 Campo
             </a>
             <?php endif; ?>
 
-            <a href="{{ route('gestorinventarioprin', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('inventarios.principal', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50">
                 Inventarios
             </a>
 
-            <a href="{{ route('gestor_reports_proyectos', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('proyectos.reportes', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50">
                 Reporte Proyectos
             </a>
 
-            <a href="{{ route('gestor_valesentrega', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('vales.gestor', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50">
                 Equipos Entregados
             </a>
@@ -387,7 +387,7 @@
             function cargarDatos(empresaId, trabajadorId) {
                 $.ajax({
                     type: 'GET',
-                    url: `/calendariotrabajadores/${empresaId}/${trabajadorId}`, // Envía ambos IDs
+                    url: `/calendarios/trabajadores/${empresaId}/${trabajadorId}`, // Envía ambos IDs
                     dataType: 'json',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -898,14 +898,14 @@
             const id_trabajador = document.getElementById('trabajador_id').value;
 
             $.ajax({
-                url: '/listar-tareas/' + id_trabajador,
+                url: '/actividades/listar/' + id_trabajador,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
                     // Verificar si la respuesta está vacía, es undefined o null
                     if (!data || data.length === 0) {
                         // Redirigir al gestor de tareas
-                        window.location.href = `/kanban/${id_trabajador}`;
+                        window.location.href = `/actividades/kanban/gestor/${id_trabajador}`;
                     } else {
                         // Guardar las tareas para mostrarlas después
                         window.tareas = data;
@@ -921,7 +921,7 @@
                         text: 'No se pudieron cargar las tareas. Serás redirigido al gestor de tareas.',
                         confirmButtonText: 'Aceptar'
                     }).then(() => {
-                        window.location.href = `/kanban/${id_trabajador}`;
+                        window.location.href = `/actividades/kanban/gestor/${id_trabajador}`;
                     });
                 }
             });
@@ -1420,7 +1420,7 @@
             }
 
             $.ajax({
-                url: '/listar-tareas/' + idtrabajador,
+                url: '/actividades/listar/' + idtrabajador,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1530,7 +1530,7 @@
     <script>
         async function obtenerAsistencia(empresaId, trabajadorId) {
             try {
-                const response = await fetch(`/asistencia_list_trab/${empresaId}/${trabajadorId}`);
+                const response = await fetch(`/calendarios/asistencia/${empresaId}/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1579,10 +1579,10 @@
     </script>
 
     {{-- Tareas Trabajador --}}
-    <script>
+    {{-- <script>
         async function obtenerTareas(trabajadorId) {
             try {
-                const response = await fetch(`/tareas_list_trab/${trabajadorId}`);
+                const response = await fetch(`/calendarios/tareas/listar/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1663,13 +1663,13 @@
             console.log(trabajadorId);
             obtenerTareas(trabajadorId);
         });
-    </script>
+    </script> --}}
 
     {{-- Lista de equipos --}}
     <script>
         async function obtenerEquipamiento(trabajadorId) {
             try {
-                const response = await fetch(`/valeequipos_list_trab/${trabajadorId}`);
+                const response = await fetch(`/vales/trabajador/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {

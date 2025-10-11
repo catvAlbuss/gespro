@@ -19,8 +19,8 @@
                     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4"></h3>
                         <div class="overflow-auto">
-                            <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                                {{ isset($proyecto) ? 'Editar Proyecto' : 'Crear Proyecto' }}</h3>
+                            {{-- <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                {{ isset($proyecto) ? 'Editar Proyecto' : 'Crear Proyecto' }}</h3> --}}
 
                             <form method="POST"
                                 action="{{ isset($proyecto) ? route('proyectos.update', $proyecto->id_proyectos) : route('proyectos.store') }}">
@@ -54,7 +54,7 @@
                                             CAMPO</option>
                                     </x-input-select>
                                 </div>
-                               @unless (isset($proyecto))
+                               {{-- @unless (isset($proyecto))
                                     @foreach ($proyectos as $proyectoItem)
                                         <div>
                                             @php
@@ -91,9 +91,9 @@
                                             <x-input-checkbox-pro name="documento_proyecto" :options="[$value => $proyectoItem->nombre_proyecto]" />
                                         </div>
                                     @endforeach
-                                @endunless
-                                <input type="hidden" name="empresa_id"
-                                    value="{{ old('empresa_id', $proyecto->empresa_id ?? $empresaId) }}">
+                                @endunless --}}
+                                {{-- <input type="hidden" name="empresa_id"
+                                    value="{{ old('empresa_id', $proyecto->empresa_id ?? $empresaId) }}"> --}}
                                 <br>
                                 <div class="flex items-center justify-end mt-4">
                                     <x-primary-button class="ml-4">
@@ -101,60 +101,11 @@
                                     </x-primary-button>
                                 </div>
                             </form>
-
-                            {{-- <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                                {{ isset($proyecto) ? 'Editar Proyecto' : 'Crear Proyecto' }}</h3>
-                            <form method="POST"
-                                action="{{ isset($proyecto) ? route('proyectos.update', $proyecto->id) : route('proyectos.store') }}">
-                                @csrf
-                                @if (isset($proyecto))
-                                    @method('PUT')
-                                @endif
-                                <div>
-                                    <x-input-label for="nombre_proyecto" :value="__('Nombre Proyecto')" />
-                                    <x-text-input id="nombre_proyecto" class="block mt-1 w-full" type="text"
-                                        name="nombre_proyecto"
-                                        value="{{ old('nombre_proyecto', $proyecto->nombre_proyecto ?? '') }}" required
-                                        autofocus />
-                                </div>
-                                <div>
-                                    <x-input-label for="descripcion_proyecto" :value="__('Descripción del Proyecto')" />
-                                    <x-text-input id="descripcion_proyecto" class="block mt-1 w-full" type="text"
-                                        name="descripcion_proyecto"
-                                        value="{{ old('descripcion_proyecto', $proyecto->descripcion_proyecto ?? '') }}"
-                                        required autofocus />
-                                </div>
-                                <div>
-                                    <x-input-label for="tipoproyecto" :value="__('Tipo Proyecto')" />
-                                    <x-input-select id="tipoproyecto" class="block mt-1 w-full" name="tipoproyecto"
-                                        required>
-                                        <option value="oficina"
-                                            {{ old('tipoproyecto', $proyecto->tipoproyecto ?? '') == 'oficina' ? 'selected' : '' }}>
-                                            Oficina</option>
-                                        <option value="campo"
-                                            {{ old('tipoproyecto', $proyecto->tipoproyecto ?? '') == 'campo' ? 'selected' : '' }}>
-                                            Campo</option>
-                                    </x-input-select>
-                                </div>
-                                @foreach ($proyectos as $proyecto)
-                                    <div>
-                                        <x-input-checkbox-group name="documento_proyecto" :options="[$proyecto->documento_proyecto => $proyecto->nombre_proyecto]"
-                                            :selected="isset($contabilidad)
-                                                ? $contabilidad->documento_proyecto->pluck('id')->toArray()
-                                                : []" />
-                                    </div>
-                                @endforeach
-                                <div class="flex items-center justify-end mt-4">
-                                    <x-primary-button class="ml-4">
-                                        {{ isset($proyecto) ? __('Actualizar') : __('Guardar') }}
-                                    </x-primary-button>
-                                </div>
-                            </form> --}}
                         </div>
                     </div>
                 </div>
 
-                <div class="w-full md:w-2/3 px-4 mt-4 md:mt-0">
+                {{-- <div class="w-full md:w-2/3 px-4 mt-4 md:mt-0">
                     <div class="overflow-auto">
                         <div class="bg-white dark:bg-gray-800 text-gray-950 dark:text-gray-50 shadow-md rounded-lg p-6">
                             <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Lista de
@@ -226,7 +177,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>

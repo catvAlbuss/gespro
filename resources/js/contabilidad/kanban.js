@@ -148,7 +148,7 @@ const app = createApp({
         // API calls
         const loadWorkers = async () => {
             try {
-                const response = await fetch(`/listar_trab/${empresaId.value}`);
+                const response = await fetch(`/actividades/trabajadores/${empresaId.value}`);
                 const data = await response.json();
                 workers.value = Array.isArray(data) ? data : Object.values(data);
 
@@ -164,7 +164,7 @@ const app = createApp({
 
         // ======================= LOAD =======================
         const loadProyectos = async () => {
-            const response = await fetch(`/listar_pro/${empresaId.value}`);
+            const response = await fetch(`/actividades/proyectos/${empresaId.value}`);
             const data = await response.json();
 
             proyectos.value = (Array.isArray(data) ? data : [data]).map((p) => {
@@ -332,7 +332,7 @@ const app = createApp({
                 const year = dateToUse.getFullYear();
 
                 // URL base para las tareas
-                let url = `/actividadpersonal?empresaId=${empresaId.value}&month=${month}&year=${year}`;
+                let url = `/actividades?empresaId=${empresaId.value}&month=${month}&year=${year}`;
 
                 // Si hay un trabajador seleccionado, agregarlo a la URL
                 if (selectedWorkerId) {
@@ -452,7 +452,7 @@ const app = createApp({
                     porcentTo: newTask.porcent
                 };
 
-                const response = await fetch('/actividadpersonal', {
+                const response = await fetch('/actividades', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -592,7 +592,7 @@ const app = createApp({
 
             isLoadingEdit.value = true;
             try {
-                const response = await fetch(`/actualizar_fichas/${editingTask.value.id}`, {
+                const response = await fetch(`/actividades/actualizar-fichas/${editingTask.value.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -658,7 +658,7 @@ const app = createApp({
             }
 
             try {
-                const response = await fetch(`/actividadpersonal/${taskId}`, {
+                const response = await fetch(`/actividades/${taskId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -746,7 +746,7 @@ const app = createApp({
             const oldStatus = task.status;
 
             try {
-                const response = await fetch(`/actualizar_actividadcol/${taskId}`, {
+                const response = await fetch(`/actividades/actualizar-columna/${taskId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

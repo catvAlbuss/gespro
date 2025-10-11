@@ -19,54 +19,54 @@
         @endif
 
         <div class="flex flex-col sm:flex-row flex-wrap items-center justify-start mt-4 space-x-2 py-2">
-            <a href="{{ route('gestorkanbangen', ['id' => $empresaId]) }}"
+            <a href="{{ route('actividades.kanban.gestor', ['id' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Planner
             </a>
 
-            <a href="{{ route('Tramites', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('tramites.view', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Trámites
             </a>
 
-            <a href="{{ route('kanban', ['id' => $empresaId]) }}"
+            <a href="{{ route('actividades.kanban', ['id' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Kanban
             </a>
 
-            <a href="{{ route('gestorproyectos', ['id' => $empresaId]) }}"
+            <a href="{{ route('proyectos.gestor', ['id' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 proyectos
             </a>
 
-            <a href="{{ route('gestorrequerimientog', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('logistica.requerimientos.gestor', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Requerimientos
             </a>
 
-            <a href="{{ route('gestor_reports_proyectos', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('proyectos.reportes', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Reporte de proyectos
             </a>
 
-            <a href="{{ route('gestorcontabilidad', ['id' => $empresaId]) }}"
+            <a href="{{ route('gestion.contabilidad', ['id' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Balance
             </a>
 
-            <a href="{{ route('gestorrequerimientog', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('logistica.requerimientos.gestor', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Requerimientos
             </a>
 
             @if ($empresaId == 3)
-                <a href="{{ route('mantenimientoCampo.rederigircampo', ['empresaId' => $empresaId]) }}"
+                <a href="{{ route('campo.principal', ['empresaId' => $empresaId]) }}"
                     class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                     Gestion Campo
                 </a>
             @endif
 
-            <a href="{{ route('gestor_valesentrega', ['empresaId' => $empresaId]) }}"
+            <a href="{{ route('vales.gestor', ['empresaId' => $empresaId]) }}"
                 class="relative py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 mb-2 sm:mb-0">
                 Equipos Entregados
             </a>
@@ -355,7 +355,7 @@
             function cargarDatos(empresaId) {
                 $.ajax({
                     type: 'GET', // Cambiado a GET para obtener datos
-                    url: `/calendariojefes/${empresaId}`,
+                    url: `/calendarios/jefes/${empresaId}`,
                     dataType: 'json', // Indica que esperamos un JSON
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Si es necesario
@@ -532,7 +532,7 @@
                         usuario_id: obj.event.type, // Aquí debes asignar el ID del usuario autenticado
                         proyecto_id: obj.event.proyecto_id,
                     };
-                    fetch('{{ route('calendariotrabajador.store') }}', {
+                    fetch('{{ route('calendarios.trabajador.store') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -575,7 +575,7 @@
                         usuario_id: obj.event.type, // Aquí debes asignar el ID del usuario autenticado
                         proyecto_id: obj.event.proyecto_id,
                     };
-                    const updateUrl = `/calendariotrabajador/${obj.event.id}`;
+                    const updateUrl = `/calendarios/trabajador/${obj.event.id}`;
 
                     fetch(updateUrl, {
                             method: 'PUT',
@@ -613,7 +613,7 @@
                 });
 
                 calendar.api.on("delete-event", (obj) => {
-                    const deleteUrl = `/calendariotrabajador/${obj.event.id}`;
+                    const deleteUrl = `/calendarios/trabajador/${obj.event.id}`;
 
                     fetch(deleteUrl, {
                             method: 'DELETE',
@@ -962,7 +962,7 @@
             const id_trabajador = document.getElementById('trabajador_id').value;
 
             $.ajax({
-                url: '/listar-tareas/' + id_trabajador,
+                url: '/actividades/listar/' + id_trabajador,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1484,7 +1484,7 @@
             }
 
             $.ajax({
-                url: '/listar-tareas/' + idtrabajador,
+                url: '/actividades/listar/' + idtrabajador,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1594,7 +1594,7 @@
     <script>
         async function obtenerAsistencia(empresaId, trabajadorId) {
             try {
-                const response = await fetch(`/asistencia_list_trab/${empresaId}/${trabajadorId}`);
+                const response = await fetch(`/calendarios/asistencia/${empresaId}/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1643,10 +1643,10 @@
     </script>
 
     {{-- Tareas Trabajador --}}
-    <script>
+    {{-- <script>
         async function obtenerTareas(trabajadorId) {
             try {
-                const response = await fetch(`/tareas_list_trab/${trabajadorId}`);
+                const response = await fetch(`/calendarios/tareas/listar/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1727,13 +1727,13 @@
             console.log(trabajadorId);
             obtenerTareas(trabajadorId);
         });
-    </script>
+    </script> --}}
 
     {{-- Lista de equipos --}}
     <script>
         async function obtenerEquipamiento(trabajadorId) {
             try {
-                const response = await fetch(`/valeequipos_list_trab/${trabajadorId}`);
+                const response = await fetch(`/vales/trabajador/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {

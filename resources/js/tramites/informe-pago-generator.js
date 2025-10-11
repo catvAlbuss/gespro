@@ -114,7 +114,7 @@ const procesarProyectosEfectuados = (tareasAprobadas) => {
     sum + parseFloat(proyecto[3]), 0
   );
 
-  proyectos.push(["TOTAL", "", "", totalDias.toString(), ""]);
+  //proyectos.push(["TOTAL", "", "", totalDias.toString(), ""]);
 
   return proyectos;
 };
@@ -189,28 +189,62 @@ const calcularDescuentosBonificaciones = (payload) => {
 /**
  * Calcula el sueldo neto final
  */
+
 const calcularSueldoNeto = (payload, datosDescuentos, proyectosData) => {
+    console.log(proyectosData);
   const { usuario } = payload;
   const sueldoBase = parseFloat(usuario.sueldo_base);
   const diasLaborables = obtenerDiasLaborables();
 
-  // Calcular días trabajados
+  // ✅ Paso 1: Calcular sueldo diario
+  const sueldoDiario = sueldoBase / diasLaborables;
+
+  // ✅ Paso 2: Calcular total de días trabajados
   let totalDiasTrabajados = 0;
-  for (let i = 0; i < proyectosData.length - 1; i++) {
-    totalDiasTrabajados += parseFloat(proyectosData[i][3]);
+  for (let i = 0; i < proyectosData.length; i++) {
+    totalDiasTrabajados += parseFloat(proyectosData[i][3]); // Asumiendo que [3] tiene los días trabajados
   }
 
-  // Ajuste si está cerca del máximo
-  if (totalDiasTrabajados >= 24.90 && totalDiasTrabajados <= diasLaborables) {
-    totalDiasTrabajados = diasLaborables;
-  }
+  console.log(sueldoBase);
+  console.log(diasLaborables);
+  console.log(sueldoDiario);
+  console.log(totalDiasTrabajados);
+  // ✅ Paso 3: Calcular sueldo proporcional
+  const sueldoProporcional = sueldoDiario * totalDiasTrabajados;
 
-  const sueldoProporcional = (sueldoBase / diasLaborables) * totalDiasTrabajados;
-  const totalDescuentos = parseFloat(datosDescuentos[5][2]); // TOTAL DE DESCUENTO
-  const totalBonificaciones = parseFloat(datosDescuentos[7][2]); // TOTAL DE BONIFICACIÓN
-
-  return (sueldoProporcional + totalBonificaciones - totalDescuentos).toFixed(2);
+  // ✅ Paso 4: Obtener descuentos y bonificaciones
+  const totalDescuentos = parseFloat(datosDescuentos[5][2]) || 0;      // Total de descuentos
+  console.log(totalDescuentos);
+  const totalBonificaciones = parseFloat(datosDescuentos[7][2]) || 0;  // Total de bonificaciones
+  console.log(totalBonificaciones);
+  // ✅ Paso 5: Calcular sueldo neto
+  const sueldoNeto = sueldoProporcional + totalBonificaciones - totalDescuentos;
+  console.log(sueldoNeto);
+  return sueldoNeto.toFixed(2);
 };
+
+// const calcularSueldoNeto = (payload, datosDescuentos, proyectosData) => {
+//   const { usuario } = payload;
+//   const sueldoBase = parseFloat(usuario.sueldo_base);
+//   const diasLaborables = obtenerDiasLaborables();
+
+//   // Calcular días trabajados
+//   let totalDiasTrabajados = 0;
+//   for (let i = 0; i < proyectosData.length - 1; i++) {
+//     totalDiasTrabajados += parseFloat(proyectosData[i][3]);
+//   }
+
+//   // Ajuste si está cerca del máximo
+//   if (totalDiasTrabajados >= 24.90 && totalDiasTrabajados <= diasLaborables) {
+//     totalDiasTrabajados = diasLaborables;
+//   }
+
+//   const sueldoProporcional = (sueldoBase / diasLaborables) * totalDiasTrabajados;
+//   const totalDescuentos = parseFloat(datosDescuentos[5][2]); // TOTAL DE DESCUENTO
+//   const totalBonificaciones = parseFloat(datosDescuentos[7][2]); // TOTAL DE BONIFICACIÓN
+
+//   return (sueldoProporcional + totalBonificaciones - totalDescuentos).toFixed(2);
+// };
 
 // ============================================================================
 // GENERADOR DE PDF
@@ -512,7 +546,7 @@ const agregarFirmas = async (pdf, payload, startY, startX) => {
         }
 
         // 3. Cálculo dinámico de la posición X para cada columna
-        const currentX = startX + (colIndex * (firmaWidth + spacingX))-10;
+        const currentX = startX + (colIndex * (firmaWidth + spacingX)) - 10;
         const firmaBase64 = await loadImageAsBase64(firmaData.archivo);
 
         // Dibuja la imagen de la firma
@@ -616,7 +650,7 @@ const exportarIP = async (tramite, csrfToken, empresaId) => {
     const fecha = new Date();
     const mesSolicitadoInfo = tramite.fecha_informe_sol || fecha.getMonth();
 
-    const response = await fetch('/get-informe-pago-tramitado', {
+    const response = await fetch('/tramites/informe-pago', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

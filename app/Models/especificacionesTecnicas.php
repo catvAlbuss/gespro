@@ -10,7 +10,12 @@ class especificacionesTecnicas extends Model
     use HasFactory;
     protected $table = 'especificaciones_tecnicas';
     protected $fillable = [
-        'nameEspecificacionTecnica',
         'datosEspecificacionTecnica',
+        'costos_ettp_id',
     ];
+
+    public function costo()
+    {
+        return $this->belongsTo(Costos::class, 'costos_ettp_id');
+    }
 }

@@ -1586,7 +1586,7 @@
                 // Hacer la solicitud AJAX
                 $.ajax({
                     type: 'POST',
-                    url: `/gestorReportes/obtenerAsistenciaPersonal/${empresaId}/${mes_reporte_asistencia}`, // Enviar empresaId y mes_reporte_asistencia
+                    url: `/reportes/asistencia/${empresaId}/${mes_reporte_asistencia}`, // Enviar empresaId y mes_reporte_asistencia
                     data: formData,
                     contentType: false, // Para no establecer un tipo de contenido manual
                     processData: false, // Para evitar que jQuery procese los datos

@@ -24,7 +24,7 @@
                 </button>
             </div>
             <form id="updateForm" method="POST"
-                action="{{ route('gestorrequerimientos_mobra.actualizarmanoObra', '') }}">
+                action="{{ route('logistica.requerimientos.mano.obra.actualizar', '') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id_mano_obra" id="modal_id_mano_obra" value="">
@@ -81,7 +81,7 @@
                 </button>
             </div>
             <form id="updateMaterialForm" method="POST"
-                action="{{ route('gestorrequerimientos_material.actualizarmaterial', '') }}">
+                action="{{ route('logistica.requerimientos.material.actualizar', '') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id_materiales_req" id="modal_id_materiales_req" value="">
@@ -145,7 +145,7 @@
                 </button>
             </div>
             <form id="updateDepositoForm" method="POST"
-                action="{{ route('gestorrequerimientos_dep.actualizardeposito', '') }}">
+                action="{{ route('logistica.requerimientos.deposito.actualizar', '') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id_depositoreq" id="modal_id_depositoreq" value="">
@@ -410,7 +410,7 @@
                                                             <button onclick="openModal({{ $obra }})"
                                                                 class="text-indigo-600 hover:text-indigo-900">Editar</button>
                                                             <form
-                                                                action="{{ route('gestorrequerimientos.eliminarmanoObra', $obra->id_mano_obra) }}"
+                                                                action="{{ route('logistica.requerimientos.mano.obra.eliminar', $obra->id_mano_obra) }}"
                                                                 method="POST" class="inline">
                                                                 @csrf
                                                                 @method('DELETE')
@@ -504,7 +504,7 @@
                                                                 onclick="openMaterialEditModal({{ $material }})"
                                                                 class="text-indigo-600 hover:text-indigo-900">Editar</button>
                                                             <form
-                                                                action="{{ route('gestorrequerimientos.eliminarmateriales', $material->id_materiales_req) }}"
+                                                                action="{{ route('logistica.requerimientos.material.eliminar', $material->id_materiales_req) }}"
                                                                 method="POST" class="inline">
                                                                 @csrf
                                                                 @method('DELETE')
@@ -656,7 +656,7 @@
 
                                 <!-- Eliminar -->
                                 <form
-                                    action="{{ route('requerimientos_eliminar.eliminar', $requerimiento->id_requerimiento) }}"
+                                    action="{{ route('logistica.requerimientos.eliminar', $requerimiento->id_requerimiento) }}"
                                     method="POST"
                                     onsubmit="return confirm('¿Está seguro de que desea rechazar/eliminar este requerimiento?')">
                                     @csrf
@@ -726,7 +726,7 @@
             <div class="space-y-6">
                 @if ($canApproveAdmin)
                     <!-- Upload Form -->
-                    <form action="{{ route('requerimientos_aprobar.aprobar', $requerimiento->id_requerimiento) }}"
+                    <form action="{{ route('logistica.requerimientos.aprobar', $requerimiento->id_requerimiento) }}"
                         method="POST" enctype="multipart/form-data" class="space-y-4">
                         @csrf
 
@@ -862,7 +862,7 @@
             $id('modal_precio_uni_manoobra').value = obra.precio_uni_manoobra || '';
             $id('updateModal').classList.remove('hidden');
             const form = $id('updateForm');
-            if (form) form.action = '/gestorrequerimientos_mobra/' + obra.id_mano_obra;
+            if (form) form.action = '/logistica/requerimientos/mano-obra/' + obra.id_mano_obra;
         }
 
         function closeModal() {
@@ -880,7 +880,7 @@
             const modal = $id('updateMaterialModal');
             if (modal) modal.classList.remove('hidden');
             const form = $id('updateMaterialForm');
-            if (form) form.action = '/gestorrequerimientos_material/' + material.id_materiales_req;
+            if (form) form.action = '/logistica/requerimientos/material/' + material.id_materiales_req;
         }
 
         function closeMaterialModal() {
@@ -899,7 +899,7 @@
             const modal = $id('updateDepositoModal');
             if (modal) modal.classList.remove('hidden');
             const form = $id('updateDepositoForm');
-            if (form) form.action = '/gestorrequerimientos_dep/' + deposito.id_depositoreq;
+            if (form) form.action = '/logistica/requerimientos/deposito/' + deposito.id_depositoreq;
         }
 
         function closeDepositoModal() {

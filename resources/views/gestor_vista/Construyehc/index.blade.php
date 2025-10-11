@@ -58,7 +58,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Acceso rápido a los diseños y
                                         memoria de cálculo.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('gestorinstalacions', ['empresaId' => $empresaId]) }}"
+                                        <a href="{{ route('construye.sanitarias', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded text-sm">Abrir</a>
                                     </div>
                                 </div>
@@ -83,7 +83,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Listado y acceso a metrados
                                         sanitarias.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('metradosanitarias.index') }}"
+                                        <a href="{{ route('metrados.sanitarias.index') }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded text-sm">Mostrar</a>
                                     </div>
                                 </div>
@@ -93,7 +93,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Metrados eléctricos y detalles.
                                     </p>
                                     <div class="mt-3">
-                                        <a href="{{ route('metradoelectricas.index') }}"
+                                        <a href="{{ route('metrados.electricas.index') }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded text-sm">Mostrar</a>
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@
                                     <h3 class="font-medium">Comunicaciones</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Metrados comunicaciones.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('metradocomunicacion.index') }}"
+                                        <a href="{{ route('metrados.comunicacion.index') }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded text-sm">Mostrar</a>
                                     </div>
                                 </div>
@@ -111,7 +111,7 @@
                                     <h3 class="font-medium">Gas</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Metrados de gas.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('metrado_gas.index') }}"
+                                        <a href="{{ route('metrados.gas.index') }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded text-sm">Mostrar</a>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                                     <h3 class="font-medium">Estructuras</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Metrados de estructuras.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('metradoestructuras.index') }}"
+                                        <a href="{{ route('metrados.estructuras.index') }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded text-sm">Mostrar</a>
                                     </div>
                                 </div>
@@ -136,8 +136,8 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Accede a los presupuestos del
                                         proyecto.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('presupuestosAcu', ['empresaId' => $empresaId]) }}"
-                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Visualizar</a>
+                                        {{-- <a href="{{ route('presupuestosAcu', ['empresaId' => $empresaId]) }}"
+                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Visualizar</a> --}}
                                     </div>
                                 </div>
 
@@ -145,8 +145,8 @@
                                     <h3 class="font-medium">Especificaciones Técnicas</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Documentos y notas técnicas.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('especificacionesTecnicas', ['empresaId' => $empresaId]) }}"
-                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Mostrar</a>
+                                        {{-- <a href="{{ route('especificacionesTecnicas', ['empresaId' => $empresaId]) }}"
+                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Mostrar</a> --}}
                                     </div>
                                 </div>
 
@@ -155,8 +155,8 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Diagramas y planificación
                                         temporal.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('diagramaGant', ['empresaId' => $empresaId]) }}"
-                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Mostrar</a>
+                                        {{-- <a href="{{ route('diagramaGant', ['empresaId' => $empresaId]) }}"
+                                            class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded text-sm">Mostrar</a> --}}
                                     </div>
                                 </div>
 
@@ -186,9 +186,9 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Acciones sobre cisterna y
                                         tanque.</p>
                                     <div class="mt-3 space-x-2">
-                                        <a href="{{ route('gestorcisterna', ['empresaId' => $empresaId]) }}"
+                                        <a href="{{ route('construye.cisterna', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Cisterna</a>
-                                        <a href="{{ route('gestortanque', ['empresaId' => $empresaId]) }}"
+                                        <a href="{{ route('construye.tanque', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Tanque</a>
                                     </div>
                                 </div>
@@ -198,9 +198,9 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Acciones sobre agua y desague
                                     </p>
                                     <div class="mt-3 space-x-2">
-                                        <a href="{{ route('calculoagua', ['empresaId' => $empresaId]) }}"
+                                        <a href="{{ route('programas.agua', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Agua</a>
-                                        <a href="{{ route('calculodesague', ['empresaId' => $empresaId]) }}"
+                                        <a href="{{ route('programas.desague', ['empresaId' => $empresaId]) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Desague</a>
                                     </div>
                                 </div>
@@ -209,7 +209,7 @@
                                     <h3 class="font-medium">Aire Acondicionado</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
                                         relacionadas con HCO.</p>
-                                    <a href="{{ route('calculoaireacondicionado', ['empresaId' => $empresaId]) }}"
+                                    <a href="{{ route('programas.aire', ['empresaId' => $empresaId]) }}"
                                         class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Aire
                                         Acondicionado</a>
                                 </div>
@@ -218,7 +218,7 @@
                                     <h3 class="font-medium">Caida Tension</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
                                         relacionadas con HCO.</p>
-                                    <a href="{{ route('calculocaidatension', ['empresaId' => $empresaId]) }}"
+                                    <a href="{{ route('programas.tension', ['empresaId' => $empresaId]) }}"
                                         class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Caida
                                         Tension </a>
                                 </div>
@@ -227,7 +227,7 @@
                                     <h3 class="font-medium">Pozo a Tierra y Pararrayo</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Enlaces y utilidades
                                         relacionadas con HCO.</p>
-                                    <a href="{{ route('calculopozopararrayo', ['empresaId' => $empresaId]) }}"
+                                    <a href="{{ route('programas.pozo', ['empresaId' => $empresaId]) }}"
                                         class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Pozo
                                         a tierra y pararrayo</a>
                                 </div>
@@ -235,7 +235,7 @@
                                 <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow">
                                     <h3 class="font-medium">Pruebas de Metrados</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400"></p>
-                                    <a href="{{ route('calculometrados', ['empresaId' => $empresaId]) }}"
+                                    <a href="{{ route('programas.metrados', ['empresaId' => $empresaId]) }}"
                                         class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white rounded text-sm">Metrados</a>
                                 </div>
                             </div>

@@ -28,7 +28,7 @@
             <div class="flex justify-between items-center">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
                 @if (auth()->user()->unreadNotifications->count() > 0)
-                    <form action="{{ route('notifications.markAllAsRead') }}" method="POST">
+                    <form action="{{ route('notificaciones.marcar.todas') }}" method="POST">
                         @csrf
                         <button type="submit"
                             class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
@@ -56,7 +56,7 @@
                             </p>
                         </div>
                         @unless ($notification->read_at)
-                            <form action="{{ route('notifications.markAsRead', $notification->id) }}" method="POST"
+                            <form action="{{ route('notificaciones.marcar.leida', $notification->id) }}" method="POST"
                                 class="ml-3">
                                 @csrf
                                 <button type="submit" class="text-blue-600 hover:text-blue-800">

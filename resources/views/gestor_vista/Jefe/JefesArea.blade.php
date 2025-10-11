@@ -350,7 +350,7 @@
             function cargarDatos(empresaId) {
                 $.ajax({
                     type: 'GET', // Cambiado a GET para obtener datos
-                    url: `/calendariojefes/${empresaId}`,
+                    url: `/calendarios/jefes/${empresaId}`,
                     dataType: 'json', // Indica que esperamos un JSON
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // Si es necesario
@@ -543,7 +543,7 @@
                         usuario_id: obj.event.type, // Aquí debes asignar el ID del usuario autenticado
                         proyecto_id: obj.event.proyecto_id,
                     };
-                    fetch('{{ route('calendariotrabajador.store') }}', {
+                    fetch('{{ route('calendarios.trabajador.store') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -586,7 +586,7 @@
                         usuario_id: obj.event.type, // Aquí debes asignar el ID del usuario autenticado
                         proyecto_id: obj.event.proyecto_id,
                     };
-                    const updateUrl = `/calendariotrabajador/${obj.event.id}`;
+                    const updateUrl = `/calendarios/trabajador/${obj.event.id}`;
 
                     fetch(updateUrl, {
                             method: 'PUT',
@@ -624,7 +624,7 @@
                 });
 
                 calendar.api.on("delete-event", (obj) => {
-                    const deleteUrl = `/calendariotrabajador/${obj.event.id}`;
+                    const deleteUrl = `/calendarios/trabajador/${obj.event.id}`;
 
                     fetch(deleteUrl, {
                             method: 'DELETE',
@@ -996,14 +996,14 @@
             const id_trabajador = document.getElementById('trabajador_id').value;
 
             $.ajax({
-                url: '/listar-tareas/' + id_trabajador,
+                url: '/actividades/listar/' + id_trabajador,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
                     // Verificar si la respuesta está vacía, es undefined o null
                     if (!data || data.length === 0) {
                         // Redirigir al gestor de tareas
-                        window.location.href = `/kanban/${id_trabajador}`;
+                        window.location.href = `/actividades/kanban/gestor/${id_trabajador}`;
                     } else {
                         // Guardar las tareas para mostrarlas después
                         window.tareas = data;
@@ -1019,7 +1019,7 @@
                         text: 'No se pudieron cargar las tareas. Serás redirigido al gestor de tareas.',
                         confirmButtonText: 'Aceptar'
                     }).then(() => {
-                        window.location.href = `/kanban/${id_trabajador}`;
+                        window.location.href = `/actividades/kanban/gestor/${id_trabajador}`;
                     });
                 }
             });
@@ -1518,7 +1518,7 @@
             }
 
             $.ajax({
-                url: '/listar-tareas/' + idtrabajador,
+                url: '/actividades/listar/' + idtrabajador,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1628,7 +1628,7 @@
     <script>
         async function obtenerAsistencia(empresaId, trabajadorId) {
             try {
-                const response = await fetch(`/asistencia_list_trab/${empresaId}/${trabajadorId}`);
+                const response = await fetch(`/calendarios/asistencia/${empresaId}/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1677,10 +1677,10 @@
     </script>
 
     {{-- Tareas Trabajador --}}
-    <script>
+    {{-- <script>
         async function obtenerTareas(trabajadorId) {
             try {
-                const response = await fetch(`/tareas_list_trab/${trabajadorId}`);
+                const response = await fetch(`//calendarios/tareas/listar/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1760,13 +1760,13 @@
             const trabajadorId = document.getElementById('trabajador_id').value;
             obtenerTareas(trabajadorId);
         });
-    </script>
+    </script> --}}
 
     {{-- Lista de equipos --}}
     <script>
         async function obtenerEquipamiento(trabajadorId) {
             try {
-                const response = await fetch(`/valeequipos_list_trab/${trabajadorId}`);
+                const response = await fetch(`/vales/trabajador/${trabajadorId}`);
                 const data = await response.json();
 
                 if (response.ok) {

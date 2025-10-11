@@ -899,10 +899,6 @@ class Table {
             const costoDirecto = parentsData.reduce((acc, item) => acc + item.subtotal, 0);
             const dataToSend = {
                 id: id_presupuesto,
-                gastosgenerales: 1,
-                utilidades: 1,
-                igv: 1,
-                expediente: 1,
                 totalmetrados: parentsData,
                 costo_directo: costoDirecto,
                 datapresupuestos: allData,

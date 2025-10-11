@@ -63,14 +63,15 @@ class ContabilidadController extends Controller
             'fecha_ingreso_doc' => 'required|date',
             'empresa_id' => 'required|integer',
         ]);
+        $empresa_id = $request->empresa_id;
 
         try {
             $data = $request->all();
             Contabilidad::create($data);
-            return redirect()->route('gestor-contabilidad', ['empresaId' => $data['empresa_id']])
+            return redirect()->route('contabilidad.balances', ['empresaId' => $request->empresa_id])
                 ->with('success', 'Contabilidad creada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestor-contabilidad', ['empresaId' => $request->empresa_id])
+            return redirect()->route('contabilidad.balances', ['empresaId' => $request->empresa_id])
                 ->with('error', 'Error al crear la Contabilidad.');
         }
     }
@@ -78,7 +79,7 @@ class ContabilidadController extends Controller
     public function edit(Contabilidad $contabilidad)
     {
         $contabilidads = Contabilidad::where('empresa_id', $contabilidad->empresa_id)->get();
-        return view('gestor_vista.Administrador.Gestor_contabilidad', compact('contabilidads', 'contabilidad'));
+        return view('gestor_vista.Administrador.Gestor_adm_balance', compact('contabilidads', 'contabilidad'));
     }
 
     public function update(Request $request, Contabilidad $contabilidad)
@@ -94,10 +95,10 @@ class ContabilidadController extends Controller
         try {
             $contabilidad->update($request->all());
 
-            return redirect()->route('gestor-contabilidad', ['empresaId' => $contabilidad->empresa_id])
+            return redirect()->route('contabilidad.balances', ['empresaId' => $request->empresa_id])
                 ->with('success', 'Contabilidad actualizada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestor-contabilidad', ['empresaId' => $request->empresa_id])
+            return redirect()->route('contabilidad.balances', ['empresaId' => $request->empresa_id])
                 ->with('error', 'Error al actualizar la Contabilidad.');
         }
     }
@@ -107,8 +108,8 @@ class ContabilidadController extends Controller
         $empresaId = $contabilidad->empresa_id;
         $contabilidad->delete();
 
-        return redirect()->route('gestor-contabilidad', ['empresaId' => $empresaId])
-            ->with('success', 'Contabilidad eliminada exitosamente.');
+        return redirect()->route('contabilidad.balances', ['empresaId' => $empresaId])
+            ->with('success', 'balances eliminada exitosamente.');
     }
 
     /*public function updatebalancereal(Request $request)

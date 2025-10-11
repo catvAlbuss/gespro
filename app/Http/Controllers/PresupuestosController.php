@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\presupuestos;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -270,11 +271,7 @@ class PresupuestosController extends Controller
         // Validar los datos de entrada
         $request->validate([
             'id' => 'required|integer',
-            'gastosgenerales' => 'required|integer',
-            'utilidades' => 'required|integer',
-            'igv' => 'required|integer',
-            'expediente' => 'required|integer',
-            'totalmetrados' => 'required|array', //'required|integer',
+            'totalmetrados' => 'required|array',
             'costo_directo' => 'required|numeric',
             'datapresupuestos' => 'required|array',
         ]);
@@ -287,10 +284,6 @@ class PresupuestosController extends Controller
 
         if ($presupuesto) {
             // Actualizar los campos en la base de datos
-            $presupuesto->gastosgenerales = $request->gastosgenerales;
-            $presupuesto->utilidades = $request->utilidades;
-            $presupuesto->igv = $request->igv;
-            $presupuesto->expediente = $request->expediente;
             $presupuesto->totalmetrados = $request->totalmetrados;
             $presupuesto->costo_directo = $request->costo_directo;
             $presupuesto->datapresupuestos = $request->datapresupuestos;
@@ -512,7 +505,7 @@ class PresupuestosController extends Controller
             }
         }
     }
-    
+
     //Anterior CARGOS
     // private function aplanarEstructuraMateriales($items, &$estructuraMateriales)
     // {
@@ -718,17 +711,13 @@ class PresupuestosController extends Controller
 
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of the 
      */
     public function index()
     {
         $presupuesto = presupuestos::select(
             'id',
             'datapresupuestos',
-            'gastosgenerales',
-            'utilidades',
-            'igv',
-            'expediente',
             'totalmetrados',
             'costo_directo',
         )->get();
@@ -757,22 +746,55 @@ class PresupuestosController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(presupuestos $presupuestos, $id)
+    public function show(string $id)
     {
-        $presupuesto = Presupuestos::select('id', 'datapresupuestos')->find($id);
+        try {
+            $presupuestos = presupuestos::findOrFail($id);
 
-        if (!$presupuesto) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Presupuesto no encontrado'
-            ], 404);
+            // Si es una petición AJAX, devolver JSON
+            if (request()->expectsJson()) {
+                // Preparar datos para el modal de edición
+                $data = [
+                    'totalmetrados' => $presupuestos->totalmetrados,
+                    'costo_directo' => $presupuestos->costo_directo,
+                    'datapresupuestos' => $presupuestos->datapresupuestos,
+                    'costos_pres_id' => $presupuestos->costos_pres_id,
+                    'pres_mant_id' => $presupuestos->pres_mant_id
+                ];
+
+                return response()->json($data);
+            }
+
+            // Para vista normal resource.resources/views/gestor_vista/Construyehc/presupuestos/presupuestos.blade.php
+            return view('gestor_vista.Construyehc.presupuestos.presupuestos', compact('presupuestos'));
+        } catch (Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Presupuesto no encontrado'
+                ], 404);
+            }
+
+            return redirect()->back()->with('error', 'Presupuesto no encontrado');
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $presupuesto
-        ]);
     }
+
+    // public function show(presupuestos $presupuestos, $id)
+    // {
+    //     $presupuesto = Presupuestos::select('id', 'datapresupuestos')->find($id);
+
+    //     if (!$presupuesto) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Presupuesto no encontrado'
+    //         ], 404);
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $presupuesto
+    //     ]);
+    // }
 
     /**
      * Show the form for editing the specified resource.

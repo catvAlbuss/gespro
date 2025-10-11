@@ -15,7 +15,7 @@
             <div class="bg-white dark:bg-gray-900 shadow-xl rounded-2xl p-2">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     @foreach ($empresas::select('id', 'razonSocial', 'estadoempresa')->get() as $empresa)
-                        <a href="{{ route('gestoradmon', ['id' => $empresa->id, 'razonSocial' => $empresa->razonSocial]) }}"
+                        <a href="{{ route('gestion.admon', ['id' => $empresa->id, 'razonSocial' => $empresa->razonSocial]) }}"
                             class="relative group flex flex-col items-center justify-center p-6 rounded-2xl shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl
                                 {{ $empresa->estadoempresa == 'ACTIVO' 
                                     ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 

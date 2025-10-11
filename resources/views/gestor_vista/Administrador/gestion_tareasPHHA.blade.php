@@ -261,7 +261,7 @@
 
                     {{-- Botón Informe --}}
                     <div class="flex justify-end mb-4 mt-6">
-                        <a href="{{ route('Tramites', ['empresaId' => $id]) }}"
+                        <a href="{{ route('tramites.view', ['empresaId' => $id]) }}"
                             class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg shadow-md transition duration-200">📄
                             Iniciar Tramites Ip</a>
                         {{-- <button @click="openReportModal"

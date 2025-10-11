@@ -16,7 +16,7 @@
                         <div class="overflow-auto">
                             @if (count($empresasArray) > 1)
                                 <!-- Si tiene más de una empresa, muestra las tarjetas para seleccionar una empresa -->
-                                <form action="{{ route('gestor-adminpanel') }}" method="POST">
+                                <form action="{{ route('gestion.adminpanel') }}" method="POST">
                                     @csrf
                                     <x-input-label for="empresa_id" :value="__('Selecciona la Empresa')" class="block mb-4" />
 

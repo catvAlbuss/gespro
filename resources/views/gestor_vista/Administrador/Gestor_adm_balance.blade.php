@@ -15,7 +15,7 @@
                             <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
                                 {{ isset($contabilidad) ? 'Editar Balance' : 'Crear Balance' }}</h3>
                             <form method="POST"
-                                action="{{ isset($contabilidad) ? route('contabilidads.update', $contabilidad->id) : route('contabilidads.store') }}">
+                                action="{{ isset($contabilidad) ? route('contabilidad.update', $contabilidad->id) : route('contabilidad.store') }}">
                                 @csrf
                                 @if (isset($contabilidad))
                                     @method('PUT')
@@ -96,18 +96,18 @@
                                                 <td class="px-6 py-4">{{ $contabilidad->montoInicial }}</td>
                                                 <td class="px-6 py-4">{{ $contabilidad->fecha_ingreso_doc }}</td>
                                                 <td class="px-6 py-4">
-                                                    <a href="{{ route('gestorbalance', ['id' => $contabilidad->id]) }}"
+                                                    <a href="{{ route('contabilidad.balance.show', ['id' => $contabilidad->id]) }}"
                                                         class="text-blue-600 hover:underline">
                                                         Abrir
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <a href="{{ route('contabilidads.edit', $contabilidad->id) }}"
+                                                    <a href="{{ route('contabilidad.edit', $contabilidad->id) }}"
                                                         class="text-blue-600">Editar</a>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <form
-                                                        action="{{ route('contabilidads.destroy', $contabilidad->id) }}"
+                                                        action="{{ route('contabilidad.destroy', $contabilidad->id) }}"
                                                         method="POST" class="inline">
                                                         @csrf
                                                         @method('DELETE')

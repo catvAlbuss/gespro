@@ -22,7 +22,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('gestorrequerimientog', ['empresaId' => $empresaId]) }}">Requerimientos</a>
+                                    href="{{ route('logistica.requerimientos.gestor', ['empresaId' => $empresaId]) }}">Requerimientos</a>
                             </div>
                             <div class="flex flex-col items-center gap-3 px-8 py-10 bg-white rounded-3xl shadow-main">
                                 <span>
@@ -34,7 +34,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('gestorinventarioprin', ['empresaId' => $empresaId]) }}">Inventarios</a>
+                                    href="{{ route('inventarios.principal', ['empresaId' => $empresaId]) }}">Inventarios</a>
                             </div>
                             <div class="flex flex-col items-center gap-3 px-8 py-10 bg-white rounded-3xl shadow-main">
                                 <span>
@@ -46,7 +46,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('gestor_valesentrega', ['empresaId' => $empresaId]) }}">Equipos Entregados</a>
+                                    href="{{ route('vales.gestor', ['empresaId' => $empresaId]) }}">Equipos Entregados</a>
                             </div>
                         </div>
                     </div>

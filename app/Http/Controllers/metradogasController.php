@@ -12,7 +12,7 @@ class metradogasController extends Controller
      */
     public function index()
     {
-        $metradogases = metradogas::select('idmetradogas', 'nombre_proyecto', 'fecha', 'especialidad', 'localidad', 'modulo')->get();
+        $metradogases = metradogas::select('idmetradogas', 'especialidad')->get();
         // Retornar la vista con los datos
         return view('gestor_vista.Construyehc.metradoGas.index', compact('metradogases'));
     }

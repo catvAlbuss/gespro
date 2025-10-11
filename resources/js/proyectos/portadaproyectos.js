@@ -19,7 +19,7 @@ const app = createApp({
             { id: 'arquitectura', name: 'Arquitectura', icon: '🏗️' },        // construcción
             { id: 'estructuras', name: 'Estructuras', icon: '🏛️' },         // columnas / solidez
             { id: 'electrica', name: 'Eléctrica', icon: '⚡' },              // electricidad
-            { id: 'sanitaria', name: 'Sanitaria', icon: '🚰' },              // grifo/agua
+            { id: 'sanitarias', name: 'Sanitaria', icon: '🚰' },              // grifo/agua
             { id: 'gas', name: 'Gas', icon: '🔥' },                         // fuego
             { id: 'comunicaciones', name: 'Comunicaciones', icon: '📡' },   // antena
             { id: 'electromecanica', name: 'Electromecánica', icon: '⚙️' }, // engranaje
@@ -121,26 +121,51 @@ const app = createApp({
         };
 
         const editProyecto = (proyecto) => {
+            console.log(proyecto);
             isEditing.value = true;
             currentProyecto.value = proyecto;
             showForm.value = true;
 
             form.nombre_proyecto = proyecto.nombre_proyecto;
             form.cantidad_modulos = proyecto.cantidad_modulos || 1;
+            form.monto_designado = proyecto.monto_designado || 1;
             form.descripcion_proyecto = proyecto.descripcion_proyecto || '';
             form.tipoproyecto = proyecto.tipoproyecto;
-            // proyecto.especialidades puede venir como array de ids o como array de objetos con porcentaje
-            if (Array.isArray(proyecto.especialidades) && proyecto.especialidades.length > 0 && typeof proyecto.especialidades[0] === 'object') {
+
+            // Parseamos especialidades y especialidades_porcentaje si vienen como string
+            let especialidades = proyecto.especialidades;
+            let especialidades_porcentaje = proyecto.especialidades_porcentaje;
+
+            if (typeof especialidades === 'string') {
+                try {
+                    especialidades = JSON.parse(especialidades);
+                } catch (e) {
+                    console.error("Error al parsear especialidades:", e);
+                    especialidades = [];
+                }
+            }
+
+            if (typeof especialidades_porcentaje === 'string') {
+                try {
+                    especialidades_porcentaje = JSON.parse(especialidades_porcentaje);
+                } catch (e) {
+                    console.error("Error al parsear especialidades_porcentaje:", e);
+                    especialidades_porcentaje = [];
+                }
+            }
+
+            if (Array.isArray(especialidades) && especialidades.length > 0 && typeof especialidades[0] === 'object') {
                 // ya contiene porcentajes
-                form.especialidades_porcentaje = proyecto.especialidades.map(e => ({ id: e.id, porcentaje: Number(e.porcentaje) }));
-                form.especialidades = proyecto.especialidades.map(e => e.id);
+                form.especialidades_porcentaje = especialidades.map(e => ({ id: e.id, porcentaje: Number(e.porcentaje) }));
+                form.especialidades = especialidades.map(e => e.id);
             } else {
-                form.especialidades = proyecto.especialidades || [];
-                // recalcular porcentajes automáticamente según lo seleccionado
+                form.especialidades = especialidades || [];
+                form.especialidades_porcentaje = especialidades_porcentaje || [];
+                // Recalcular si no hay porcentajes
                 recalcularPorcentajes();
             }
-            form.empresa_id = proyecto.empresa_id;
 
+            form.empresa_id = proyecto.empresa_id;
             // Scroll to form
             nextTick(() => {
                 document.getElementById('project-form').scrollIntoView({ behavior: 'smooth' });

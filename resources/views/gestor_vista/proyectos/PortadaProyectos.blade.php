@@ -45,8 +45,8 @@
                     update: @json(route('proyectos.update', ':id')),
                     destroy: @json(route('proyectos.destroy', ':id')),
                     edit: @json(route('proyectos.edit', ':id')),
-                    redirect: @json(route('redirect_proyecto', ['id' => ':id', 'empresa_id' => ':empresa_id'])),
-                    reportes: @json(route('gestor_reports_proyectos', ['empresaId' => $empresaId])) //
+                    redirect: @json(route('proyectos.redirect', ['id' => ':id', 'empresa_id' => ':empresa_id'])),
+                    reportes: @json(route('proyectos.reportes', ['empresaId' => $empresaId])) //
                 }
             };
         </script>

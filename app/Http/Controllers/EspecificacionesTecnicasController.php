@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\especificacionesTecnicas;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,9 +38,34 @@ class EspecificacionesTecnicasController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(especificacionesTecnicas $especificacionesTecnicas)
+    public function show(String $id)
     {
-        //
+        //gestor_vista.Construyehc.ettp.index
+        try {
+            $especificacionesTecnicas = especificacionesTecnicas::findOrFail($id);
+
+            // Si es una petición AJAX, devolver JSON
+            if (request()->expectsJson()) {
+                // Preparar datos para el modal de edición
+                $data = [
+                    'datosEspecificacionTecnica' => $especificacionesTecnicas->datosEspecificacionTecnica,
+                    'costos_ettp_id' => $especificacionesTecnicas->costos_ettp_id,
+                ];
+
+                return response()->json($data);
+            }
+
+            return view('gestor_vista.Construyehc.ettp.index', compact('especificacionesTecnicas'));
+        } catch (Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ETTP no encontrado'
+                ], 404);
+            }
+
+            return redirect()->back()->with('error', 'ETTP no encontrado');
+        }
     }
 
     /**
@@ -206,7 +232,7 @@ class EspecificacionesTecnicasController extends Controller
 
                 // Procesamos los datos manteniendo la estructura correcta
                 $processedData = $this->procesarDatosMetradoEttp($data, $categoria['json_key']);
-    
+
                 // Verificar si hay datos procesados
                 if (!empty($processedData)) {
                     $dataFound = true;

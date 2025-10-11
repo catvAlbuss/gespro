@@ -111,7 +111,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex justify-end space-x-3">
-                                                <a href="{{ route('metradoelectricas.show', $metrado->idmeelectrica) }}"
+                                                <a href="{{ route('metrados.electricas.show', $metrado->idmeelectrica) }}"
                                                     class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
                                                     title="Visualizar">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
@@ -132,7 +132,7 @@
                                                     </svg>
                                                 </button>
                                                 <form
-                                                    action="{{ route('metradoelectricas.destroy', $metrado->idmeelectrica) }}"
+                                                    action="{{ route('metrados.electricas.destroy', $metrado->idmeelectrica) }}"
                                                     method="POST" onsubmit="return confirmDelete(event, this);"
                                                     style="display: inline;">
                                                     @csrf
@@ -495,7 +495,7 @@
             submitText.textContent = 'Cargando...';
             loadingSpinner.classList.remove('hidden');
 
-            fetch(`{{ url('metradoelectricas') }}/${id}`, {
+            fetch(`{{ url('metrados.electricas') }}/${id}`, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -621,10 +621,10 @@
             let url = '';
             let method = '';
             if (currentMode === 'create') {
-                url = "{{ route('metradoelectricas.store') }}";
+                url = "{{ route('metrados.electricas.store') }}";
                 method = 'POST';
             } else if (currentMode === 'edit') {
-                url = `{{ url('metradoelectricas') }}/${currentId}`;
+                url = `{{ url('metrados.electricas') }}/${currentId}`;
                 method = 'PUT';
             }
 

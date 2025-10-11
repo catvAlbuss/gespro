@@ -27,7 +27,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-purple-blue-500"
-                                    href="{{ route('gestor-registrarPer', ['empresaId' => $id]) }}">
+                                    href="{{ route('personal.registrar', ['empresaId' => $id]) }}">
                                     Creacion de Usuario
                                 </a>
                             </div>
@@ -44,7 +44,7 @@
                                             stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestorprogramasgespro', ['empresaId' => $id]) }}">
+                                <a href="{{ route('programas.portada', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Cotizador</p>
                                 </a>
                             </div>
@@ -61,7 +61,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-purple-blue-500"
-                                    href="{{ route('gestorkanbangen', ['id' => $id]) }}">Planner Mensual</a>
+                                    href="{{ route('actividades.kanban.gestor', ['id' => $id]) }}">Planner Mensual</a>
                             </div>
 
                             {{-- reportes --}}
@@ -74,7 +74,7 @@
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestoreportesGen', ['id' => $id]) }}">
+                                <a href="{{ route('reportes.general', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Reportes</p>
                                 </a>
                             </div>
@@ -93,7 +93,7 @@
                                             stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('Tramites', ['empresaId' => $id]) }}">
+                                <a href="{{ route('tramites.view', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Tramites</p>
                                 </a>
                             </div>
@@ -114,7 +114,7 @@
                                             stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                 </span>
-                                <a href="{{ route('gestortrabajadorgen', ['id' => $id]) }}">
+                                <a href="{{ route('personal.gestor', ['id' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Seguimiento de contratos</p>
                                 </a>
                             </div>

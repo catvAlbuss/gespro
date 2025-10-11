@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class TrabajadorController extends Controller
 {
@@ -48,8 +49,8 @@ class TrabajadorController extends Controller
         $users = User::whereHas('empresas', function ($query) use ($empresaId) {
             $query->where('empresa_id', $empresaId);
         })
-        ->where('name', '!=', 'Administrador') // Excluir usuarios con nombre "Administrador"
-        ->get();
+            ->where('name', '!=', 'Administrador') // Excluir usuarios con nombre "Administrador"
+            ->get();
 
         // var_dump($persona);
         return view('gestor_vista.Administrador.Gestor_registrar_personal', compact('user', 'users', 'empresaId'));
@@ -60,9 +61,9 @@ class TrabajadorController extends Controller
         $users = User::whereHas('empresas', function ($query) use ($empresaId) {
             $query->where('empresa_id', $empresaId);
         })
-        ->where('name', '!=', 'Administrador') // Excluir usuarios con nombre "Administrador"
-        ->get();
-    
+            ->where('name', '!=', 'Administrador') // Excluir usuarios con nombre "Administrador"
+            ->get();
+
         $empresas = Empresa::all(['id', 'razonSocial']);
         return view('gestor_vista.Administrador.Gestor_registrar_personal', compact('users', 'empresas', 'empresaId'));
     }
@@ -120,40 +121,39 @@ class TrabajadorController extends Controller
             $trabajadorRole = Role::firstOrCreate(['name' => 'trabajador']);
             $user->assignRole($trabajadorRole);
 
-            return redirect()->route('gestor-registrarPer', ['empresaId' => $request->empresaId])
+            return redirect()->route('personal.registrar', ['empresaId' => $request->empresaId])
                 ->with('success', 'Usuario creado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestor-registrarPer', ['empresaId' => $request->empresaId])
+            return redirect()->route('personal.registrar', ['empresaId' => $request->empresaId])
                 ->with('error', 'Error al crear el usuario: ' . $e->getMessage());
         }
     }
 
-    public function edit(User $trabajadorregister)
+    public function edit(User $trabajadore)
     {
         // Obtener todas las empresas asociadas al trabajador
-        $empresas = $trabajadorregister->empresas;  // Esto carga todas las empresas asociadas
-        
+        $empresas = $trabajadore->empresas;  // Esto carga todas las empresas asociadas
+
         // Obtener el ID de la primera empresa asociada al trabajador
         $empresaId = $empresas->isNotEmpty() ? $empresas->first()->id : null;
-    
+
         // Obtener todos los usuarios de la misma empresa que el trabajador, excepto el "Administrador"
         $users = User::whereHas('empresas', function ($query) use ($empresaId) {
             $query->where('empresa_id', $empresaId); // Filtra por la empresa asociada al trabajador
         })
-        ->where('name', '!=', 'Administrador') // Excluye al usuario "Administrador"
-        ->get();
-    
+            ->where('name', '!=', 'Administrador') // Excluye al usuario "Administrador"
+            ->get();
         // Pasamos los datos a la vista
-        return view('gestor_vista.Administrador.Gestor_registrar_personal', compact('users', 'trabajadorregister', 'empresaId'));
+        return view('gestor_vista.Administrador.Gestor_registrar_personal', compact('users', 'trabajadore', 'empresaId'));
     }
 
-    public function update(Request $request, User $trabajadorregister)
+    public function update(Request $request, User $trabajadore)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $trabajadorregister->id,
-            'dni_user' => 'required|integer|unique:users,dni_user,' . $trabajadorregister->id,
+            'email' => 'required|email|unique:users,email,' . $trabajadore->id,
+            'dni_user' => 'required|integer|unique:users,dni_user,' . $trabajadore->id,
             'phone' => 'required|integer',
             'fecha_nac' => 'required|date',
             'sueldo_base' => 'required|numeric',
@@ -165,7 +165,7 @@ class TrabajadorController extends Controller
 
         try {
             // Actualizar otros campos del usuario
-            $trabajadorregister->update([
+            $trabajadore->update([
                 'name' => $request->name,
                 'surname' => $request->surname,
                 'email' => $request->email,
@@ -175,14 +175,14 @@ class TrabajadorController extends Controller
                 'sueldo_base' => $request->sueldo_base,
                 'area_laboral' => $request->area_laboral,
                 'nivel_estudio' => $request->nivel_estudio,
-                'contratouser' => $request->hasFile('contratouser') ? $this->uploadFile($request->file('contratouser'), 'contrato') : $trabajadorregister->contratouser,
+                'contratouser' => $request->hasFile('contratouser') ? $this->uploadFile($request->file('contratouser'), 'contrato') : $trabajadore->contratouser,
             ]);
 
             // Manejar la actualización de la imagen de perfil
             if ($request->hasFile('image_user')) {
                 // Eliminar la imagen anterior si existe
-                if ($trabajadorregister->image_user && $trabajadorregister->image_user !== 'avatarra.jpeg') {
-                    $oldImagePath = public_path('storage/profile/' . $trabajadorregister->image_user);
+                if ($trabajadore->image_user && $trabajadore->image_user !== 'avatarra.jpeg') {
+                    $oldImagePath = public_path('storage/profile/' . $trabajadore->image_user);
                     if (file_exists($oldImagePath)) {
                         unlink($oldImagePath);
                     }
@@ -193,19 +193,19 @@ class TrabajadorController extends Controller
                 $request->image_user->move(public_path('storage/profile'), $imageName);
 
                 // Actualizar el campo image_user en la base de datos
-                $trabajadorregister->image_user = $imageName;
+                $trabajadore->image_user = $imageName;
             }
 
             // Guardar los cambios en la base de datos
-            $trabajadorregister->save();
+            $trabajadore->save();
 
             // Obtener el ID de la empresa (asumiendo que es el primero de la relación)
-            $empresaId = $trabajadorregister->empresas()->first()->id;
+            $empresaId = $trabajadore->empresas()->first()->id;
 
-            return redirect()->route('gestor-registrarPer', ['empresaId' => $empresaId])
+            return redirect()->route('personal.registrar', ['empresaId' => $empresaId])
                 ->with('success', 'Contabilidad actualizada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestor-registrarPer', ['empresaId' => $request->empresa_id])
+            return redirect()->route('personal.registrar', ['empresaId' => $request->empresa_id])
                 ->with('error', 'Error al actualizar la contabilidad: ' . $e->getMessage());
         }
     }

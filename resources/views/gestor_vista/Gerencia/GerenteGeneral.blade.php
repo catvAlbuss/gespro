@@ -17,7 +17,7 @@
                             <div class="overflow-x-auto grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                                 @foreach ($empresas::select('id', 'razonSocial', 'estadoempresa')->get() as $empresa)
                                     <div>
-                                        <a href="{{ route('gestoradmon', ['id' => $empresa->id, 'razonSocial' => $empresa->razonSocial]) }}"
+                                        <a href="{{ route('gestion.admon', ['id' => $empresa->id, 'razonSocial' => $empresa->razonSocial]) }}"
                                             class="flex flex-col items-center gap-3 px-8 py-10 rounded-3xl shadow-main
                                                 {{ $empresa->estadoempresa == 'ACTIVO' ? 'hover:bg-green-700 dark:hover:bg-green-700' : 'hover:bg-red-700 dark::hover:bg-red-700' }}
                                                 {{ $empresa->estadoempresa == 'ACTIVO' ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600' }} 

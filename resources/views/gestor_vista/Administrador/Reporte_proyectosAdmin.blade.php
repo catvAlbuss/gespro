@@ -56,7 +56,7 @@
                                     <td>S/ {{ number_format($utilidad, 2) }}</td>
                                     <td>{{ number_format($porcentaje_utilidad, 2) }}%</td>
                                     <td>
-                                        <form action="{{ route('reporte_detalles') }}" method="POST">
+                                        <form action="{{ route('proyectos.reporte.detalles') }}" method="POST">
                                             @csrf
                                             <input type="hidden" name="id_proyecto"
                                                 value="{{ $proyecto->id_proyectos }}">

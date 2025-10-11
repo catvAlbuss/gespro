@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class metradosanitarias extends Model
+class metradoarquitectura extends Model
 {
     use HasFactory;
-    protected $table = 'metradosanitarias';
-    public $primaryKey = 'idmetradosan';
+    protected $table = 'metradoarquitectura';
+    public $primaryKey = 'id_arquitectura';
+
     protected $fillable = [
         'especialidad',
-        'cantidadModulo',
         'documentosdata',
         'resumenmetrados',
     ];

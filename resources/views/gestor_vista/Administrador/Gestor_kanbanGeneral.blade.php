@@ -366,7 +366,7 @@
 
                 $.ajax({
                     type: 'POST',
-                    url: '/kanbantrabajador',
+                    url: '/actividades/kanban',
                     data: data,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -378,7 +378,7 @@
                                 title: '¡Éxito!',
                                 text: response.message,
                             }).then(() => {
-                                window.location.href = '/gestor-kanbangen/' + empresaId;
+                                window.location.href = '/actividades/kanban/gestor/' + empresaId;
                             });
                         } else {
                             Swal.fire({
@@ -576,7 +576,7 @@
 
                 $.ajax({
                     type: 'PUT',
-                    url: '/kanbantrabajador/move/' + tarjetaId,
+                    url: '/actividades/kanban/move/' + tarjetaId,
                     data: data,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -595,7 +595,7 @@
                                 title: '¡Éxito!',
                                 text: response.message,
                             }).then(() => {
-                                window.location.href = '/gestor-kanbangen/' + empresaId;
+                                window.location.href = '/actividades/kanban/gestor/' + empresaId;
                             });
                         } else {
                             console.error('La actualización en el servidor falló');
@@ -644,7 +644,7 @@
                 };
                 $.ajax({
                     type: 'PUT',
-                    url: '/kanbantrabajador/' + tarjetaId,
+                    url: '/actividades/kanban/' + tarjetaId,
                     data: data,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -656,7 +656,7 @@
                                 title: '¡Éxito!',
                                 text: response.message,
                             }).then(() => {
-                                window.location.href = '/gestor-kanbangen/' + empresaId;
+                                window.location.href = '/actividades/kanban/gestor/' + empresaId;
                             });
                         } else {
                             Swal.fire({
@@ -699,7 +699,7 @@
                         const empresaId = document.getElementById('id_empresa').value;
                         $.ajax({
                             type: 'DELETE',
-                            url: '/kanbantrabajador/' + tarjetaId,
+                            url: '/actividades/kanban/' + tarjetaId,
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
@@ -711,7 +711,7 @@
                                         text: response.message,
                                     }).then(() => {
                                         window.location.href =
-                                            '/gestor-kanbangen/' + empresaId;
+                                            '/actividades/kanban/gestor/' + empresaId;
                                     });
                                     modalEdit.classList.add('hidden');
                                 } else {

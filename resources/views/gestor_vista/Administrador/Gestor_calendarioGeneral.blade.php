@@ -210,7 +210,7 @@
                     usuario_id: obj.event.type, // Aquí debes asignar el ID del usuario autenticado
                     proyecto_id: obj.event.proyecto_id,
                 };
-                fetch('{{ route('calendariotrabajador.store') }}', {
+                fetch('{{ route('calendarios.trabajador.store') }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -254,7 +254,7 @@
                     usuario_id: obj.event.type, // Aquí debes asignar el ID del usuario autenticado
                     proyecto_id: obj.event.proyecto_id,
                 };
-                const updateUrl = `/calendariotrabajador/${obj.event.id}`;
+                const updateUrl = `/calendarios/trabajador/${obj.event.id}`;
 
                 fetch(updateUrl, {
                         method: 'PUT',
@@ -295,7 +295,7 @@
             calendar.api.on("delete-event", (obj) => {
                 console.log("Eliminando evento con id:", obj.event.id);
 
-                const deleteUrl = `/calendariotrabajador/${obj.event.id}`;
+                const deleteUrl = `/calendarios/trabajador/${obj.event.id}`;
 
                 fetch(deleteUrl, {
                         method: 'DELETE',

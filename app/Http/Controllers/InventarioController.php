@@ -36,7 +36,7 @@ class InventarioController extends Controller
         ]);
 
         // Redirigir a la ruta deseada con un mensaje de éxito
-        return redirect()->route('gestorinventarioprin', ['empresaId' => $validatedData['empresa_id']])
+        return redirect()->route('inventarios.principal', ['empresaId' => $validatedData['empresa_id']])
             ->with('success', 'Inventario Creado con éxito.');
     }
 
@@ -60,10 +60,10 @@ class InventarioController extends Controller
             $gestioninventario = gestioninventario::findOrFail($id_gestion_inv);
             $gestioninventario->update($validatedData);
 
-            return redirect()->route('gestorinventarioprin', ['empresaId' => $gestioninventario->empresa_id])
+            return redirect()->route('inventarios.principal', ['empresaId' => $gestioninventario->empresa_id])
                 ->with('success', 'Inventario actualizado con éxito.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorinventarioprin', ['empresaId' => $request->empresa_id])
+            return redirect()->route('inventarios.principal', ['empresaId' => $request->empresa_id])
                 ->with('error', 'Error al actualizar el inventario.');
         }
     }
@@ -80,10 +80,10 @@ class InventarioController extends Controller
             $gestioninventario = gestioninventario::findOrFail($id_gestion_inv);
             $gestioninventario->delete();
 
-            return redirect()->route('gestorinventarioprin', ['empresaId' => $empresaId])
+            return redirect()->route('inventarios.principal', ['empresaId' => $empresaId])
                 ->with('success', 'Inventario eliminado con éxito.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorinventarioprin', ['empresaId' => $empresaId])
+            return redirect()->route('inventarios.principal', ['empresaId' => $empresaId])
                 ->with('error', 'Error al eliminar el inventario.');
         }
     }
@@ -219,7 +219,7 @@ class InventarioController extends Controller
         $inventario->save();
 
         // Redirigir a la ruta showInventario
-        return redirect()->route('gestorinventario', ['id_gestion_inv' => $id_gestion_inv])
+        return redirect()->route('inventarios.principal', ['id_gestion_inv' => $id_gestion_inv])
             ->with('success', 'Inventario actualizado exitosamente.');
     }
 
@@ -236,7 +236,7 @@ class InventarioController extends Controller
         $inventario->delete();
 
         // Redirigir a la ruta showInventario
-        return redirect()->route('gestorinventario', ['id_gestion_inv' => $id_gestion_inv])
+        return redirect()->route('inventarios.principal', ['id_gestion_inv' => $id_gestion_inv])
             ->with('success', 'Inventario eliminado exitosamente.');
     }
 

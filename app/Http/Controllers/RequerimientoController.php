@@ -197,10 +197,10 @@ class RequerimientoController extends Controller
             $requerimiento = Requerimiento::findOrFail($id_requerimientos);
             $requerimiento->actualizarTotal();
 
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimientos)
+            return redirect()->route('logistica.requerimientos.edit', $id_requerimientos)
                 ->with('success', 'Mano de obra actualizada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimientos)
+            return redirect()->route('logistica.requerimientos.edit', $id_requerimientos)
                 ->with('error', 'Error al actualizar la mano de obra.');
         }
     }
@@ -220,10 +220,10 @@ class RequerimientoController extends Controller
             $requerimiento = Requerimiento::findOrFail($id_requerimiento);
             $requerimiento->actualizarTotal();
 
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
+            return redirect()->route('logistica.requerimientos.edit', $id_requerimiento)
                 ->with('success', 'Mano de obra eliminada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
+            return redirect()->route('logistica.requerimientos.edit', $id_requerimiento)
                 ->with('error', 'Error al eliminar la mano de obra: ' . $e->getMessage());
         }
     }
@@ -252,10 +252,10 @@ class RequerimientoController extends Controller
             $requerimiento = Requerimiento::findOrFail($validatedData['id_requerimientos']);
             $requerimiento->actualizarTotal();
 
-            return redirect()->route('gestorrequerimientos.edit', $validatedData['id_requerimientos'])
+            return redirect()->route('logistica.requerimientos.edit', $validatedData['id_requerimientos'])
                 ->with('success', 'Material actualizado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.edit', $validatedData['id_requerimientos'])
+            return redirect()->route('logistica.requerimientos.edit', $validatedData['id_requerimientos'])
                 ->with('error', 'Error al actualizar el material.');
         }
     }
@@ -275,10 +275,10 @@ class RequerimientoController extends Controller
             $requerimiento = Requerimiento::findOrFail($id_requerimiento);
             $requerimiento->actualizarTotal();
 
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
+            return redirect()->route('logistica.requerimientos.edit', $id_requerimiento)
                 ->with('success', 'Material eliminado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.edit', $id_requerimiento)
+            return redirect()->route('logistica.requerimientos.edit', $id_requerimiento)
                 ->with('error', 'Error al eliminar el material: ' . $e->getMessage());
         }
     }
@@ -300,10 +300,10 @@ class RequerimientoController extends Controller
             $data = $request->only(['banco_req', 'nro_banco_req', 'cci_req', 'titular_req', 'dni_req']);
             $deposito->update($data);
 
-            return redirect()->route('gestorrequerimientos.edit', $validatedData['id_requerimientos'])
+            return redirect()->route('logistica.requerimientos.edit', $validatedData['id_requerimientos'])
                 ->with('success', 'Depósito actualizado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.edit', $validatedData['id_requerimientos'])
+            return redirect()->route('logistica.requerimientos.edit', $validatedData['id_requerimientos'])
                 ->with('error', 'Error al actualizar el depósito.');
         }
     }
@@ -344,11 +344,11 @@ class RequerimientoController extends Controller
     //         $requerimiento->save();
 
     //         // Redirigir con éxito
-    //         return redirect()->route('gestorrequerimientos.show', $empresaId)
+    //         return redirect()->route('logistica.requerimientos.show', $empresaId)
     //             ->with('success', 'Requerimiento aprobado exitosamente.');
     //     } catch (\Exception $e) {
     //         // Manejar el error en caso de que algo falle
-    //         return redirect()->route('gestorrequerimientos.show', $empresaId)
+    //         return redirect()->route('logistica.requerimientos.show', $empresaId)
     //             ->with('error', 'Error al aprobar el requerimiento: ' . $e->getMessage());
     //     }
     // }
@@ -441,10 +441,10 @@ class RequerimientoController extends Controller
                 }
             }
 
-            return redirect()->route('gestorrequerimientos.show', $empresaId)
+            return redirect()->route('logistica.requerimientos.show', $empresaId)
                 ->with('success', 'Requerimiento aprobado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('gestorrequerimientos.show', $empresaId)
+            return redirect()->route('logistica.requerimientos.show', $empresaId)
                 ->with('error', 'Error al aprobar el requerimiento: ' . $e->getMessage());
         }
     }
@@ -480,11 +480,11 @@ class RequerimientoController extends Controller
             $requerimiento->save();
 
             // Redirigir con éxito
-            return redirect()->route('gestorrequerimientos.show', $empresaId)
+            return redirect()->route('logistica.requerimientos.show', $empresaId)
                 ->with('success', 'Requerimiento aprobado exitosamente.');
         } catch (\Exception $e) {
             // Manejar el error en caso de que algo falle
-            return redirect()->route('gestorrequerimientos.show', $empresaId)
+            return redirect()->route('logistica.requerimientos.show', $empresaId)
                 ->with('error', 'Error al aprobar el requerimiento: ' . $e->getMessage());
         }
     }
@@ -569,7 +569,7 @@ class RequerimientoController extends Controller
 
             DB::commit();
 
-            return redirect()->route('gestorrequerimientos.show', $empresaId)
+            return redirect()->route('logistica.requerimientos.show', $empresaId)
                 ->with('success', 'Requerimiento eliminado exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -579,7 +579,7 @@ class RequerimientoController extends Controller
             //     'trace' => $e->getTraceAsString()
             // ]);
 
-            return redirect()->route('gestorrequerimientos.show', $empresaId)
+            return redirect()->route('logistica.requerimientos.show', $empresaId)
                 ->with('error', 'Error al eliminar el requerimiento: ' . $e->getMessage());
         }
     }
@@ -618,7 +618,7 @@ class RequerimientoController extends Controller
         }
 
         // Redirigir o mostrar mensaje de éxito
-        return redirect()->route('gestorrequerimientos.show', $empresaId)
+        return redirect()->route('logistica.requerimientos.show', $empresaId)
             ->with('success', 'Requerimiento aprobado exitosamente.');
         //return redirect()->route('requerimientos.index')->with('success', 'Sustento actualizado correctamente.');
     }

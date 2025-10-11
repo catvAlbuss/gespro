@@ -21,7 +21,7 @@
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4"></h3>
                         <div class="overflow-auto">
                             <form
-                                action="{{ isset($vale) ? route('vales_entrega.update', $vale->id_vaeqen) : route('vales_entrega.store') }}"
+                                action="{{ isset($vale) ? route('vales.entrega.update', $vale->id_vaeqen) : route('vales.entrega.store') }}"
                                 method="POST">
                                 @csrf
 
@@ -144,7 +144,7 @@
                             allowClear: true,
                             width: '100%',
                             ajax: {
-                                url: '{{ route('productos.get', ['empresaId' => '__empresaId__']) }}'.replace(
+                                url: '{{ route('vales.productos', ['empresaId' => '__empresaId__']) }}'.replace(
                                     '__empresaId__', empresaId),
                                 dataType: 'json',
                                 delay: 250, // Retraso en la búsqueda

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cronograma;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -36,9 +37,34 @@ class CronogramaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Cronograma $cronograma)
+    public function show(String $id)
     {
-        //
+        //gestor_vista.Construyehc.diagramaGantt.index
+        try {
+            $cronogramaGenerals = Cronograma::findOrFail($id);
+
+            // Si es una petición AJAX, devolver JSON
+            if (request()->expectsJson()) {
+                // Preparar datos para el modal de edición
+                $data = [
+                    'montos' => $cronogramaGenerals->montos,
+                    'datacronograma' => $cronogramaGenerals->datacronograma,
+                ];
+
+                return response()->json($data);
+            }
+
+            return view('gestor_vista.Construyehc.diagramaGantt.index', compact('cronogramaGenerals'));
+        } catch (Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cronograma General no encontrado'
+                ], 404);
+            }
+
+            return redirect()->back()->with('error', 'Cronograma General no encontrado');
+        }
     }
 
     /**
@@ -118,10 +144,10 @@ class CronogramaController extends Controller
         $tareas = $request->input('tareas', []);
         $imagen = $request->input('imagen');
         $titulo = $request->input('titulo', 'Diagrama Gantt');
-    
+
         $pdf = Pdf::loadView('gestor_vista/Construyehc/diagramaGantt/exportarpdf', compact('tareas', 'imagen', 'titulo'))
             ->setPaper('a4', 'landscape');
-    
+
         return $pdf->download('diagrama_gantt.pdf');
     }
 }

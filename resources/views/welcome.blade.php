@@ -159,8 +159,7 @@
             window.addEventListener('scroll', () => {
                 this.scrolled = window.scrollY > 50;
             });
-        }
-    }" :class="scrolled ? 'bg-white shadow-lg' : 'bg-transparent'"
+        }}" :class="scrolled ? 'bg-white shadow-lg' : 'bg-transparent'"
         class="fixed w-full z-50 transition-all duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 lg:h-20">

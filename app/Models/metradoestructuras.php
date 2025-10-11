@@ -12,18 +12,8 @@ class metradoestructuras extends Model
     public $primaryKey = 'idmetradoestructuras';
 
     protected $fillable = [
-        'nombre_proyecto',
-        'uei',
-        'codigosnip',
-        'codigocui',
-        'unidad_ejecutora',
-        'codigo_local',
-        'codigo_modular',
         'especialidad',
-        'fecha',
-        'ubicacion',
         'documentosdata',
         'resumenmetrados',
-        'proyectodesignado',
     ];
 }

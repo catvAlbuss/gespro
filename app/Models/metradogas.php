@@ -12,17 +12,8 @@ class metradogas extends Model
     public $primaryKey = 'idmetradogas';
 
     protected $fillable = [
-        'nombre_proyecto',
-        'cui',
-        'codigo_modular',
-        'codigo_local',
-        'unidad_ejecutora',
-        'fecha',
         'especialidad',
-        'modulo',
-        'localidad',
         'documentosdata',
         'resumenmetrados',
-        'proyectodesignado',
     ];
 }

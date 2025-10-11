@@ -43,9 +43,9 @@ class ModuleLoader {
         const modules = [];
 
         // PROGRAMAS GESPRO (rutas absolutas desde resources/js)
-        if (path.includes('/portada-programas-gespro')) {
-            modules.push('../programasgespro/cotizador.js');
-        }
+        // if (path.includes('/portada-programas-gespro')) {
+        //     modules.push('../programasgespro/cotizador.js');
+        // }
         if (path.includes('/calculo-agua')) {
             modules.push('../programasgespro/mainAgua.js');
         }

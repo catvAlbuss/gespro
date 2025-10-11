@@ -18,7 +18,7 @@
                                     <img width="50" height="50" src="https://img.icons8.com/ios/50/scales--v1.png"
                                         alt="scales--v1" />
                                 </span>
-                                <a href="{{ route('gestor-contabilidad-bal', ['empresaId' => $id]) }}">
+                                <a href="{{ route('contabilidad.balances', ['empresaId' => $id]) }}">
                                     <p class="text-2xl font-extrabold text-gray-900">Balance</p>
                                 </a>
                             </div>

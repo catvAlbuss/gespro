@@ -1,10 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row items-end justify-end space-x-2">
+        <div class="flex flex-col sm:flex-row items-end justify-stard space-x-2">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Registrar de Trabajadores') }} / <a
-                    href="{{ route('gestortrabajadorgen', ['id' => $empresaId]) }}"
-                    class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Menu Principal</a>
+                {{ __('Registrar de Trabajadores') }}
             </h2>
         </div>
     </x-slot>
@@ -21,7 +19,7 @@
                         </h3>
 
                         <div class="overflow-auto">
-                            <form method="POST" action="{{ route('trabajadorregister.obtenerUsuarioDNI') }}">
+                            <form method="POST" action="{{ route('personal.obtener.dni') }}">
                                 @csrf
                                 <!-- Name -->
                                 <div>
@@ -44,82 +42,82 @@
                         <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
                             {{ isset($user) ? 'Editar Usuario' : 'Crear Usuario' }}
                         </h3>
+
                         <div class="overflow-auto">
                             <form method="POST" enctype="multipart/form-data"
-                                action="{{ isset($trabajadorregister) ? route('trabajadorregister.update', $trabajadorregister->id) : route('trabajadorregister.store') }}">
+                                action="{{ isset($trabajadore) ? route('personal.trabajadores.update', $trabajadore->id) : route('personal.trabajadores.store') }}">
                                 @csrf
-                                @if (isset($trabajadorregister))
+                                @if (isset($trabajadore))
                                     @method('PUT')
                                 @endif
                                 <div>
                                     <x-input-label for="name" :value="__('Nombre Usuario')" />
                                     <x-text-input id="name" class="block mt-1 w-full" type="text" name="name"
-                                        :value="old('name', $trabajadorregister->name ?? ($user->nombres ?? ''))" required autofocus />
+                                        :value="old('name', $trabajadore->name ?? ($user->nombres ?? ''))" required autofocus />
                                 </div>
                                 <div>
                                     <x-input-label for="surname" :value="__('Apellido Usuario')" />
                                     <x-text-input id="surname" class="block mt-1 w-full" type="text" name="surname"
                                         :value="old(
                                             'surname',
-                                            $trabajadorregister->surname ??
+                                            $trabajadore->surname ??
                                                 ($user->apellidoPaterno ?? '') . ' ' . ($user->apellidoMaterno ?? ''),
                                         )" required autofocus />
                                 </div>
                                 <div>
                                     <x-input-label for="email" :value="__('Correo Electrónico')" />
                                     <x-text-input id="email" class="block mt-1 w-full" type="email" name="email"
-                                        value="{{ old('email', $trabajadorregister->email ?? '') }}" required />
+                                        value="{{ old('email', $trabajadore->email ?? '') }}" required />
                                 </div>
                                 <div>
                                     <x-input-label for="dni_user" :value="__('Documento Nacional de Identidad (DNI)')" />
                                     <x-text-input id="dni_user" class="block mt-1 w-full" type="number"
                                         name="dni_user" :value="old(
                                             'dni_user',
-                                            $trabajadorregister->dni_user ?? ($user->numeroDocumento ?? ''),
+                                            $trabajadore->dni_user ?? ($user->numeroDocumento ?? ''),
                                         )" required autofocus />
                                 </div>
                                 <div>
                                     <x-input-label for="phone" :value="__('Celular User')" />
                                     <x-text-input id="phone" class="block mt-1 w-full" type="number" name="phone"
-                                        value="{{ old('phone', $trabajadorregister->phone ?? '') }}" required
-                                        autofocus />
+                                        value="{{ old('phone', $trabajadore->phone ?? '') }}" required autofocus />
                                 </div>
                                 <div>
-                                    <x-input-label for="fecha_nac" :value="__('fecha de nacimiento')" />
+                                    <x-input-label for="fecha_nac" :value="__('Fecha de nacimiento')" />
                                     <x-text-input id="fecha_nac" class="block mt-1 w-full" type="date"
                                         name="fecha_nac"
-                                        value="{{ old('fecha_nac', $trabajadorregister->fecha_nac ?? '') }}" required
-                                        autofocus />
+                                        value="{{ old('fecha_nac', isset($trabajadore->fecha_nac) ? \Carbon\Carbon::parse($trabajadore->fecha_nac)->format('Y-m-d') : '') }}"
+                                        required autofocus />
                                 </div>
                                 <div>
                                     <x-input-label for="sueldo_base" :value="__('Sueldo Base')" />
                                     <x-text-input id="sueldo_base" class="block mt-1 w-full" type="number"
                                         name="sueldo_base"
-                                        value="{{ old('sueldo_base', $trabajadorregister->sueldo_base ?? '') }}"
-                                        required autofocus />
+                                        value="{{ old('sueldo_base', $trabajadore->sueldo_base ?? '') }}" required
+                                        autofocus />
                                 </div>
                                 <div>
                                     <x-input-label for="area_laboral" :value="__('Area Laboral')" />
                                     <x-input-select id="area_laboral" class="block mt-1 w-full" name="area_laboral"
                                         required>
-                                        <option value="Oficina Tecnica"
-                                            {{ old('area_laboral', $trabajadorregister->area_laboral ?? '') == 'Oficina Tecnica' ? 'selected' : '' }}>
-                                            Oficina tecnica</option>
-                                        <option value="Estructuras"
-                                            {{ old('area_laboral', $trabajadorregister->area_laboral ?? '') == 'Estructuras' ? 'selected' : '' }}>
-                                            Estructuras</option>
-                                        <option value="Campo"
-                                            {{ old('area_laboral', $trabajadorregister->area_laboral ?? '') == 'Campo' ? 'selected' : '' }}>
-                                            Campo</option>
+                                        <option value="Asistente"
+                                            {{ old('area_laboral', $trabajadore->area_laboral ?? '') == 'Asistente' ? 'selected' : '' }}>
+                                            Asistente</option>
+                                        <option value="Jefe de area"
+                                            {{ old('area_laboral', $trabajadore->area_laboral ?? '') == 'Jefe de area' ? 'selected' : '' }}>
+                                            Jefe de area</option>
+                                        <option value="Administrador de Proyectos"
+                                            {{ old('area_laboral', $trabajadore->area_laboral ?? '') == 'Administrador de Proyectos' ? 'selected' : '' }}>
+                                            Administrador de Proyectos</option>
+                                        <option value="Logistico"
+                                            {{ old('area_laboral', $trabajadore->area_laboral ?? '') == 'Logistico' ? 'selected' : '' }}>
+                                            Logistico</option>
                                         <option value="Administracion"
-                                            {{ old('area_laboral', $trabajadorregister->area_laboral ?? '') == 'Administracion' ? 'selected' : '' }}>
+                                            {{ old('area_laboral', $trabajadore->area_laboral ?? '') == 'Administracion' ? 'selected' : '' }}>
                                             Administracion</option>
-                                        <option value="Arquitectura"
-                                            {{ old('area_laboral', $trabajadorregister->area_laboral ?? '') == 'Arquitectura' ? 'selected' : '' }}>
-                                            Arquitectura</option>
-                                        <option value="Sistemas"
-                                            {{ old('area_laboral', $trabajadorregister->area_laboral ?? '') == 'Sistemas' ? 'selected' : '' }}>
-                                            Arquitectura</option>
+                                        <option value="Contabilidad"
+                                            {{ old('area_laboral', $trabajadore->area_laboral ?? '') == 'Contabilidad' ? 'selected' : '' }}>
+                                            Contabilidad</option>
                                     </x-input-select>
                                 </div>
                                 <div>
@@ -127,32 +125,32 @@
                                     <x-input-select id="nivel_estudio" class="block mt-1 w-full" name="nivel_estudio"
                                         required>
                                         <option value="Segundaria_completa"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'Segundaria_completa' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'Segundaria_completa' ? 'selected' : '' }}>
                                             Secundaria Completa</option>
                                         <option value="practicante"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'practicante' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'practicante' ? 'selected' : '' }}>
                                             Practicante</option>
                                         <option value="tecnico"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'tecnico' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'tecnico' ? 'selected' : '' }}>
                                             Tecnico</option>
                                         <option value="universitario"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'universitario' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'universitario' ? 'selected' : '' }}>
                                             Universitario</option>
                                         <option value="egresado"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'egresado' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'egresado' ? 'selected' : '' }}>
                                             Egresado</option>
                                         <option value="bachiller"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'bachiller' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'bachiller' ? 'selected' : '' }}>
                                             Bachiller</option>
                                         <option value="titulado"
-                                            {{ old('nivel_estudio', $trabajadorregister->nivel_estudio ?? '') == 'titulado' ? 'selected' : '' }}>
+                                            {{ old('nivel_estudio', $trabajadore->nivel_estudio ?? '') == 'titulado' ? 'selected' : '' }}>
                                             Titulado</option>
                                     </x-input-select>
                                 </div>
                                 <br>
 
                                 <div class="form-group flex justify-center">
-                                    <img src="{{ asset('/storage/profile/' . ($trabajadorregister->image_user ?? '')) }}"
+                                    <img src="{{ asset('/storage/profile/' . ($trabajadore->image_user ?? '')) }}"
                                         class="rounded-3xl" alt="Profile Image" width="150">
                                 </div>
                                 <br>
@@ -166,9 +164,9 @@
                                 <div>
                                     <x-input-label for="contratouser" :value="__('Contrato User')" />
 
-                                    @if (isset($trabajadorregister) && $trabajadorregister->contratouser)
+                                    @if (isset($trabajadore) && $trabajadore->contratouser)
                                         <div class="flex justify-center mb-2">
-                                            <a href="{{ asset('/storage/contrato/' . $trabajadorregister->contratouser) }}"
+                                            <a href="{{ asset('/storage/contrato/' . $trabajadore->contratouser) }}"
                                                 target="_blank" class="text-blue-600">
                                                 Ver Contrato
                                             </a>
@@ -179,7 +177,7 @@
                                         class="block mt-1 w-full" accept="application/pdf" />
                                 </div>
 
-                                @if (!isset($trabajadorregister))
+                                @if (!isset($trabajadore))
                                     <div>
                                         <x-input-label for="password" :value="__('Contraseña')" />
                                         <x-text-input id="password" class="block mt-1 w-full" type="password"
@@ -189,7 +187,7 @@
                                 <input type="hidden" name="empresaId" id="empresaId" value="{{ $empresaId }}">
                                 <div class="flex items-center justify-end mt-4">
                                     <x-primary-button class="ml-4">
-                                        {{ isset($trabajadorregister) ? __('Actualizar') : __('Guardar') }}
+                                        {{ isset($trabajadore) ? __('Actualizar') : __('Guardar') }}
                                     </x-primary-button>
                                 </div>
                             </form>
@@ -257,10 +255,10 @@
                                                     </p>
                                                 </div>
                                                 <div class="p-2 pt-0">
-                                                    <a href="{{ route('trabajadorregister.edit', $user->id) }}"
+                                                    <a href="{{ route('personal.trabajadores.edit', $user->id) }}"
                                                         class="text-blue-600 align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-1 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full bg-blue-gray-900/10 text-blue-gray-900 shadow-none hover:scale-105 hover:shadow-none focus:scale-105 focus:shadow-none active:scale-100">Editar</a>
                                                     <form
-                                                        action="{{ route('trabajadorregister.destroy', $user->id) }}"
+                                                        action="{{ route('personal.trabajadores.destroy', $user->id) }}"
                                                         method="POST" class="inline">
                                                         @csrf
                                                         @method('DELETE')

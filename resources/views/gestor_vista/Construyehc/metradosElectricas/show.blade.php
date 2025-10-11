@@ -98,7 +98,7 @@
                 <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1"></div>
 
                 <!-- Regresar -->
-                <a href="{{ route('metradoelectricas.index') }}"
+                <a href="{{ route('costos.index') }}"
                     class="inline-flex items-center justify-center w-10 h-10 text-white bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800 shadow-lg rounded-lg transition-all duration-200 hover:scale-105"
                     data-tooltip="Volver al listado" title="Volver al listado">
                     <i class="fas fa-arrow-left text-base"></i>

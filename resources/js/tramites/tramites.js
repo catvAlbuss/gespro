@@ -120,7 +120,7 @@ const app = createApp({
     // Funciones de carga de datos
     const cargarDatosUsuario = async () => {
       try {
-        const res = await fetch('/get-user-profile', {
+        const res = await fetch('/tramites/user-profile', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ const app = createApp({
         const fecha = new Date();
         const mesSolicitadoInfo = mesSolicitado || fecha.getMonth();
         const idtramite = tramiteId || 1;
-        const response = await fetch('/get-Actividad-Personal', {
+        const response = await fetch('/tramites/actividad-personal', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -393,7 +393,7 @@ const app = createApp({
           descuentos: descuentos.value
         };
         console.log(payload);
-        const res = await fetch('/actividades-personal/guardar-descuentos', {
+        const res = await fetch('/tramites/guardar-descuentos', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

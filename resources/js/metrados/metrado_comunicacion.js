@@ -1,1207 +1,1270 @@
-import { createApp, ref, onMounted, computed, reactive, nextTick } from 'vue';
+import { createApp, ref, onMounted, onUnmounted } from 'vue';
+import data from '../metrados/data.js';
+// ==================== CONFIGURACIÓN DE UNIDADES ====================
+const UnitConfig = {
+    configs: {
+        'und': {
+            editables: ['elem', 'veces'],
+            calculatedFields: ['undc'],
+            displayFields: ['elem', 'veces', 'undc'],
+            resultField: 'undc',
+            showUndcInDetails: true, // NUEVO: mostrar undc en detalles
+            formula: (r) => ({ undc: `=D${r}*H${r}` }),
+            color: '#FFF9C4'
+        },
+        'pto': {
+            editables: ['elem', 'veces'],
+            calculatedFields: ['undc'],
+            displayFields: ['elem', 'veces', 'undc'],
+            resultField: 'undc',
+            showUndcInDetails: true,
+            formula: (r) => ({ undc: `=D${r}*H${r}` }),
+            color: '#FFF9C4'
+        },
+        'm': {
+            editables: ['elem', 'l', 'an', 'al', 'veces'],
+            calculatedFields: ['lon'],
+            displayFields: ['elem', 'l', 'an', 'al', 'veces', 'lon'],
+            resultField: 'lon',
+            showUndcInDetails: false,
+            formula: (r) => ({ lon: `=D${r}*(E${r}+F${r}+G${r})*H${r}` }),
+            color: '#FFF9C4'
+        },
+        'm1': {
+            editables: ['elem', 'l', 'an', 'al'],
+            calculatedFields: ['lon'],
+            displayFields: ['elem', 'l', 'lon'],
+            resultField: 'lon',
+            showUndcInDetails: false,
+            formula: (r) => ({ lon: `=D${r}*(E${r}+F${r})*G${r}` }),
+            color: '#FFF9C4'
+        },
+        'm2': {
+            editables: ['elem', 'l', 'an', 'al', 'veces'],
+            calculatedFields: ['area'],
+            displayFields: ['elem', 'l', 'an', 'veces', 'area'],
+            resultField: 'area',
+            showUndcInDetails: false,
+            formula: (r) => ({ area: `=D${r}*E${r}*F${r}*G${r}*H${r}` }),
+            color: '#FFF9C4'
+        },
+        'm3': {
+            editables: ['elem', 'l', 'an', 'al', 'veces', 'lon', 'area'],
+            calculatedFields: ['vol'],
+            displayFields: ['elem', 'l', 'an', 'al', 'veces', 'vol'],
+            resultField: 'vol',
+            showUndcInDetails: false,
+            formula: (r) => ({ vol: `=D${r}*E${r}*F${r}*G${r}*H${r}*I${r}*J${r}` }),
+            color: '#FFF9C4'
+        },
+        'kg': {
+            editables: ['kg'],
+            calculatedFields: [],
+            displayFields: ['kg'],
+            formula: (r) => ({}),
+            color: '#FFF9C4'
+        },
+        'gbl': {
+            editables: ['elem', 'veces'],
+            calculatedFields: ['undc'], // solo este se calcula
+            displayFields: ['elem', 'veces', 'undc'], // solo estos se muestran
+            formula: (r) => ({ undc: `=D${r}*H${r}` }),
+            color: '#FFF9C4'
+        }
+    },
 
-// Obtener datos de configuración inicial
-const { metradocomunicaciones } = window.APP_INIT || {};
+    getConfig(unit) {
+        return this.configs[unit?.toLowerCase()] || null;
+    },
 
-const app = createApp({
-    setup() {
-        // ===== REACTIVE STATE =====
-        const configuracion = reactive({
-            documento_proyecto: window.APP_INIT.metradocomunicaciones.datamodulos || null,
-            id: window.APP_INIT.metradocomunicaciones.id || null,
-            nombre_proyecto: window.APP_INIT.metradocomunicaciones.nombre_proyecto || null,
-            uei: window.APP_INIT.metradocomunicaciones.uei || null,
-            codigosnip: window.APP_INIT.metradocomunicaciones.codigosnip || null,
-            codigocui: window.APP_INIT.metradocomunicaciones.codigocui || null,
-            unidad_ejecutora: window.APP_INIT.metradocomunicaciones.unidad_ejecutora || null,
-            codigo_local: window.APP_INIT.metradocomunicaciones.codigo_local ?? [],
-            codigo_modular: window.APP_INIT.metradocomunicaciones.codigo_modular || null,
-            especialidad: window.APP_INIT.metradocomunicaciones.especialidad || null,
-            fecha: window.APP_INIT.metradocomunicaciones.fecha || null,
-            ubicacion: window.APP_INIT.metradocomunicaciones.ubicacion || null,
+    isEditable(unit, field) {
+        const config = this.getConfig(unit);
+        return config ? config.editables.includes(field) : false;
+    },
+
+    shouldDisplay(unit, field) {
+        const config = this.getConfig(unit);
+        if (!config) return false;
+        return config.displayFields.includes(field);
+    },
+
+    isCalculated(unit, field) {
+        const config = this.getConfig(unit);
+        return config ? config.calculatedFields.includes(field) : false;
+    },
+
+    getResultField(unit) { // NUEVO método
+        const config = this.getConfig(unit);
+        return config?.resultField || 'undc' || 'lon';
+    },
+
+    showUndcInDetails(unit) { // NUEVO método
+        const config = this.getConfig(unit);
+        return config?.showUndcInDetails || false;
+    },
+
+    getColor(unit) {
+        const config = this.getConfig(unit);
+        return config?.color || '#ffffffff';
+    }
+};
+
+// ==================== UTILIDADES ====================
+class Utils {
+    static generateId() {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    static debounce(func, wait) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), wait);
+        };
+    }
+
+    // Parseado de item numérico
+    static parseItemNumber(item) {
+        if (!item || item === '') return [];
+        return item.split('.').filter(n => n !== '').map(n => parseInt(n) || 0);
+    }
+
+    // Generar siguiente item en secuencia
+    static generateNextItem(parentItem, allRows) {
+        if (!parentItem || parentItem === '') {
+            // Raíz: buscar el máximo número de primer nivel
+            const maxFirst = allRows
+                .map(r => this.parseItemNumber(r.item))
+                .filter(p => p.length === 1)
+                .map(p => p[0])
+                .reduce((max, n) => Math.max(max, n), 0);
+
+            return this.formatItem([maxFirst + 1]);
+        }
+
+        const parentParts = this.parseItemNumber(parentItem);
+
+        // Buscar hermanos (mismo nivel, mismo padre)
+        const siblings = allRows
+            .map(r => this.parseItemNumber(r.item))
+            .filter(p => {
+                if (p.length !== parentParts.length + 1) return false;
+                for (let i = 0; i < parentParts.length; i++) {
+                    if (p[i] !== parentParts[i]) return false;
+                }
+                return true;
+            });
+
+        const maxSibling = siblings.length > 0
+            ? Math.max(...siblings.map(s => s[s.length - 1]))
+            : 0;
+
+        return this.formatItem([...parentParts, maxSibling + 1]);
+    }
+
+    // Formatear array de números a string de item
+    static formatItem(parts) {
+        return parts.map(n => String(n).padStart(2, '0')).join('.');
+    }
+
+    // Obtener nivel de profundidad del item
+    static getItemLevel(item) {
+        return this.parseItemNumber(item).length;
+    }
+
+    // Verificar si itemA es padre de itemB
+    static isParentOf(itemA, itemB) {
+        const partsA = this.parseItemNumber(itemA);
+        const partsB = this.parseItemNumber(itemB);
+
+        if (partsB.length <= partsA.length) return false;
+
+        for (let i = 0; i < partsA.length; i++) {
+            if (partsA[i] !== partsB[i]) return false;
+        }
+
+        return true;
+    }
+}
+
+// ==================== GESTOR DE DATOS ====================
+class DataManager {
+    constructor() {
+        this.rows = [];
+        this.rowsById = new Map();
+        this.history = [];
+        this.historyIndex = -1;
+        this.maxHistory = 50;
+    }
+
+    // Cargar datos iniciales
+    loadData(data) {
+        this.rows = [];
+        this.rowsById.clear();
+
+        data.forEach(d => {
+            const row = this.createRow(d);
+            this.rows.push(row);
+            this.rowsById.set(row.id, row);
         });
 
-        // State para las tablas y funcionalidades
-        const selectedFile = ref(null);
-        const jsonTree = ref([]);
-        const metradoComunicacion = ref([]);
-        const resumenData = ref([]);
-        const isAutoUpdateActive = ref(false);
-        const updateInterval = ref(null);
+        this.saveState();
+    }
 
-        // Referencias a las tablas Tabulator
-        const table = ref(null);
-        const tableResumen = ref(null);
+    // Crear objeto de fila
+    createRow(data = {}) {
+        return {
+            id: data.id || Utils.generateId(),
+            item: data.item || '',
+            descripcion: data.descripcion || '',
+            und: data.und || 'gbl',
+            elem: data.elem || '',
+            l: data.l || '',
+            an: data.an || '',
+            al: data.al || '',
+            veces: data.veces || '',
+            lon: data.lon || '',
+            area: data.area || '',
+            vol: data.vol || '',
+            kg: data.kg || '',
+            undc: data.undc || '',
+            total: data.total || '',
+            // undc: data.undc || '',
+            // total: data.total || '',
+            isPartida: data.isPartida !== undefined ? data.isPartida : true
+        };
+    }
 
-        // ===== CONFIGURACIONES =====
-        const TableConfig = {
-            colors: {
-                hierarchyLevels: {
-                    0: '#800080', // Purple for top-level
-                    1: '#FF0000', // Red for children
-                    2: '#0000FF', // Blue for grandchildren
-                    3: '#008000', // Green for 4th gen with 5th gen
-                    4: '#000000'  // Black for deeper levels
+    // Guardar estado en historial
+    saveState() {
+        const state = JSON.parse(JSON.stringify(this.rows));
+        this.history = this.history.slice(0, this.historyIndex + 1);
+        this.history.push(state);
+
+        if (this.history.length > this.maxHistory) {
+            this.history.shift();
+        } else {
+            this.historyIndex++;
+        }
+    }
+
+    // Deshacer
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.restoreState(this.history[this.historyIndex]);
+            return true;
+        }
+        return false;
+    }
+
+    // Rehacer
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.restoreState(this.history[this.historyIndex]);
+            return true;
+        }
+        return false;
+    }
+
+    // Restaurar estado
+    restoreState(state) {
+        this.rows = JSON.parse(JSON.stringify(state));
+        this.rowsById.clear();
+        this.rows.forEach(row => {
+            this.rowsById.set(row.id, row);
+        });
+    }
+
+    // Agregar partida (hermana de la seleccionada o raíz)
+    addPartida(selectedId = null) {
+        let parentItem = '';
+        let insertIndex = this.rows.length;
+
+        if (selectedId) {
+            const selectedRow = this.rowsById.get(selectedId);
+            if (selectedRow) {
+                const selectedParts = Utils.parseItemNumber(selectedRow.item);
+                if (selectedParts.length > 1) {
+                    // Obtener padre (quitar último nivel)
+                    parentItem = Utils.formatItem(selectedParts.slice(0, -1));
                 }
-            },
-            utils: {
-                getHierarchyColor: function (node, depth) {
-                    if (depth === 4) {
-                        if (node.children && node.children.length > 0) {
-                            return TableConfig.colors.hierarchyLevels[3];
-                        } else {
-                            return TableConfig.colors.hierarchyLevels[4];
-                        }
-                    }
-                    if (depth === 3) {
-                        if (node.children && node.children.some(child => child.children && child.children.length > 0)) {
-                            return TableConfig.colors.hierarchyLevels[3];
-                        } else {
-                            return TableConfig.colors.hierarchyLevels[4];
-                        }
-                    }
-                    return TableConfig.colors.hierarchyLevels[depth] || TableConfig.colors.hierarchyLevels[4];
-                },
-                calculateItemDepth: function (item) {
-                    return (item.match(/\./g) || []).length;
-                }
+                // Insertar después de la seleccionada
+                insertIndex = this.rows.findIndex(r => r.id === selectedId) + 1;
             }
-        };
+        }
 
-        const unidadValues = {
-            "": "",
-            "Und": "Unidad",
-            "pto": "Punto",
-            "m": "metros",
-            "m1": "metros cc",
-            "m3": "metros cúbicos",
-            "GBL": "global"
-        };
+        const nextItem = Utils.generateNextItem(parentItem, this.rows);
+        const row = this.createRow({
+            item: nextItem,
+            descripcion: 'Nueva Partida',
+            und: 'gbl',
+            isPartida: true
+        });
 
-        const fieldsToHighlight = {
-            Und: ["elesimil", "nveces"],
-            m: ["elesimil", "largo", "ancho", "alto", "nveces"],
-            m1: ["elesimil", "largo", "ancho", "alto"],
-            pto: ["nveces"],
-            m3: ["elesimil", "largo", "ancho", "alto", "nveces", "longitud", "area"],
-            GBL: ["elesimil", "nveces"],
-        };
+        this.rows.splice(insertIndex, 0, row);
+        this.rowsById.set(row.id, row);
+        this.saveState();
 
-        const listaNormativas = [
-            {
-                item: "INSTALACIONES DE COMUNICACIONES",
-                children: [
-                    {
-                        item: "CABLEADO ESTRUCTURADO EN INTERIORES DE EDIFICIOS",
-                        children: [
-                            { item: "CABLES EN TUBERÍAS" },
-                        ]
-                    },
-                    { item: "CANALETAS, CONDUCTOS Y/O TUBERÍAS " },
-                    { item: "SALIDA DE COMUNICACIONES" },
-                    { item: "CONDUCTORES DE COMUNICACIONES" },
-                    { item: "PATCH PANEL" },
-                    {
-                        item: "RACK DE COMUNICACIONES",
-                        children: [
-                            { item: "SWITCH" },
-                            { item: "GABINETE DE COMUNICACIÓN" },
-                        ]
-                    },
-                    { item: "CAJA DE PASE PARA TRANSFORMADOR" },
-                    {
-                        item: "SISTEMAS VARIOS",
-                        children: [
-                            { item: "SISTEMA DE DETECCION Y ALARMA CONTRA INCENDIOS" },
-                            { item: "SISTEMA DE SONIDO AMBIENTAL" },
-                            { item: "SISTEMA DE VIDEOVIGILANCIA" },
-                            { item: "SISTEMA DE PUESTA TIERRA" },
-                            { item: "SISTEMA DE CONDUCTOS" },
-                        ]
-                    },
-                ]
+        return row;
+    }
+
+    // Agregar subpartida (hija de la seleccionada)
+    addSubpartida(parentId) {
+        const parentRow = this.rowsById.get(parentId);
+        if (!parentRow) return null;
+
+        const nextItem = Utils.generateNextItem(parentRow.item, this.rows);
+        const parentIndex = this.rows.findIndex(r => r.id === parentId);
+
+        // Buscar última descendiente de parent para insertar después
+        let insertIndex = parentIndex + 1;
+        for (let i = parentIndex + 1; i < this.rows.length; i++) {
+            if (Utils.isParentOf(parentRow.item, this.rows[i].item)) {
+                insertIndex = i + 1;
+            } else {
+                break;
             }
-        ];
+        }
 
-        // ===== CALCULADORA DE TABLAS =====
-        const TableCalculator = {
-            calculateByUnidad: function (data) {
-                const unidad = data.unidad;
-                switch (unidad) {
-                    case "Und":
-                    case "GBL":
-                        return this.calculateUnidadCalculado(data);
-                    case "m":
-                        return this.calculatemetros(data);
-                    case "m1":
-                        return this.calculate1metros(data);
-                    case "pto":
-                        return {
-                            unidadCalculado: parseFloat(data.nveces) || 1,
-                            displayValue: (parseFloat(data.nveces) || 1).toFixed(2)
-                        };
-                    case "m3":
-                        const largo = parseFloat(data.largo) || 1;
-                        const ancho = parseFloat(data.ancho) || 1;
-                        const alto = parseFloat(data.alto) || 1;
-                        const nveces = parseFloat(data.nveces) || 1;
-                        const longitud = parseFloat(data.longitud) || 1;
-                        const area = parseFloat(data.area) || 1;
-                        const unidadCalculado = largo * ancho * alto * nveces * longitud * area;
-                        return {
-                            unidadCalculado: unidadCalculado,
-                            displayValue: unidadCalculado.toFixed(2)
-                        };
-                    default:
-                        return { unidadCalculado: 0, displayValue: "0.00" };
-                }
-            },
+        const row = this.createRow({
+            item: nextItem,
+            descripcion: 'Nueva Subpartida',
+            und: 'und',
+            isPartida: false
+        });
 
-            calculateUnidadCalculado: function (data) {
-                const elesimil = parseFloat(data.elesimil) || 1;
-                const nveces = parseFloat(data.nveces) || 1;
-                const unidadCalculado = elesimil * nveces;
-                return {
-                    unidadCalculado: unidadCalculado,
-                    displayValue: unidadCalculado.toFixed(2)
-                };
-            },
+        this.rows.splice(insertIndex, 0, row);
+        this.rowsById.set(row.id, row);
+        this.saveState();
 
-            calculatemetros: function (data) {
-                const elesimil = parseFloat(data.elesimil) || 1;
-                const largo = parseFloat(data.largo) || 1;
-                const ancho = parseFloat(data.ancho) || 1;
-                const alto = parseFloat(data.alto) || 1;
-                const nveces = parseFloat(data.nveces) || 1;
-                const longitud = parseFloat(data.longitud) || 1;
-                const dimensionSum = largo + ancho + alto;
-                const unidadCalculado = elesimil * dimensionSum * longitud * nveces;
-                return {
-                    unidadCalculado: unidadCalculado,
-                    displayValue: unidadCalculado.toFixed(2),
-                    dimensionSum: dimensionSum
-                };
-            },
+        return row;
+    }
 
-            calculate1metros: function (data) {
-                const elesimil = parseFloat(data.elesimil) || 1;
-                const largo = parseFloat(data.largo) || 1;
-                const ancho = parseFloat(data.ancho) || 1;
-                const alto = parseFloat(data.alto) || 1;
-                const dimensionSum = largo + ancho;
-                const unidadCalculado = elesimil * dimensionSum * alto;
-                return {
-                    unidadCalculado: unidadCalculado,
-                    displayValue: unidadCalculado.toFixed(2),
-                    dimensionSum: dimensionSum
-                };
-            },
+    addDetalleSubpartida(parentId) {
+        const parentRow = this.rowsById.get(parentId);
+        if (!parentRow) return null;
 
-            calculateHierarchicalTotals: function (rows) {
-                rows.forEach(row => {
-                    const children = row.getTreeChildren();
-                    if (children && children.length > 0) {
-                        const totalGeneral = children.reduce((sum, childRow) => {
-                            const childData = childRow.getData();
-                            const childCalculation = this.calculateUnidadCalculado(childData);
-                            return sum + childCalculation.unidadCalculado;
-                        }, 0);
-                        row.update({ total: totalGeneral });
-                    } else {
-                        const calculation = this.calculateUnidadCalculado(row.getData());
-                        row.update({
-                            unidadcalculado: calculation.unidadCalculado,
-                            total: calculation.unidadCalculado
-                        });
+        const nextItem = Utils.generateNextItem(parentRow.item, this.rows);
+        const parentIndex = this.rows.findIndex(r => r.id === parentId);
+
+        // Buscar última descendiente de parent para insertar después
+        let insertIndex = parentIndex + 1;
+        for (let i = parentIndex + 1; i < this.rows.length; i++) {
+            if (Utils.isParentOf(parentRow.item, this.rows[i].item)) {
+                insertIndex = i + 1;
+            } else {
+                break;
+            }
+        }
+
+        const row = this.createRow({
+            item: '',
+            descripcion: 'Nuevo Detalles',
+            und: 'und',
+            isPartida: false
+        });
+
+        this.rows.splice(insertIndex, 0, row);
+        this.rowsById.set(row.id, row);
+        this.saveState();
+
+        return row;
+    }
+
+    // Eliminar filas
+    deleteRows(ids) {
+        // Eliminar filas y sus descendientes
+        const toDelete = new Set(ids);
+
+        ids.forEach(id => {
+            const row = this.rowsById.get(id);
+            if (row) {
+                // Agregar descendientes
+                this.rows.forEach(r => {
+                    if (Utils.isParentOf(row.item, r.item)) {
+                        toDelete.add(r.id);
                     }
                 });
             }
+        });
+
+        this.rows = this.rows.filter(r => !toDelete.has(r.id));
+        toDelete.forEach(id => this.rowsById.delete(id));
+        this.saveState();
+    }
+
+    // Mover filas
+    moveRows(ids, direction) {
+        if (ids.length === 0) return false;
+
+        const indices = ids
+            .map(id => this.rows.findIndex(r => r.id === id))
+            .filter(i => i !== -1)
+            .sort((a, b) => a - b);
+
+        if (indices.length === 0) return false;
+
+        if (direction === 'up' && indices[0] === 0) return false;
+        if (direction === 'down' && indices[indices.length - 1] === this.rows.length - 1) return false;
+
+        if (direction === 'up') {
+            indices.forEach(i => {
+                [this.rows[i - 1], this.rows[i]] = [this.rows[i], this.rows[i - 1]];
+            });
+        } else {
+            for (let j = indices.length - 1; j >= 0; j--) {
+                const i = indices[j];
+                [this.rows[i], this.rows[i + 1]] = [this.rows[i + 1], this.rows[i]];
+            }
+        }
+
+        this.saveState();
+        return true;
+    }
+
+    // Copiar filas
+    copyRows(ids) {
+        return ids
+            .map(id => this.rowsById.get(id))
+            .filter(row => row)
+            .map(row => ({ ...row }));
+    }
+
+    // Pegar filas
+    pasteRows(copiedRows, afterId = null) {
+        const index = afterId
+            ? this.rows.findIndex(r => r.id === afterId) + 1
+            : this.rows.length;
+
+        copiedRows.forEach((copiedRow, i) => {
+            const newRow = this.createRow({
+                ...copiedRow,
+                id: Utils.generateId(),
+                item: '' // Se regenerará
+            });
+
+            this.rows.splice(index + i, 0, newRow);
+            this.rowsById.set(newRow.id, newRow);
+        });
+
+        this.saveState();
+    }
+
+    // Actualizar fila
+    updateRow(id, updates) {
+        const row = this.rowsById.get(id);
+        if (row) {
+            Object.assign(row, updates);
+        }
+    }
+
+    // Obtener fila por ID
+    getRow(id) {
+        return this.rowsById.get(id);
+    }
+
+    // Obtener todas las filas
+    getAllRows() {
+        return this.rows;
+    }
+
+    // Exportar datos para servidor
+    exportData() {
+        return JSON.stringify(this.rows);
+    }
+
+    // Importar datos desde servidor
+    importData(jsonData) {
+        try {
+            const data = JSON.parse(jsonData);
+            this.loadData(data);
+            return true;
+        } catch (e) {
+            console.error('Error importing data:', e);
+            return false;
+        }
+    }
+}
+
+// ==================== GESTOR DE FÓRMULAS ====================
+class FormulaManager {
+    constructor() {
+        this.hf = null;
+        this.sheetName = 'METRADOS';
+        this.sheetId = null;
+        this._init();
+    }
+
+    _init() {
+        try {
+            this.hf = HyperFormula.buildEmpty({
+                licenseKey: "gpl-v3",
+                useColumnIndex: true,
+                evaluateNullToZero: true
+            });
+            this.hf.addSheet(this.sheetName);
+            this.sheetId = this.hf.getSheetId(this.sheetName);
+        } catch (e) {
+            console.error('HyperFormula init error:', e);
+        }
+    }
+
+    calculate(rows) {
+        if (!this.hf || !rows || rows.length === 0) return rows;
+
+        try {
+            this.hf.clearSheet(this.sheetId);
+
+            const headers = ['item', 'descripcion', 'und', 'elem', 'l', 'an', 'al',
+                'veces', 'lon', 'area', 'vol', 'kg', 'undc', 'total'];
+
+            // Convertir a datos numéricos
+            const data = rows.map(r => [
+                r.item || '',
+                r.descripcion || '',
+                r.und || '',
+                this.toNumber(r.elem),
+                this.toNumber(r.l),
+                this.toNumber(r.an),
+                this.toNumber(r.al),
+                this.toNumber(r.veces),
+                this.toNumber(r.lon),
+                this.toNumber(r.area),
+                this.toNumber(r.vol),
+                this.toNumber(r.kg),
+                this.toNumber(r.undc),
+                this.toNumber(r.total)
+            ]);
+
+            this.hf.setSheetContent(this.sheetId, [headers, ...data]);
+
+            // PASO 1: Calcular campos intermedios (lon, area, vol, undc)
+            rows.forEach((row, idx) => {
+                const rowNum = idx + 2;
+                const config = UnitConfig.getConfig(row.und);
+
+                if (config?.formula) {
+                    const formulas = config.formula(rowNum);
+                    Object.entries(formulas).forEach(([field, formula]) => {
+                        const colMap = {
+                            lon: 8,
+                            area: 9,
+                            vol: 10,
+                            undc: 12
+                        };
+                        const col = colMap[field];
+
+                        if (col !== undefined) {
+                            this.hf.setCellContents({
+                                sheet: this.sheetId,
+                                col: col,
+                                row: rowNum - 1
+                            }, formula);
+                        }
+                    });
+                }
+            });
+
+            // PASO 2: Calcular columna TOTAL solo para filas con item (partidas/subpartidas)
+            rows.forEach((row, idx) => {
+                const rowNum = idx + 2;
+
+                // Si no tiene item, es detalle: NO calcular total
+                if (!row.item || row.item === '') {
+                    this.hf.setCellContents({
+                        sheet: this.sheetId,
+                        col: 13, // columna N (total)
+                        row: rowNum - 1
+                    }, ''); // Dejar vacío
+                    return;
+                }
+
+                // Tiene item: buscar hijos directos (tanto con item como sin item)
+                const childIndices = [];
+                for (let i = idx + 1; i < rows.length; i++) {
+                    const childRow = rows[i];
+
+                    // Si no tiene item, es detalle hijo directo
+                    if (!childRow.item || childRow.item === '') {
+                        let directParentIdx = idx;
+                        for (let j = i - 1; j >= 0; j--) {
+                            if (rows[j].item && rows[j].item !== '') {
+                                directParentIdx = j;
+                                break;
+                            }
+                        }
+                        if (directParentIdx === idx) {
+                            childIndices.push({ rowNum: i + 2, hasItem: false });
+                        }
+                    }
+                    // Si tiene item y es hijo directo
+                    else if (Utils.isParentOf(row.item, childRow.item)) {
+                        const childLevel = Utils.getItemLevel(childRow.item);
+                        const parentLevel = Utils.getItemLevel(row.item);
+
+                        if (childLevel === parentLevel + 1) {
+                            childIndices.push({ rowNum: i + 2, hasItem: true });
+                        }
+                    }
+                    // Si encontramos un no-descendiente, terminamos
+                    else if (!Utils.isParentOf(row.item, childRow.item)) {
+                        break;
+                    }
+                }
+
+                let totalFormula;
+
+                if (childIndices.length > 0) {
+                    // Tiene hijos: construir fórmula que sume según el tipo de hijo
+                    const sumParts = [];
+
+                    childIndices.forEach(child => {
+                        if (child.hasItem) {
+                            // Hijo con item (subpartida): sumar su TOTAL (columna N)
+                            sumParts.push(`N${child.rowNum}`);
+                        } else {
+                            // Hijo sin item (detalle): sumar su campo resultado
+                            // lon(I) + area(J) + vol(K) + kg(L) + undc(M)
+                            const detailRow = rows[child.rowNum - 2];
+                            const resultField = UnitConfig.getResultField(detailRow?.und);
+
+                            const colMap = {
+                                lon: 'I',
+                                area: 'J',
+                                vol: 'K',
+                                kg: 'L',
+                                undc: 'M'
+                            };
+
+                            const col = colMap[resultField] || 'M';
+                            sumParts.push(`${col}${child.rowNum}`);
+                        }
+                    });
+
+                    totalFormula = `=${sumParts.join('+')}`;
+                } else {
+                    // No tiene hijos: dejar total vacío
+                    totalFormula = '';
+                }
+
+                this.hf.setCellContents({
+                    sheet: this.sheetId,
+                    col: 13, // columna N (total)
+                    row: rowNum - 1
+                }, totalFormula);
+            });
+
+            // Obtener valores calculados
+            const values = this.hf.getSheetValues(this.sheetId);
+
+            if (!values || values.length <= 1) return rows;
+
+            // Actualizar rows con valores calculados
+            return values.slice(1).map((v, idx) => {
+                if (idx >= rows.length) return rows[idx];
+
+                const config = UnitConfig.getConfig(rows[idx].und);
+                const updates = { ...rows[idx] };
+
+                // Solo actualizar campos calculados y total
+                const calcFields = ['lon', 'area', 'vol', 'undc', 'total'];
+                calcFields.forEach((f, fidx) => {
+                    const colIdx = [8, 9, 10, 12, 13][fidx];
+
+                    // Si es campo calculado o total, actualizar
+                    if (f === 'total' || (config && config.calculatedFields.includes(f))) {
+                        updates[f] = this.formatNumber(v[colIdx]);
+                    }
+                    // Si no debe mostrarse, limpiar
+                    else if (config && !config.displayFields.includes(f)) {
+                        updates[f] = '';
+                    }
+                });
+
+                // Para detalles (sin item), forzar total vacío
+                if (!rows[idx].item || rows[idx].item === '') {
+                    updates.total = '';
+                } else {
+                    updates.total = v[13] === '' || v[13] === null ? '' : this.formatNumber(v[13]);
+                }
+
+                return updates;
+            });
+        } catch (e) {
+            console.error('Calculation error:', e);
+            return rows;
+        }
+    }
+
+    toNumber(val) {
+        const num = parseFloat(val);
+        return isNaN(num) ? 0 : num;
+    }
+
+    formatNumber(val) {
+        if (val === null || val === undefined || val === '') return '';
+        const num = parseFloat(val);
+        return isNaN(num) ? '' : num;
+    }
+}
+
+// ==================== APLICACIÓN VUE ====================
+createApp({
+    setup() {
+        const tableRef = ref(null);
+        const table = ref(null);
+        const dataManager = new DataManager();
+        const formulaManager = new FormulaManager();
+        const clipboard = ref([]);
+        const isCalculating = ref(false);
+
+        // Construir columnas de Tabulator
+        const buildColumns = () => [
+            {
+                title: "Acciones",
+                field: "actions",
+                frozen: true,
+                headerSort: false,
+                formatter: () => `
+                    <div style="display: flex; gap: 4px; justify-content: center;">
+                        <button class="btn-add-partida" title="Agregar Partida Hermana">📁</button>
+                        <button class="btn-add-sub" title="Agregar Subpartida">➕</button>
+                        <button class="btn-del" title="Eliminar">🗑️</button>
+                    </div>
+                `,
+                cellClick: (e, cell) => {
+                    e.stopPropagation();
+                    const row = cell.getRow();
+                    const id = row.getData().id;
+
+                    if (e.target.classList.contains('btn-add-partida')) {
+                        addPartida(id);
+                    } else if (e.target.classList.contains('btn-add-sub')) {
+                        addSubpartida(id);
+                    } else if (e.target.classList.contains('btn-up')) {
+                        moveRows('up');
+                    } else if (e.target.classList.contains('btn-down')) {
+                        moveRows('down');
+                    } else if (e.target.classList.contains('btn-del')) {
+                        deleteRows();
+                    }
+                }
+            },
+            { title: "ITEM", field: "item", width: 160, frozen: true, editor: "input", validator: "required", cssClass: "wrap-text" },
+            { title: "DESCRIPCIÓN", field: "descripcion", width: 320, editor: "input", validator: "required", cssClass: "wrap-text" },
+            {
+                title: 'Und.', field: 'und', editor: 'list', editorParams: {
+                    values: ['und', 'pto', 'm', 'm1', 'm2', 'm3', 'kg', 'gbl', 'global']
+                }
+            },
+            { title: 'Elem.', field: 'elem', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+            {
+                title: 'DIMENSIONES',
+                columns: [
+                    { title: 'L.', field: 'l', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+                    { title: 'An.', field: 'an', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+                    { title: 'Al.', field: 'al', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } }
+                ]
+            },
+            { title: 'Nº Veces', field: 'veces', editor: 'number', formatter: 'money', formatterParams: { precision: 0 } },
+            {
+                title: 'METRADO',
+                columns: [
+                    { title: 'Lon', field: 'lon', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+                    { title: 'Área', field: 'area', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+                    { title: 'Vol.', field: 'vol', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+                    { title: 'Kg.', field: 'kg', editor: 'number', formatter: 'money', formatterParams: { precision: 2 } },
+                    { title: 'Undc.', field: 'undc', editor: false, formatter: 'money', formatterParams: { precision: 2 } }
+                ]
+            },
+            { title: 'Total', field: 'total', editor: false, formatter: 'money', formatterParams: { precision: 2 } }
+        ];
+
+        // Refrescar tabla con cálculos
+        const refresh = Utils.debounce(() => {
+            if (isCalculating.value) return;
+            isCalculating.value = true;
+
+            try {
+                const calculated = formulaManager.calculate(dataManager.getAllRows());
+
+                // Actualizar solo los campos calculados
+                calculated.forEach((calcRow) => {
+                    if (!calcRow || !calcRow.id) return;
+
+                    // Only update fields that are calculated and NOT editable according to UnitConfig
+                    const config = UnitConfig.getConfig(calcRow.und);
+                    const updates = {};
+
+                    const calcFields = ['lon', 'area', 'vol', 'undc', 'total'];
+                    calcFields.forEach((f) => {
+                        // If the unit config marks this field editable, skip overwriting it
+                        if (!UnitConfig.isEditable(calcRow.und, f)) {
+                            // Only set if the calculated value is not empty string
+                            if (calcRow[f] !== '' && calcRow[f] !== null && calcRow[f] !== undefined) {
+                                updates[f] = calcRow[f];
+                            }
+                        }
+                    });
+
+                    if (Object.keys(updates).length > 0) {
+                        dataManager.updateRow(calcRow.id, updates);
+                    }
+                });
+
+                if (table.value) {
+                    table.value.replaceData(dataManager.getAllRows());
+                }
+            } catch (e) {
+                console.error('Error in refresh:', e);
+            } finally {
+                isCalculating.value = false;
+            }
+        }, 100);
+
+        // Agregar partida
+        const addPartida = (selectedId = null) => {
+            dataManager.addPartida(selectedId);
+            refresh();
         };
 
-        // ===== FUNCIONES DE EXCEL =====
-        const handleFileChange = (event) => {
-            selectedFile.value = event.target.files[0];
+        // Agregar subpartida
+        const addSubpartida = (parentId) => {
+            if (!parentId) return;
+            dataManager.addSubpartida(parentId);
+            refresh();
         };
 
-        const uploadExcel = () => {
-            if (!selectedFile.value) {
-                alert("Por favor, selecciona un archivo Excel.");
+        const addDetallesSubpartida = (parentId) => {
+            if (!parentId) return;
+            dataManager.addDetalleSubpartida(parentId);
+            refresh();
+        };
+
+        // Eliminar filas
+        const deleteRows = () => {
+            if (!table.value) return;
+
+            const selected = table.value.getSelectedData();
+            if (selected.length === 0) {
+                alert('Seleccione al menos una fila');
                 return;
             }
 
-            const fileReader = new FileReader();
-            fileReader.onload = function (event) {
-                const data = new Uint8Array(event.target.result);
-                const workbook = XLSX.read(data, { type: "array" });
-
-                if (!workbook.Sheets["Metrado"]) {
-                    alert("La hoja 'Metrado' no se encuentra en el archivo.");
-                    return;
-                }
-
-                const sheet = workbook.Sheets["Metrado"];
-                if (!sheet["!ref"]) {
-                    alert("No se detectaron datos en la hoja 'Metrado'.");
-                    return;
-                }
-
-                const rowObject = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-                const filteredData = rowObject.slice(8);
-
-                jsonTree.value = buildHierarchy(filteredData);
-                updateTableData(jsonTree.value);
-            };
-
-            fileReader.readAsArrayBuffer(selectedFile.value);
-        };
-
-        const buildHierarchy = (data) => {
-            let tree = [];
-            let map = {};
-
-            data.forEach((row, index) => {
-                const {
-                    __EMPTY: nivel,
-                    __EMPTY_1: item,
-                    __EMPTY_2: descripcion,
-                    __EMPTY_3: unidad,
-                    __EMPTY_4: elesimil,
-                    __EMPTY_5: largo,
-                    __EMPTY_6: ancho,
-                    __EMPTY_7: alto,
-                    __EMPTY_8: nveces,
-                    __EMPTY_9: longitud,
-                    __EMPTY_10: area,
-                    __EMPTY_11: volumen,
-                    __EMPTY_12: kg,
-                    __EMPTY_13: unidadcalculado,
-                    __EMPTY_14: total,
-                } = row;
-
-                const isDescriptionRow = !item;
-                const levels = (item || "").split(".");
-
-                const node = {
-                    id: index + 1,
-                    item: item || "",
-                    descripcion: descripcion || "",
-                    unidad: unidad || "",
-                    elesimil: elesimil || "",
-                    largo: largo || "",
-                    ancho: ancho || "",
-                    alto: alto || "",
-                    nveces: nveces || "",
-                    longitud: longitud || "",
-                    area: area || "",
-                    volumen: volumen || "",
-                    kg: kg || "",
-                    unidadcalculado: unidadcalculado || "",
-                    totalnieto: total || "",
-                    isDescriptionRow: isDescriptionRow,
-                    children: []
-                };
-
-                if (isDescriptionRow) {
-                    const lastParent = Object.values(map).reverse().find(n => !n.isDescriptionRow);
-                    if (lastParent) {
-                        lastParent.children.push(node);
-                    } else {
-                        tree.push(node);
-                    }
-                    return;
-                }
-
-                const key = levels.join(".");
-                map[key] = node;
-
-                if (levels.length === 1) {
-                    tree.push(node);
-                } else {
-                    const parentKey = levels.slice(0, -1).join(".");
-                    if (map[parentKey]) {
-                        map[parentKey].children.push(node);
-                    }
-                }
-            });
-
-            return tree;
-        };
-
-        const updateTableData = (newData) => {
-            if (table.value) {
-                table.value.clearData();
-                table.value.setData(newData);
+            if (confirm(`¿Eliminar ${selected.length} fila(s) y sus descendientes?`)) {
+                const ids = selected.map(r => r.id);
+                dataManager.deleteRows(ids);
+                refresh();
             }
         };
 
-        // ===== FUNCIONES DE FORMATEO Y CÁLCULO =====
-        const formatRow = (row) => {
-            const data = row.getData();
-            const unidad = data.unidad;
+        // Mover filas
+        const moveRows = (direction) => {
+            if (!table.value) return;
 
-            row.getCells().forEach(cell => {
-                cell.getElement().style.backgroundColor = "";
-                cell.getColumn().getDefinition().editor = "number";
-            });
+            const selected = table.value.getSelectedData();
+            if (selected.length === 0) return;
 
-            if (fieldsToHighlight[unidad]) {
-                fieldsToHighlight[unidad].forEach(field => {
-                    const cell = row.getCell(field);
-                    if (cell) {
-                        cell.getElement().style.backgroundColor = "yellow";
+            const ids = selected.map(r => r.id);
+            if (dataManager.moveRows(ids, direction)) {
+                refresh();
+
+                // Re-seleccionar filas
+                setTimeout(() => {
+                    ids.forEach(id => {
+                        const row = table.value.getRow(id);
+                        if (row) row.select();
+                    });
+                }, 50);
+            }
+        };
+
+        // Copiar filas
+        const copyRows = () => {
+            if (!table.value) return;
+
+            const selected = table.value.getSelectedData();
+            if (selected.length === 0) return;
+
+            const ids = selected.map(r => r.id);
+            clipboard.value = dataManager.copyRows(ids);
+
+            console.log(`${clipboard.value.length} fila(s) copiada(s)`);
+        };
+
+        // Pegar filas
+        const pasteRows = () => {
+            if (clipboard.value.length === 0) {
+                alert('No hay filas copiadas');
+                return;
+            }
+
+            const selected = table.value?.getSelectedData() || [];
+            const afterId = selected.length > 0 ? selected[0].id : null;
+
+            dataManager.pasteRows(clipboard.value, afterId);
+            refresh();
+        };
+
+        // Deshacer
+        const undo = () => {
+            if (dataManager.undo()) {
+                refresh();
+            }
+        };
+
+        // Rehacer
+        const redo = () => {
+            if (dataManager.redo()) {
+                refresh();
+            }
+        };
+
+        const handleCellEdit = (cell) => {
+            const field = cell.getField();
+            const row = cell.getRow().getData();
+            const value = cell.getValue();
+
+            if (field === 'und') {
+                // Incluir UNDC en la lista de campos a limpiar
+                const allDataFields = ['elem', 'l', 'an', 'al', 'veces', 'lon', 'area', 'vol', 'kg', 'undc'];
+                const config = UnitConfig.getConfig(value);
+
+                const updates = { [field]: value };
+
+                allDataFields.forEach(f => {
+                    if (!config || !config.displayFields.includes(f)) {
+                        updates[f] = '';
                     }
                 });
 
-                row.getCells().forEach(cell => {
-                    const field = cell.getColumn().getField();
-                    if (!fieldsToHighlight[unidad].includes(field)) {
-                        cell.getColumn().getDefinition().editor = false;
-                    }
-                });
-            }
-        };
-
-        const calculateRowTotal = (row) => {
-            const data = row.getData();
-            let unidadcalculado = 0, longitud = 0, volumen = 0, total = 0;
-
-            if (data.item && /^\d/.test(data.item)) {
-                switch (data.unidad) {
-                    case "Und":
-                    case "GBL":
-                        unidadcalculado = (parseFloat(data.nveces) || 0) * (parseFloat(data.elesimil) || 0);
-                        row.update({
-                            unidadcalculado: unidadcalculado.toFixed(2),
-                            longitud: "",
-                            area: "",
-                            largo: "",
-                            ancho: "",
-                            alto: "",
-                            volumen: "",
-                            kg: ""
-                        });
-                        total = unidadcalculado;
-                        break;
-
-                    case "m":
-                        longitud = (parseFloat(data.elesimil) || 1) *
-                            ((parseFloat(data.largo) || 0) + (parseFloat(data.ancho) || 0) + (parseFloat(data.alto) || 0)) *
-                            (parseFloat(data.nveces) || 1);
-                        row.update({
-                            longitud: longitud.toFixed(2),
-                            unidadcalculado: "",
-                            volumen: "",
-                            kg: "",
-                            area: ""
-                        });
-                        total = longitud;
-                        break;
-
-                    case "m1":
-                        longitud = (parseFloat(data.elesimil) || 1) *
-                            ((parseFloat(data.largo) || 0) + (parseFloat(data.ancho) || 0)) *
-                            (parseFloat(data.alto) || 1);
-                        row.update({
-                            longitud: longitud.toFixed(2),
-                            nveces: "",
-                            unidadcalculado: "",
-                            volumen: "",
-                            kg: "",
-                            area: ""
-                        });
-                        total = longitud;
-                        break;
-
-                    case "m3":
-                        volumen = (parseFloat(data.largo) || 1) *
-                            (parseFloat(data.ancho) || 1) *
-                            (parseFloat(data.alto) || 1) *
-                            (parseFloat(data.nveces) || 1);
-                        row.update({
-                            volumen: volumen.toFixed(2),
-                            unidadcalculado: "",
-                            kg: ""
-                        });
-                        total = volumen;
-                        break;
-
-                    default:
-                        row.update({
-                            unidadcalculado: "",
-                            longitud: "",
-                            volumen: ""
-                        });
-                }
-                row.update({ total: total.toFixed(2) });
-            }
-        };
-
-        // ===== FUNCIONES DE JERARQUÍA =====
-        const getNextNumber = (children, parentItem = '') => {
-            const numeratedItems = children
-                .filter(child => {
-                    const data = child.getData();
-                    return data.item && !data.isDescriptionRow;
-                })
-                .map(child => child.getData().item)
-                .sort((a, b) => {
-                    const partsA = a.split('.');
-                    const partsB = b.split('.');
-                    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-                        const numA = parseInt(partsA[i] || '0');
-                        const numB = parseInt(partsB[i] || '0');
-                        if (numA !== numB) return numA - numB;
-                    }
-                    return 0;
-                });
-
-            if (numeratedItems.length === 0) {
-                return `${parentItem}${parentItem ? '.' : ''}01`;
-            }
-
-            const lastItem = numeratedItems[numeratedItems.length - 1];
-            const lastNumber = parseInt(lastItem.split('.').pop());
-            const nextNumber = (lastNumber + 1).toString().padStart(2, '0');
-            return `${parentItem}${parentItem ? '.' : ''}${nextNumber}`;
-        };
-
-        const validateHierarchicalOrder = (item) => {
-            const parts = item.split('.');
-            return parts.every((part, index) => {
-                return /^\d{2}$/.test(part) &&
-                    parseInt(part) > 0 &&
-                    parseInt(part) <= 99;
-            });
-        };
-
-        // ===== AUTO-UPDATE FUNCIONES =====
-        const startAutoUpdate = () => {
-            if (!updateInterval.value) {
-                updateInterval.value = setInterval(updateMetrados, 120000);
-                isAutoUpdateActive.value = true;
-                console.log('Auto-update started');
-            }
-        };
-
-        const stopAutoUpdate = () => {
-            if (updateInterval.value) {
-                clearInterval(updateInterval.value);
-                updateInterval.value = null;
-                isAutoUpdateActive.value = false;
-                console.log('Auto-update stopped');
-            }
-        };
-
-        const updateMetrados = async () => {
-            try {
-                const dataToSend = {
-                    id: configuracion.id,
-                    modulos: metradoComunicacion.value,
-                    resumencm: resumenData.value,
-                };
-
-                const response = await fetch('/update_metrados_comunicacion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify(dataToSend)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Update successful:', result.message);
-                } else {
-                    throw new Error('Update failed');
-                }
-            } catch (error) {
-                console.error('Update error:', error);
-                stopAutoUpdate();
-            }
-        };
-
-        // ===== INICIALIZACIÓN DE TABLAS =====
-        const initializeMainTable = () => {
-            table.value = new Tabulator("#metrados-comunicacion-table", {
-                movableRows: true,
-                height: "500px",
-                data: metradoComunicacion.value,
-                layout: "fitColumns",
-                dataTree: true,
-                dataTreeStartExpanded: true,
-                dataTreeChildField: "children",
-                columnHeaderVertAlign: "bottom",
-                movableRowsConnectedTables: false,
-                movableRowsReceiver: "add",
-                movableRowsSender: "delete",
-
-                columns: [
-                    {
-                        title: "ITEM",
-                        field: "item",
-                        width: 100,
-                        formatter: function (cell) {
-                            const rowData = cell.getData();
-                            if (rowData.isDescriptionRow) {
-                                return `<span style="color: #000000;">${cell.getValue()}</span>`;
-                            }
-                            const item = rowData.item || "";
-                            const depth = (item.match(/\./g) || []).length;
-                            const color = TableConfig.utils.getHierarchyColor(rowData, depth);
-                            const isBold = rowData.descripcion && rowData.descripcion !== "Descripcion";
-                            return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">${cell.getValue()}</span>`;
-                        }
-                    },
-                    {
-                        title: "DESCRIPCIÓN",
-                        field: "descripcion",
-                        width: 250,
-                        editor: "list",
-                        editorParams: (cell) => {
-                            const rowData = cell.getData();
-                            const depth = rowData.item ? rowData.item.split('.').length : 1;
-
-                            const generateOptionsByHierarchy = (list, targetDepth, currentDepth = 1) => {
-                                const options = [];
-                                list.forEach((item) => {
-                                    if (currentDepth === targetDepth) {
-                                        options.push(item.item);
-                                    }
-                                    if (item.children) {
-                                        options.push(
-                                            ...generateOptionsByHierarchy(item.children, targetDepth, currentDepth + 1)
-                                        );
-                                    }
-                                });
-                                return options;
-                            };
-
-                            const options = generateOptionsByHierarchy(listaNormativas, depth);
-
-                            return {
-                                values: options,
-                                autocomplete: true,
-                                allowEmpty: true,
-                                listOnEmpty: true,
-                                valuesLookup: true,
-                                freetext: true,
-                                multiselect: false,
-                                placeholderLoading: "Cargando opciones...",
-                            };
-                        },
-                        formatter: function (cell) {
-                            const rowData = cell.getData();
-                            if (rowData.isDescriptionRow) {
-                                return `<span style="color: #000000;">${cell.getValue()}</span>`;
-                            }
-                            const depth = (rowData.item.match(/\./g) || []).length;
-                            const color = TableConfig.utils.getHierarchyColor(rowData, depth);
-                            const isBold = rowData.descripcion && rowData.descripcion !== "Descripcion";
-                            return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">${cell.getValue()}</span>`;
-                        }
-                    },
-                    {
-                        title: "Und.",
-                        field: "unidad",
-                        editor: "list",
-                        hozAlign: "center",
-                        headerVertical: true,
-                        editorParams: {
-                            values: unidadValues,
-                            autocomplete: true,
-                            allowEmpty: true,
-                            listOnEmpty: true
-                        },
-                        cellEdited: function (cell) {
-                            const row = cell.getRow();
-                            formatRow(row);
-                            calculateRowTotal(row);
-                        }
-                    },
-                    {
-                        title: "Elem. Simil.",
-                        field: "elesimil",
-                        editor: "number",
-                        hozAlign: "center",
-                        headerVertical: true,
-                        cellEdited: function (cell) {
-                            const row = cell.getRow();
-                            calculateRowTotal(row);
-                        }
-                    },
-                    {
-                        title: "DIMENSIONES",
-                        columns: [
-                            {
-                                title: "Largo",
-                                field: "largo",
-                                editor: "number",
-                                hozAlign: "center",
-                                headerVertical: true,
-                                cellEdited: (cell) => calculateRowTotal(cell.getRow())
-                            },
-                            {
-                                title: "Ancho",
-                                field: "ancho",
-                                editor: "number",
-                                hozAlign: "center",
-                                headerVertical: true,
-                                cellEdited: (cell) => calculateRowTotal(cell.getRow())
-                            },
-                            {
-                                title: "Alto",
-                                field: "alto",
-                                editor: "number",
-                                hozAlign: "center",
-                                headerVertical: true,
-                                cellEdited: (cell) => calculateRowTotal(cell.getRow())
-                            }
-                        ]
-                    },
-                    {
-                        title: "Nº de Veces",
-                        field: "nveces",
-                        editor: "number",
-                        hozAlign: "center",
-                        headerVertical: true,
-                        cellEdited: (cell) => calculateRowTotal(cell.getRow())
-                    },
-                    {
-                        title: "METRADO",
-                        columns: [
-                            {
-                                title: "Lon",
-                                field: "longitud",
-                                editor: "number",
-                                hozAlign: "center",
-                                headerVertical: true,
-                                cellEdited: (cell) => calculateRowTotal(cell.getRow())
-                            },
-                            {
-                                title: "Área",
-                                field: "area",
-                                editor: "number",
-                                hozAlign: "center",
-                                headerVertical: true,
-                                cellEdited: (cell) => calculateRowTotal(cell.getRow())
-                            },
-                            {
-                                title: "Vol.",
-                                field: "volumen",
-                                hozAlign: "center",
-                                formatter: "money",
-                                headerVertical: true
-                            },
-                            {
-                                title: "Kg.",
-                                field: "kg",
-                                editor: "number",
-                                hozAlign: "center",
-                                headerVertical: true
-                            },
-                            {
-                                title: "Undc.",
-                                field: "unidadcalculado",
-                                hozAlign: "center",
-                                formatter: "money",
-                                headerVertical: true
-                            }
-                        ]
-                    },
-                    {
-                        title: "Total",
-                        field: "totalnieto",
-                        hozAlign: "center",
-                        formatter: "money"
-                    },
-                    {
-                        title: "",
-                        formatter: function () {
-                            return `<div class="action-buttons">
-                                <button class="add-row" title="Agregar nuevo ítem">➕</button> 
-                                <button class="add-row-descript" title="Agregar subpartida">📝</button> 
-                                <button class="delete-row" title="Eliminar registro">🗑️</button>
-                            </div>`;
-                        },
-                        width: 120,
-                        cellClick: function (e, cell) {
-                            const row = cell.getRow();
-                            const action = e.target.className;
-
-                            if (action === "add-row") {
-                                try {
-                                    const parentData = row.getData();
-                                    const children = row.getTreeChildren();
-                                    const nextItem = getNextNumber(children, parentData.item);
-
-                                    if (!validateHierarchicalOrder(nextItem)) {
-                                        console.error('Error: Orden jerárquico inválido');
-                                        return;
-                                    }
-
-                                    const newRow = {
-                                        id: Date.now(),
-                                        item: nextItem,
-                                        descripcion: "Nueva Fila",
-                                        unidad: "",
-                                        total: 0,
-                                        children: []
-                                    };
-
-                                    row.addTreeChild(newRow);
-                                } catch (error) {
-                                    console.error('Error al agregar fila:', error);
-                                }
-
-                            } else if (action === "add-row-descript") {
-                                const newRow = {
-                                    id: Date.now(),
-                                    item: "",
-                                    descripcion: "Descripcion",
-                                    unidad: "",
-                                    total: 0,
-                                    isDescriptionRow: true,
-                                    children: []
-                                };
-                                row.addTreeChild(newRow);
-
-                            } else if (action === "delete-row") {
-                                const deletedRow = row.getData();
-                                if (deletedRow.item && !deletedRow.isDescriptionRow) {
-                                    const parent = row.getTreeParent();
-                                    if (parent) {
-                                        const siblings = parent.getTreeChildren()
-                                            .filter(child => {
-                                                const childData = child.getData();
-                                                return childData.item && !childData.isDescriptionRow;
-                                            });
-
-                                        row.delete();
-
-                                        siblings.forEach((sibling, index) => {
-                                            if (sibling.getData().id !== deletedRow.id) {
-                                                const baseItem = deletedRow.item.split('.').slice(0, -1).join('.');
-                                                const newNumber = (index + 1).toString().padStart(2, '0');
-                                                sibling.update({
-                                                    item: `${baseItem}.${newNumber}`
-                                                });
-                                            }
-                                        });
-                                    }
-                                } else {
-                                    row.delete();
-                                }
-                            }
-                        }
-                    },
-                ],
-
-                rowFormatter: function (row) {
-                    formatRow(row);
-                },
-
-                cellEdited: function (cell) {
-                    const row = cell.getRow();
-                    const editableFields = ["nveces", "longitud", "area", "elesimil", "largo", "ancho", "alto"];
-
-                    if (editableFields.includes(cell.getField())) {
-                        try {
-                            const data = row.getData();
-                            const calculations = TableCalculator.calculateUnidadCalculado(data);
-                            row.update({
-                                unidadcalculado: calculations.unidadCalculado
-                            });
-
-                            table.value.getRootRows().forEach(rootRow =>
-                                TableCalculator.calculateHierarchicalTotals([rootRow])
-                            );
-                        } catch (error) {
-                            console.error("Error al editar celda:", error);
-                        }
-                    }
-                },
-
-                dataTreeRowExpanded: function (row) {
-                    TableCalculator.calculateHierarchicalTotals([row]);
-                },
-
-                dataTreeRowCollapsed: function () {
-                    table.value.getRootRows().forEach(rootRow =>
-                        TableCalculator.calculateHierarchicalTotals([rootRow])
-                    );
-                },
-
-                rowMoved: function (row) {
-                    updateRowNumbers(table.value, row);
-                }
-            });
-        };
-
-        const initializeResumenTable = () => {
-            tableResumen.value = new Tabulator("#metrados-comunicacion-resumen", {
-                height: "500px",
-                data: resumenData.value,
-                layout: "fitColumns",
-                dataTree: true,
-                dataTreeStartExpanded: true,
-                dataTreeChildField: "children",
-                columnHeaderVertAlign: "bottom",
-
-                columns: [
-                    {
-                        title: "ITEM",
-                        field: "item",
-                        width: 100,
-                        formatter: function (cell) {
-                            const rowData = cell.getData();
-                            const depth = (rowData.item.match(/\./g) || []).length;
-                            const color = TableConfig.utils.getHierarchyColor(rowData, depth);
-                            const isBold = rowData.descripcion && rowData.descripcion !== "Descripcion";
-                            return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">${cell.getValue()}</span>`;
-                        }
-                    },
-                    {
-                        title: "DESCRIPCIÓN",
-                        field: "descripcion",
-                        width: 650,
-                        formatter: function (cell) {
-                            const rowData = cell.getData();
-                            if (rowData.isDescriptionRow) {
-                                return `<span style="color: #000000;">${cell.getValue()}</span>`;
-                            }
-                            const depth = (rowData.item.match(/\./g) || []).length;
-                            const color = TableConfig.utils.getHierarchyColor(rowData, depth);
-                            const isBold = rowData.descripcion && rowData.descripcion !== "Descripcion";
-                            return `<span style="color: ${color}; font-weight: ${isBold ? 'bold' : 'normal'};">${cell.getValue()}</span>`;
-                        }
-                    },
-                    {
-                        title: "Und.",
-                        field: "unidad",
-                        hozAlign: "center",
-                    },
-                    {
-                        title: "Parcial",
-                        field: "totalnieto",
-                        hozAlign: "center",
-                        cellEdited: function (cell) {
-                            const row = cell.getRow();
-                            calculateRowTotal(row);
-                        }
-                    },
-                    {
-                        title: "Total",
-                        field: "totalnieto",
-                        hozAlign: "center",
-                        formatter: "money"
-                    },
-                ],
-            });
-        };
-
-        // ===== FUNCIONES DE UTILIDAD PARA NUMERACIÓN =====
-        const shouldNumberRow = (rowData) => {
-            return rowData.item !== null &&
-                rowData.item !== undefined &&
-                rowData.item !== "";
-        };
-
-        const formatTwoDigits = (num) => {
-            return num.toString().padStart(2, '0');
-        };
-
-        const updateRowNumbers = (table, movedRow) => {
-            const parentRow = movedRow.getTreeParent();
-            let siblings;
-
-            if (parentRow) {
-                siblings = parentRow.getTreeChildren();
+                dataManager.updateRow(row.id, updates);
             } else {
-                siblings = table.getRows().filter(row => !row.getTreeParent());
+                dataManager.updateRow(row.id, { [field]: value });
             }
 
-            const sortedSiblings = siblings.sort((a, b) => {
-                return a.getPosition(true) - b.getPosition(true);
-            });
-
-            let numberedIndex = 1;
-
-            sortedSiblings.forEach((row) => {
-                const rowData = row.getData();
-
-                if (shouldNumberRow(rowData)) {
-                    const currentPrefix = parentRow ? parentRow.getData().item : '';
-                    let newItem;
-
-                    if (parentRow) {
-                        newItem = `${currentPrefix}.${formatTwoDigits(numberedIndex)}`;
-                    } else {
-                        newItem = formatTwoDigits(numberedIndex);
-                    }
-
-                    row.update({ item: newItem }, true);
-                    numberedIndex++;
-                }
-
-                updateChildrenNumbers(row);
-            });
-
-            table.redraw(true);
+            dataManager.saveState();
+            refresh();
         };
 
-        const updateChildrenNumbers = (parentRow) => {
-            const children = parentRow.getTreeChildren();
-            if (!children || children.length === 0) return;
+        // Guardar datos
+        const saveData = () => {
+            const jsonData = dataManager.exportData();
+            // Aquí iría la llamada al servidor
+            console.log('Datos para guardar:', jsonData);
 
-            let numberedIndex = 1;
-
-            children.forEach((childRow) => {
-                const childData = childRow.getData();
-
-                if (shouldNumberRow(childData)) {
-                    const parentItem = parentRow.getData().item;
-                    if (shouldNumberRow(parentRow.getData())) {
-                        const newItem = `${parentItem}.${formatTwoDigits(numberedIndex)}`;
-                        childRow.update({ item: newItem }, true);
-                        numberedIndex++;
-                    }
-                }
-
-                updateChildrenNumbers(childRow);
-            });
+            // Simulación de guardado
+            localStorage.setItem('metrados_data', jsonData);
+            alert('Datos guardados localmente');
         };
 
-        // ===== FUNCIONES DE PROCESAMIENTO DE RESUMEN =====
-        const processResumenData = () => {
-            const resumenmetradocomunicacion = {};
-            const resumenmetradocomunicacionTree = [];
-
-            const isValidItem = (item) => {
-                if (!item) return false;
-                const itemParts = item.split('.');
-                return itemParts.every(part => /^[0-9]{2}$/.test(part));
-            };
-
-            const upsertResumenRecord = (key, node) => {
-                if (node.item && node.item.trim() !== '') {
-                    if (!resumenmetradocomunicacion[key]) {
-                        resumenmetradocomunicacion[key] = {
-                            id: node.id,
-                            item: node.item,
-                            descripcion: node.descripcion,
-                            unidad: node.unidad || '',
-                            totalnieto: (node.totalnieto === 0 || node.totalnieto === "0.00" ||
-                                node.totalnieto === "" || node.totalnieto === undefined) ? '' : node.totalnieto,
-                            total: (node.total === 0 || node.total === "0.00" ||
-                                node.total === "" || node.total === undefined) ? '' : node.total,
-                        };
-                    }
-                    return resumenmetradocomunicacion[key];
+        // Cargar datos
+        const loadData = () => {
+            const jsonData = localStorage.getItem('metrados_data');
+            if (jsonData) {
+                if (dataManager.importData(jsonData)) {
+                    refresh();
+                    alert('Datos cargados correctamente');
+                } else {
+                    alert('Error al cargar datos');
                 }
-                return null;
-            };
-
-            const processNode = (node, options = {}) => {
-                const { parentKey = '', sourceType = '', processChildren = true, treeParent = null } = options;
-
-                if (node.item && typeof node.item === 'string' && node.item.trim() !== '') {
-                    const key = `${parentKey ? parentKey + '.' : ''}${node.item}-${node.descripcion}`;
-                    const record = upsertResumenRecord(key, node);
-
-                    if (record) {
-                        const getNumericValue = (value) => parseFloat(value) || 0;
-
-                        if (node.totalnieto !== null && node.totalnieto !== undefined) {
-                            switch (sourceType) {
-                                case 'exterior':
-                                    record.exterior = getNumericValue(node.totalnieto);
-                                    break;
-                                case 'cisterna':
-                                    record.cisterna = getNumericValue(node.totalnieto);
-                                    break;
-                                default:
-                                    record.modulo_1 = getNumericValue(node.totalnieto);
-                                    break;
-                            }
-
-                            const modulesTotal = Object.keys(record)
-                                .filter(key => key.startsWith('modulo_'))
-                                .reduce((sum, key) => sum + getNumericValue(record[key]), 0);
-
-                            const total = getNumericValue(record.exterior) +
-                                getNumericValue(record.cisterna) +
-                                modulesTotal;
-
-                            if (total > 0) {
-                                record.total = total.toFixed(2);
-                            }
-                        }
-                    }
-
-                    const treeNode = {
-                        id: node.id,
-                        item: node.item,
-                        descripcion: node.descripcion,
-                        unidad: node.unidad || '',
-                        total: record ? record.total : '',
-                        children: []
-                    };
-
-                    if (treeParent) {
-                        treeParent.children.push(treeNode);
-                    } else {
-                        resumenmetradocomunicacionTree.push(treeNode);
-                    }
-
-                    if (processChildren && node.children && node.children.length > 0) {
-                        node.children.forEach(child => {
-                            processNode(child, {
-                                parentKey: node.item,
-                                sourceType,
-                                treeParent: treeNode
-                            });
-                        });
-                    }
-                }
-            };
-
-            metradoComunicacion.value.forEach(node => {
-                processNode(node, { sourceType: 'exterior' });
-            });
-
-            resumenData.value = Object.values(resumenmetradocomunicacion);
-            return resumenmetradocomunicacionTree;
-        };
-
-        // ===== FUNCIONES DE ORDENAMIENTO =====
-        const sortTreeData = (data) => {
-            function compareItems(a, b) {
-                if (!a.item) return 1;
-                if (!b.item) return -1;
-
-                const partsA = a.item.split('.');
-                const partsB = b.item.split('.');
-
-                for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-                    if (!partsA[i]) return -1;
-                    if (!partsB[i]) return 1;
-
-                    const numA = parseInt(partsA[i]);
-                    const numB = parseInt(partsB[i]);
-
-                    if (numA !== numB) {
-                        return numA - numB;
-                    }
-                }
-                return 0;
+            } else {
+                alert('No hay datos guardados');
             }
-
-            function sortRecursive(items) {
-                const numberedItems = items.filter(item => item.item && !item.isDescriptionRow);
-                const descriptiveItems = items.filter(item => !item.item || item.isDescriptionRow);
-
-                numberedItems.sort(compareItems);
-
-                const allItems = [...numberedItems, ...descriptiveItems].map(item => {
-                    if (item.children && item.children.length > 0) {
-                        return {
-                            ...item,
-                            children: sortRecursive(item.children)
-                        };
-                    }
-                    return item;
-                });
-
-                return allItems;
-            }
-
-            return sortRecursive(data);
         };
 
-        // ===== LIFECYCLE HOOKS =====
+        // Ciclo de vida: montado
         onMounted(() => {
-            // Inicializar datos desde configuración
-            if (configuracion.documento_proyecto) {
-                try {
-                    const database = JSON.parse(configuracion.documento_proyecto);
-                    if (database.modulos && Array.isArray(database.modulos)) {
-                        metradoComunicacion.value = sortTreeData(database.modulos);
+            // Cargar datos por defecto
+            const defaultData = data;
+            // const defaultData = [
+            //     { item: "01", descripcion: "INSTALACIONES ELÉCTRICAS", und: "gbl", isPartida: true },
+            //     { item: "01.01", descripcion: "CONEXIÓN A LA RED EXTERNA", und: "gbl", isPartida: true },
+            //     { item: "01.01.01", descripcion: "Acometida monofásica", und: "und", elem: 1, veces: 1, isPartida: false },
+            //     { item: "01.02", descripcion: "SALIDAS ELÉCTRICAS", und: "gbl", isPartida: true },
+            //     { item: "01.02.01", descripcion: "SALIDA PARA ALUMBRADO", und: "gbl", isPartida: true },
+            //     { item: "01.02.01.01", descripcion: "Salida luz interior empotrado", und: "und", elem: 1, veces: 1, isPartida: false },
+            //     { item: "01.02.01.02", descripcion: "Luminaria 50.2W", und: "und", elem: 8, veces: 1, isPartida: false }
+            // ];
+
+            dataManager.loadData(defaultData);
+
+            // Atajos de teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z' && !e.shiftKey) {
+                        e.preventDefault();
+                        undo();
+                    } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+                        e.preventDefault();
+                        redo();
+                    } else if (e.key === 'c' && !e.shiftKey) {
+                        copyRows();
+                    } else if (e.key === 'v') {
+                        e.preventDefault();
+                        pasteRows();
+                    } else if (e.key === 's') {
+                        e.preventDefault();
+                        saveData();
                     }
-                } catch (error) {
-                    console.error('Error al parsear datos del documento:', error);
+                } else if (e.key === 'Delete') {
+                    deleteRows();
                 }
+            });
+
+            // Inicializar Tabulator
+            table.value = new Tabulator(tableRef.value, {
+                height: "calc(100vh - 200px)",
+                data: dataManager.getAllRows(),
+                columns: buildColumns(),
+                layout: "fitData",
+                selectable: true,
+                selectableRollingSelection: false,
+                selectablePersistence: false,
+                reactiveData: false,
+                editTriggerEvent: "dblclick",
+                history: true,
+                //configure clipboard to allow copy and paste of range format data
+                clipboard: true,
+                clipboardCopyConfig: {
+                    columnHeaders: false, //do not include column headers in clipboard output
+                    columnGroups: false, //do not include column groups in column headers for printed table
+                    rowHeaders: false, //do not include row headers in clipboard output
+                    rowGroups: false, //do not include row groups in clipboard output
+                    columnCalcs: false, //do not include column calculation rows in clipboard output
+                    dataTree: false, //do not include data tree in printed table
+                    formatCells: false, //show raw cell values without formatter
+                },
+                clipboardCopyStyled: false,
+                clipboardCopyRowRange: "range",
+                clipboardPasteParser: "range",
+                clipboardPasteAction: "range",
+                // Menú contextual
+                rowContextMenu: [
+                    {
+                        label: "➕ Agregar Partida",
+                        action: (e, row) => addPartida(row.getData().id)
+                    },
+                    {
+                        label: "📁 Agregar Subpartida",
+                        action: (e, row) => addSubpartida(row.getData().id)
+                    },
+                    {
+                        label: "📁 Agregar Detalles",
+                        action: (e, row) => addDetallesSubpartida(row.getData().id)
+                    },
+                    { separator: true },
+                    {
+                        label: "📋 Copiar",
+                        action: () => copyRows()
+                    },
+                    {
+                        label: "📄 Pegar",
+                        action: () => pasteRows()
+                    },
+                    { separator: true },
+                    {
+                        label: "⬆️ Mover Arriba",
+                        action: () => moveRows('up')
+                    },
+                    {
+                        label: "⬇️ Mover Abajo",
+                        action: () => moveRows('down')
+                    },
+                    { separator: true },
+                    {
+                        label: "🗑️ Eliminar",
+                        action: () => deleteRows()
+                    }
+                ],
+
+                // Formateo de filas
+                rowFormatter: (row) => {
+                    const data = row.getData();
+                    const elem = row.getElement();
+
+                    // Estilo base
+                    elem.style.backgroundColor = '';
+                    elem.style.fontWeight = 'normal';
+
+                    // Estilos de partida
+                    if (data.isPartida) {
+                        const level = Utils.getItemLevel(data.item);
+                        const colors = [
+                            '#E3F2FD', // Nivel 1
+                            // '#BBDEFB', // Nivel 2
+                            // '#90CAF9', // Nivel 3
+                            // '#64B5F6', // Nivel 4
+                            // '#42A5F5'  // Nivel 5+
+                        ];
+                        elem.style.backgroundColor = colors[Math.min(level - 1, colors.length - 1)];
+                        elem.style.fontWeight = 'bold';
+                    }
+
+                    // Colorear celdas según unidad y editabilidad
+                    const cells = row.getCells();
+                    cells.forEach(cell => {
+                        const field = cell.getField();
+                        const cellElem = cell.getElement();
+
+                        // No modificar acciones, item, descripcion, und
+                        if (['actions', 'item', 'descripcion', 'und'].includes(field)) {
+                            return;
+                        }
+
+                        cellElem.style.backgroundColor = '';
+
+                        // Campos editables según unidad
+                        if (UnitConfig.isEditable(data.und, field)) {
+                            cellElem.style.backgroundColor = UnitConfig.getColor(data.und);
+                        }
+                        // Campos calculados
+                        else if (['lon', 'area', 'vol', 'undc', 'total'].includes(field)) {
+                            //cellElem.style.backgroundColor = '#ffffffff';
+                            cellElem.style.fontWeight = '600';
+                        }
+                        // Campos no editables
+                        else {
+                            //cellElem.style.backgroundColor = '#F5F5F5';
+                        }
+                    });
+                }
+            });
+
+            // Evento de edición
+            table.value.on("cellEdited", handleCellEdit);
+
+            // Refrescar inicial
+            refresh();
+        });
+
+        // Ciclo de vida: desmontado
+        onUnmounted(() => {
+            if (table.value) {
+                table.value.destroy();
             }
-
-            // Inicializar tablas
-            nextTick(() => {
-                initializeMainTable();
-                initializeResumenTable();
-
-                // Procesar datos del resumen
-                processResumenData();
-
-                // Actualizar tabla resumen
-                if (tableResumen.value) {
-                    tableResumen.value.setData(resumenData.value);
-                }
-            });
-
-            // Configurar eventos de visibilidad
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    stopAutoUpdate();
-                } else if (isAutoUpdateActive.value) {
-                    startAutoUpdate();
-                }
-            });
-
-            // Configurar evento de cierre de ventana
-            window.addEventListener('beforeunload', () => {
-                stopAutoUpdate();
-            });
         });
 
-        // ===== COMPUTED PROPERTIES =====
-        const autoUpdateButtonText = computed(() => {
-            return isAutoUpdateActive.value ? 'Detener Auto-actualización' : 'Iniciar Auto-actualización';
-        });
-
-        // ===== RETURN STATEMENT =====
         return {
-            // Reactive State
-            configuracion,
-            selectedFile,
-            jsonTree,
-            metradoComunicacion,
-            resumenData,
-            isAutoUpdateActive,
-            autoUpdateButtonText,
-
-            // Table References
-            table,
-            tableResumen,
-
-            // File handling functions
-            handleFileChange,
-            uploadExcel,
-
-            // Auto-update functions
-            startAutoUpdate,
-            stopAutoUpdate,
-            updateMetrados,
-
-            // Utility functions
-            processResumenData,
-            sortTreeData,
-
-            // Table configuration
-            TableConfig,
-            unidadValues,
-            fieldsToHighlight,
-            listaNormativas,
+            tableRef,
+            addPartida,
+            copyRows,
+            pasteRows,
+            undo,
+            redo,
+            saveData,
+            loadData,
+            deleteRows
         };
-    }
-});
+    },
 
-app.mount('#appMetradoComunicacion');
+    template: `
+        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-1">
+            <!-- Barra de herramientas -->
+            <div class="bg-white rounded-lg shadow-lg p-4 mb-1">
+                <div class="flex flex-wrap gap-3 items-center">
+                    <!-- Título -->
+                    <h1 class="text-1xl font-bold text-blue-900 mr-auto">
+                        📊 Sistema de Metrados
+                    </h1>
+
+                    <!-- Acciones principales -->
+                    <button 
+                        @click="addPartida(null)" 
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Agregar nueva partida en raíz">
+                        📁 Nueva Partida
+                    </button>
+
+                    <!-- Separador -->
+                    <div class="h-8 w-px bg-gray-300"></div>
+
+                    <!-- Historial -->
+                    <button 
+                        @click="undo" 
+                        class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Deshacer (Ctrl+Z)">
+                        ↶ Deshacer
+                    </button>
+                    
+                    <button 
+                        @click="redo" 
+                        class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Rehacer (Ctrl+Y)">
+                        ↷ Rehacer
+                    </button>
+
+                    <!-- Separador -->
+                    <div class="h-8 w-px bg-gray-300"></div>
+
+                    <!-- Portapapeles -->
+                    <button 
+                        @click="copyRows" 
+                        class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Copiar (Ctrl+C)">
+                        📋 Copiar
+                    </button>
+                    
+                    <button 
+                        @click="pasteRows" 
+                        class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Pegar (Ctrl+V)">
+                        📄 Pegar
+                    </button>
+
+                    <!-- Separador -->
+                    <div class="h-8 w-px bg-gray-300"></div>
+
+                    <!-- Eliminar -->
+                    <button 
+                        @click="deleteRows" 
+                        class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Eliminar selección (Delete)">
+                        🗑️ Eliminar
+                    </button>
+
+                    <!-- Separador -->
+                    <div class="h-8 w-px bg-gray-300"></div>
+
+                    <!-- Persistencia -->
+                    <button 
+                        @click="saveData" 
+                        class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Guardar datos (Ctrl+S)">
+                        💾 Guardar
+                    </button>
+                    
+                    <button 
+                        @click="loadData" 
+                        class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-md transition-colors"
+                        title="Cargar datos guardados">
+                        📂 Cargar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="bg-white rounded-lg shadow-lg p-2">
+                <div ref="tableRef"></div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="mt-1 bg-white rounded-lg shadow-lg p-4">
+                <h3 class="font-bold text-lg mb-2 text-gray-800">📖 Instrucciones de uso:</h3>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• <strong>Agregar Partida (📁):</strong> Crea una partida hermana del mismo nivel</li>
+                    <li>• <strong>Agregar Subpartida (➕):</strong> Crea una subpartida hija de la fila seleccionada</li>
+                    <li>• <strong>Mover (⬆️⬇️):</strong> Mueve las filas seleccionadas arriba o abajo</li>
+                    <li>• <strong>Eliminar (🗑️):</strong> Elimina las filas seleccionadas y sus descendientes</li>
+                    <li>• <strong>Copiar/Pegar:</strong> Copia y pega filas completas</li>
+                    <li>• <strong>Atajos:</strong> Ctrl+Z (deshacer), Ctrl+Y (rehacer), Ctrl+C (copiar), Ctrl+V (pegar), Ctrl+S (guardar), Delete (eliminar)</li>
+                    <li>• <strong>Edición:</strong> Haz clic en cualquier celda editable (amarilla) para modificar valores</li>
+                    <li>• <strong>Selección múltiple:</strong> Mantén Ctrl/Cmd para seleccionar varias filas</li>
+                    <li>• <strong>Menú contextual:</strong> Clic derecho sobre una fila para ver opciones</li>
+                </ul>
+            </div>
+        </div>
+    `
+}).mount('#metradoComunicacion');
