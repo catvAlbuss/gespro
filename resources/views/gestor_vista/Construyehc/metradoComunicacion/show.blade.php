@@ -1,34 +1,23 @@
 <x-app-layout>
-    <!-- Tabulator CSS -->
-    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/tabulator_simple.min.css') }}">
 
-    <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
-
-    <!-- Tabulator JS -->
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-
-    <!-- HyperFormula -->
-    <script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js"></script>
-
-    <!-- Math.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-
-    <!-- Arquero -->
+    <!-- CDN -->
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    {{-- <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.0/dist/hyperformula.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/arquero@5.2.0/dist/arquero.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- Librerías no React --}}
+    <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.0/dist/hyperformula.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/arquero@5.2.0/dist/arquero.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Tu JS personalizado -->
     <style>
         .tabulator {
             font-size: 13px;
             border: 1px solid #e5e7eb;
-        }
-
-        .tabulator-row {
-            min-height: 35px;
-        }
-
-        .tabulator-cell {
-            padding: 6px 8px;
         }
 
         .tabulator-header {
@@ -36,35 +25,44 @@
             border-bottom: 2px solid #d1d5db;
         }
 
-        .btn-action {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-action:hover {
-            transform: scale(1.1);
-        }
-
         .tabulator .tabulator-cell.wrap-text {
             white-space: normal !important;
             word-wrap: break-word;
-            overflow-wrap: break-word;
             line-height: 1.4;
             min-height: 20px;
             max-height: 100px;
-            /* Limit cell height */
             overflow-y: auto;
-            /* Add scrollbar for overflow */
+        }
+
+        /* Celdas editables/calculables */
+        .tabulator .tabulator-cell.bg-yellow-100 {
+            background-color: #fef3c7 !important;
+        }
+
+        /* Resultado del cálculo */
+        .tabulator .tabulator-cell.bg-blue-100 {
+            background-color: #dbeafe !important;
+            font-weight: 600;
+        }
+
+        /* Total */
+        .tabulator .tabulator-cell.bg-green-100 {
+            background-color: #dcfce7 !important;
+            font-weight: bold;
+        }
+
+        /* Fila seleccionada */
+        .tabulator-row.tabulator-selected {
+            background-color: #e0e7ff !important;
         }
     </style>
 
-    <div class="" id="metradoComunicacion"></div>
-    <script>
-        window.APP_INIT = {
-            metradoComunicaciones: {
-                datamodulos: @json($metradocomunicaciones->documentosdat),
-                id: @json($metradocomunicaciones->idmetradocomunicacion),
-            }
-        }
-    </script>
+    <div id="metradoComunicacion" class="p-4 grid grid-cols-1 gap-4">
+        <div id="tbl_insumos" class="border rounded-xl shadow"></div>
+        <div class="flex flex-wrap gap-2 mb-2">
+            <button onclick="generateResumen()"
+                class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700">Actualizar Resumen</button>
+        </div>
+        <div id="tbl_resumen" class="border rounded-xl shadow"></div>
+    </div>
 </x-app-layout>

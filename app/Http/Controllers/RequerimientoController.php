@@ -19,7 +19,7 @@ use Symfony\Component\Console\Input\Input;
 
 class RequerimientoController extends Controller
 {
-    public function create($empresaId)
+    public function createrequerimiento($empresaId)
     {
         // Obtener proyectos relacionados a la empresa
         $proyectos = Proyecto::where('empresa_id', $empresaId)->get(['id_proyectos', 'nombre_proyecto']);
@@ -282,7 +282,7 @@ class RequerimientoController extends Controller
                 ->with('error', 'Error al eliminar el material: ' . $e->getMessage());
         }
     }
-    
+
     public function actualizardeposito(Request $request)
     {
         $validatedData = $request->validate([

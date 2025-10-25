@@ -1584,6 +1584,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hf.addSheet("GASTOS_GENERALES");
     hf.addSheet("RESUMEN_GENERAL");
     hf.addSheet("RESUMEN_DESAGREGADO");
+    
     const insumos = createSpreeadSheetTable(tbl_insumos, "INSUMOS");
     const insumos_transporte = createSpreeadSheetTable(
         tbl_insumos_transporte,

@@ -1412,7 +1412,7 @@ const app = createApp({
 
                 const token = csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-                const response = await fetch('/proyecto/actualizardata', {
+                const response = await fetch('/proyectos/actualizardata', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

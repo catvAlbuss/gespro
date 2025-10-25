@@ -692,7 +692,7 @@
                 // Enviar datos
                 $.ajax({
                     type: 'POST',
-                    url: `/requerimiento_register/store`,
+                    url: `/logistica/requerimientos`,
                     data: formData,
                     contentType: false,
                     processData: false,
@@ -711,8 +711,7 @@
                                 timer: 2000,
                                 timerProgressBar: true
                             }).then(() => {
-                                window.location.href =
-                                    `/gestor-requerimientog/${response.empresaId}`;
+                                window.location.href = `/logistica/requerimientos/gestor/${response.empresaId}`;
                             });
                         } else {
                             Swal.fire({

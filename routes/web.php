@@ -70,8 +70,10 @@ use App\Http\Controllers\{
 use App\Http\Controllers\{
     EspecificacionesTecnicasController,
     CronogramaController,
+    DashboardController,
     GastoGeneralController,
-    InsumosAcuController
+    InsumosAcuController,
+    SessionController
 };
 
 // Controladores de Campo
@@ -147,6 +149,11 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    Route::get('/check-session', [SessionController::class, 'checkSession']);
+    Route::post('/ping-session', [SessionController::class, 'pingSession']);
+    Route::get('/dashboard/stats/{id}', [DashboardController::class, 'getStats']);
+    Route::get('/asistencias/ultima/{id}', [DashboardController::class, 'getUltimaAsistencia']);
 
     /*
     |--------------------------------------------------------------------------
@@ -320,7 +327,7 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
         Route::post('actualizar-documento', [ProyectoController::class, 'actualizarDocumentoProyecto'])->name('actualizar.documento');
         Route::put('actualizar-presupuesto', [ProyectoController::class, 'actualizar_presupuesto_proyecto'])->name('actualizar.presupuesto');
         Route::put('actualizar-inversion', [ProyectoController::class, 'actualizar_inversion'])->name('actualizar.inversion');
-
+        Route::post('/actualizardata', [ProyectoController::class, 'actualizarDocumentoProyecto']);
         // Reportes
         Route::get('reportes/{empresaId}', [ProyectoController::class, 'reports_proyectos'])->name('reportes');
         Route::post('reporte-detalles', [ProyectoController::class, 'reporteDetalles'])->name('reporte.detalles');
@@ -400,7 +407,11 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
     Route::prefix('reportes')->name('reportes.')->group(function () {
         Route::resource('/', ReportetrabajadorController::class)->parameters(['' => 'reporte']);
 
+
         Route::get('general/{id}', [ReportetrabajadorController::class, 'show'])->name('general');
+        Route::get('general/{empresaId}/datos', [ReportetrabajadorController::class, 'reporteMensual']);
+        Route::get('general/{empresaId}/datos/proyecto', [ReportetrabajadorController::class, 'reporteMensualPorProyecto']);
+
         Route::post('tareas-ip', [ReportetrabajadorController::class, 'obtenerTareasIp'])->name('tareas.ip');
         Route::post('tareas-mensual', [ReportetrabajadorController::class, 'obtenerTareasMensual'])->name('tareas.mensual');
         Route::post('tareas-semanal', [ReportetrabajadorController::class, 'obtenerTareasSemanal'])->name('tareas.semanal');
@@ -466,10 +477,10 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
             return view('gestor_vista.Administrador.Gestor_Glogistica', compact('empresaId'));
         })->name('general');
 
-        Route::resource('requerimientos', RequerimientoController::class);
         Route::get('requerimientos/gestor/{empresaId}', [RequerimientoController::class, 'show'])->name('requerimientos.gestor');
-        Route::get('requerimientos/crear/{empresaId}', [RequerimientoController::class, 'create'])->name('requerimientos.crear');
-        Route::post('requerimientos/registrar', [RequerimientoController::class, 'store'])->name('requerimientos.registrar');
+        Route::get('requerimientos/crearreque/{empresaId}', [RequerimientoController::class, 'createrequerimiento'])->name('requerimientos.crearreque');
+        //Route::post('requerimientos/registrar', [RequerimientoController::class, 'store'])->name('requerimientos.registrar');
+        Route::resource('requerimientos', RequerimientoController::class);
 
         // Operaciones con requerimientos
         Route::put('requerimientos/mano-obra/{id_mano_obra}', [RequerimientoController::class, 'actualizarmanoObra'])->name('requerimientos.mano.obra.actualizar');
@@ -779,7 +790,7 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
 | RUTA PARA REFRESCAR SESIÓN (API)
 |--------------------------------------------------------------------------
 */
-Route::post('/api/refresh-session', function () {
+Route::post('/refresh-session', function () {
     if (Auth::check()) {
         session(['last_activity' => now()]);
         return response()->json(['success' => true, 'message' => 'Sesión refrescada']);

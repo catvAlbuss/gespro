@@ -1,171 +1,415 @@
-// dashboardGeneral.js - Vue 3 + Sistema de Colas Optimizado
+// dashboardGeneral.js - Vue 3 + Sistema Optimizado de Asistencias
 import { createApp } from 'vue';
 
 // ============================================
-// SISTEMA DE COLA DE ASISTENCIAS
+// GESTIÓN DE SESIÓN Y AUTENTICACIÓN
 // ============================================
 
-class AttendanceQueue {
+class SessionManager {
     constructor() {
-        this.queue = [];
-        this.processing = false;
-        this.maxRetries = 3;
+        this.sessionCheckInterval = null;
+        this.lastActivity = Date.now();
+        this.warningShown = false;
+        this.isCheckingSession = false;
+
+        // CRÍTICO: NO definir timeouts en frontend
+        // El servidor Laravel es la única fuente de verdad
     }
 
-    add(attendanceData) {
-        const queueItem = {
-            id: Date.now() + Math.random(),
-            data: attendanceData,
-            retries: 0,
-            timestamp: Date.now()
-        };
-
-        this.queue.push(queueItem);
-        this.updateQueueUI();
-
-        if (!this.processing) {
-            this.processNext();
-        }
-
-        return queueItem.id;
+    init() {
+        this.trackActivity();
+        this.startSessionCheck();
+        this.setupVisibilityListener();
+        this.setupBeforeUnload();
     }
 
-    async processNext() {
-        if (this.queue.length === 0) {
-            this.processing = false;
-            this.updateQueueUI();
+    trackActivity() {
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+            document.addEventListener(event, () => {
+                this.lastActivity = Date.now();
+                this.warningShown = false;
+
+                // NUEVO: Notificar actividad al servidor
+                this.pingServer();
+            }, { passive: true });
+        });
+    }
+
+    startSessionCheck() {
+        // Verificar con el servidor cada 2 minutos
+        this.sessionCheckInterval = setInterval(() => {
+            this.checkSession();
+        }, 2 * 60 * 1000); // 2 minutos
+
+        // Verificación inicial
+        this.checkSession();
+    }
+
+    async pingServer() {
+        // Throttle: solo hacer ping cada 30 segundos como máximo
+        const now = Date.now();
+        if (this.lastPing && (now - this.lastPing) < 30000) {
             return;
         }
 
-        this.processing = true;
-        const item = this.queue[0];
+        this.lastPing = now;
 
         try {
-            await this.processItem(item);
-            this.queue.shift(); // Eliminar del queue si fue exitoso
-            this.processNext(); // Procesar siguiente
+            // Endpoint para mantener la sesión viva
+            await fetch('/ping-session', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                }
+            });
         } catch (error) {
-            console.error('Error procesando item de la cola:', error);
+            // Silencioso - no interrumpir la experiencia del usuario
+            console.debug('Ping session:', error);
+        }
+    }
 
-            item.retries++;
-            if (item.retries >= this.maxRetries) {
-                console.error('Máximo de reintentos alcanzado, eliminando de la cola');
-                this.queue.shift();
+    async checkSession() {
+        // Evitar verificaciones simultáneas
+        if (this.isCheckingSession) return;
+
+        this.isCheckingSession = true;
+
+        try {
+            const response = await fetch('/check-session', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                }
+            });
+
+            const data = await response.json();
+
+            // El servidor responde con el estado de la sesión
+            if (response.status === 401 || !data.authenticated) {
+                this.handleSessionExpired();
+                return;
             }
 
-            // Reintentar después de un delay
-            setTimeout(() => this.processNext(), 1000);
+            // Verificar si el servidor envía advertencia
+            if (data.warning && !this.warningShown) {
+                const minutesRemaining = data.minutes_remaining || 15;
+                this.showSessionWarning(minutesRemaining);
+                this.warningShown = true;
+            }
+
+            // Si todo está bien, resetear flag de advertencia
+            if (!data.warning) {
+                this.warningShown = false;
+            }
+
+        } catch (error) {
+            console.error('Error verificando sesión:', error);
+            // NO cerrar sesión por error de red
+            // Solo el servidor decide cuándo cerrar
+        } finally {
+            this.isCheckingSession = false;
         }
     }
 
-    async processItem(item) {
-        // Este método será sobrescrito por la implementación real
-        throw new Error('processItem debe ser implementado');
+    setupVisibilityListener() {
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Al volver a la pestaña, verificar sesión inmediatamente
+                this.checkSession();
+            }
+        });
     }
 
-    updateQueueUI() {
-        const queueInfo = document.getElementById('queue-info');
-        const queuePosition = document.getElementById('queue-position');
+    setupBeforeUnload() {
+        // Limpiar antes de cerrar la ventana
+        window.addEventListener('beforeunload', () => {
+            this.destroy();
+        });
+    }
 
-        if (!queueInfo || !queuePosition) return;
+    showSessionWarning(minutes) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sesión por expirar',
+            html: `Tu sesión expirará en <b>${minutes}</b> minuto${minutes > 1 ? 's' : ''}.<br>
+                   Haz clic en el botón para mantenerla activa.`,
+            showConfirmButton: true,
+            confirmButtonText: 'Mantener sesión activa',
+            confirmButtonColor: '#0891b2',
+            timer: 60000, // 1 minuto para responder
+            timerProgressBar: true,
+            allowOutsideClick: false
+        }).then((result) => {
+            if (result.isConfirmed || result.isDismissed) {
+                // Hacer ping al servidor para renovar sesión
+                this.pingServer();
+                this.lastActivity = Date.now();
+                this.warningShown = false;
+            }
+        });
+    }
 
-        if (this.queue.length > 0) {
-            queueInfo.classList.remove('hidden');
-            queuePosition.textContent = this.queue.length;
-        } else {
-            queueInfo.classList.add('hidden');
+    handleSessionExpired() {
+        clearInterval(this.sessionCheckInterval);
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Sesión expirada',
+            text: 'Tu sesión ha expirado. Serás redirigido al login.',
+            showConfirmButton: true,
+            confirmButtonText: 'Ir al login',
+            confirmButtonColor: '#ef4444',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(() => {
+            fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(() => {
+                // Redirigir al login luego del logout
+                window.location.href = '/login';
+            }).catch((error) => {
+                console.error('Error al cerrar sesión:', error);
+                window.location.href = '/login'; // Forzar redirección igual
+            });
+        });
+    }
+
+    destroy() {
+        if (this.sessionCheckInterval) {
+            clearInterval(this.sessionCheckInterval);
         }
-    }
-
-    clear() {
-        this.queue = [];
-        this.processing = false;
-        this.updateQueueUI();
     }
 }
 
 // ============================================
-// SERVICIOS Y UTILIDADES
+// SISTEMA DE COLA CON IDENTIFICACIÓN ÚNICA
+// ============================================
+
+class AttendanceQueue {
+    constructor(apiService) {
+        this.apiService = apiService;
+        this.processing = false;
+        this.maxRetries = 3;
+        this.retryDelay = 1000;
+        this.requestId = this.generateUniqueId();
+    }
+
+    generateUniqueId() {
+        // ID único por sesión de usuario + timestamp + random
+        const sessionId = sessionStorage.getItem('session_id') || this.createSessionId();
+        return `${sessionId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    createSessionId() {
+        const id = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        sessionStorage.setItem('session_id', id);
+        return id;
+    }
+
+    async process(attendanceData) {
+        if (this.processing) {
+            throw new Error('Ya hay una asistencia en proceso. Por favor espera.');
+        }
+
+        this.processing = true;
+        let retries = 0;
+
+        while (retries < this.maxRetries) {
+            try {
+                const result = await this.processWithTimeout(attendanceData, 15000);
+                this.processing = false;
+                return result;
+            } catch (error) {
+                retries++;
+                console.error(`Intento ${retries} fallido:`, error);
+
+                if (retries >= this.maxRetries) {
+                    this.processing = false;
+                    throw new Error('No se pudo completar el registro después de varios intentos.');
+                }
+
+                // Esperar antes de reintentar con backoff exponencial
+                await this.sleep(this.retryDelay * retries);
+            }
+        }
+    }
+
+    async processWithTimeout(data, timeout) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            // Agregar ID único a la petición
+            data.append('request_id', this.generateUniqueId());
+            data.append('timestamp', Date.now().toString());
+
+            const response = await fetch('/calendarios/registrar-asistencia', {
+                method: 'POST',
+                body: data,
+                signal: controller.signal,
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': this.apiService.csrfToken
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                console.log('✅ Datos de última asistencia recibidos:', response.json());
+       
+                if (response.status === 401) {
+                    throw new Error('SESSION_EXPIRED');
+                }
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+
+            return await response.json();
+
+        } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('Tiempo de espera agotado');
+            }
+            throw error;
+        }
+    }
+
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+// ============================================
+// SERVICIOS OPTIMIZADOS
 // ============================================
 
 class ApiService {
     constructor() {
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        this.cache = new Map();
+        this.cacheTTL = 5 * 60 * 1000; // 5 minutos
     }
 
-    async get(url) {
+    async get(url, useCache = true) {
+        // Verificar cache
+        if (useCache && this.cache.has(url)) {
+            const cached = this.cache.get(url);
+            if (Date.now() - cached.timestamp < this.cacheTTL) {
+                return cached.data;
+            }
+            this.cache.delete(url);
+        }
+
         const response = await fetch(url, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': this.csrfToken
             }
         });
 
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-        return response.json();
+        if (response.status === 401) {
+            throw new Error('SESSION_EXPIRED');
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Guardar en cache
+        if (useCache) {
+            this.cache.set(url, { data, timestamp: Date.now() });
+        }
+
+        return data;
     }
 
     async post(url, data) {
         const response = await fetch(url, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
+                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': this.csrfToken
             },
-            body: data instanceof FormData ? data : JSON.stringify(data)
+            body: JSON.stringify(data)
         });
 
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        if (response.status === 401) {
+            throw new Error('SESSION_EXPIRED');
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
         return response.json();
+    }
+
+    clearCache() {
+        this.cache.clear();
     }
 }
 
 class TimeService {
     static async getPeruTime() {
         try {
-            const response = await fetch('https://timeapi.io/api/time/current/zone?timeZone=America%2FLima');
-            if (!response.ok) throw new Error('Time API Error');
+            const response = await Promise.race([
+                fetch('https://timeapi.io/api/time/current/zone?timeZone=America%2FLima'),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
 
+            if (!response.ok) throw new Error('API Error');
             const data = await response.json();
             return new Date(data.dateTime);
         } catch (error) {
-            console.warn('Error obteniendo hora de Lima, usando hora local:', error);
-            const now = new Date();
-            const limaOffset = -5 * 60;
-            const localOffset = now.getTimezoneOffset();
-            return new Date(now.getTime() + (localOffset + limaOffset) * 60000);
+            console.warn('Usando hora local ajustada:', error);
+            return this.getLocalPeruTime();
         }
+    }
+
+    static getLocalPeruTime() {
+        const now = new Date();
+        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+        return new Date(utcTime + (-5 * 3600000)); // UTC-5
     }
 
     static calculateAttendanceType(dateTime) {
         const hour = dateTime.getHours();
         const minute = dateTime.getMinutes();
+        const totalMinutes = hour * 60 + minute;
 
-        // Horario Mañana: 7:30 - 8:30 Puntual, 8:31 - 12:59 Tarde
-        if ((hour === 7 && minute >= 30) || (hour === 8 && minute <= 30)) {
-            return 'Puntual';
-        }
-        if ((hour === 8 && minute >= 31) || (hour > 8 && hour < 13)) {
-            return 'Tarde';
-        }
+        // Mañana: 7:30-8:30 Puntual, 8:31-12:59 Tarde
+        if (totalMinutes >= 450 && totalMinutes <= 510) return 'Puntual'; // 7:30-8:30
+        if (totalMinutes > 510 && totalMinutes < 780) return 'Tarde'; // 8:31-12:59
 
-        // Horario Tarde: 14:30 - 15:10 Puntual, 15:11 - 20:00 Tarde
-        if ((hour === 14 && minute >= 30) || (hour === 15 && minute <= 10)) {
-            return 'Puntual';
-        }
-        if ((hour === 15 && minute >= 11) || (hour > 15 && hour < 20) || (hour === 20 && minute === 0)) {
-            return 'Tarde';
-        }
+        // Tarde: 14:30-15:10 Puntual, 15:11-20:00 Tarde
+        if (totalMinutes >= 870 && totalMinutes <= 910) return 'Puntual'; // 14:30-15:10
+        if (totalMinutes > 910 && totalMinutes <= 1200) return 'Tarde'; // 15:11-20:00
 
         return 'Fuera de horario';
     }
 
     static getAttendanceMessage(type) {
         const messages = {
-            'Puntual': '¡Excelente! Llegaste a tiempo. Sigue así. 🎉',
-            'Tarde': 'Recuerda que la puntualidad es importante. ⏰',
-            'Fuera de horario': 'Estás registrando fuera del horario laboral. ⚠️'
+            'Puntual': '¡Excelente! Llegaste a tiempo. 🎉',
+            'Tarde': 'Recuerda la importancia de la puntualidad. ⏰',
+            'Fuera de horario': 'Registro fuera del horario laboral. ⚠️'
         };
         return messages[type] || messages['Fuera de horario'];
     }
@@ -173,19 +417,28 @@ class TimeService {
 
 class LocationService {
     static async getCurrentPosition() {
+        if (!navigator.geolocation) {
+            throw new Error('Geolocalización no disponible');
+        }
+
         return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject(new Error('Geolocalización no disponible'));
-                return;
-            }
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Tiempo de espera agotado para ubicación'));
+            }, 10000);
 
             navigator.geolocation.getCurrentPosition(
-                resolve,
-                reject,
+                (position) => {
+                    clearTimeout(timeoutId);
+                    resolve(position);
+                },
+                (error) => {
+                    clearTimeout(timeoutId);
+                    reject(error);
+                },
                 {
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                    timeout: 8000,
+                    maximumAge: 5000
                 }
             );
         });
@@ -194,173 +447,153 @@ class LocationService {
     static async getAddress(latitude, longitude) {
         try {
             const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
-            const response = await fetch(url);
+            const response = await Promise.race([
+                fetch(url),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
 
-            if (!response.ok) throw new Error('Error obteniendo dirección');
+            if (!response.ok) throw new Error('Error');
 
             const data = await response.json();
-            const address = data.address || {};
+            const addr = data.address || {};
+            const parts = [addr.house_number, addr.road, addr.residential || addr.city || addr.town].filter(Boolean);
 
-            const parts = [
-                address.house_number,
-                address.road,
-                address.residential || address.city || address.town || address.county
-            ].filter(Boolean);
-
-            return parts.join(', ') || `Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`;
-        } catch (error) {
-            console.error('Error obteniendo dirección:', error);
-            return `Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`;
+            return parts.length > 0 ? parts.join(', ') : `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        } catch {
+            return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
         }
     }
 }
 
 class DeviceService {
     static detect() {
-        // Permitir forzar modo móvil desde window (para desarrollo)
-        if (window.FORCE_MOBILE_MODE === true) {
-            console.log('🔧 Modo móvil forzado activo');
-            return 'mobile';
-        }
+        if (window.FORCE_MOBILE_MODE === true) return 'mobile';
 
-        const userAgent = navigator.userAgent.toLowerCase();
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        const isSmallScreen = window.innerWidth <= 768;
+        const ua = navigator.userAgent.toLowerCase();
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isSmall = window.innerWidth <= 768;
 
-        // Forzar modo móvil si es pantalla pequeña o tiene touch
-        if (isSmallScreen || isTouchDevice) {
-            return 'mobile';
-        }
-
-        if (/iphone|ipod|android|blackberry|opera mini|iemobile|mobile/i.test(userAgent)) {
-            return 'mobile';
-        }
-        if (/ipad|tablet|playbook|kindle/i.test(userAgent)) {
-            return 'tablet';
-        }
+        if (isSmall || isTouch) return 'mobile';
+        if (/iphone|ipod|android|mobile/i.test(ua)) return 'mobile';
+        if (/ipad|tablet/i.test(ua)) return 'tablet';
         return 'desktop';
     }
 
     static isMobileDevice() {
-        const deviceType = this.detect();
-        console.log('Tipo de dispositivo detectado:', deviceType); // Debug
-        return deviceType === 'mobile' || deviceType === 'tablet';
+        const type = this.detect();
+        return type === 'mobile' || type === 'tablet';
     }
 }
 
 // ============================================
-// QR SCANNER SERVICE
+// QR SCANNER OPTIMIZADO
 // ============================================
+
 class QRScannerService {
     constructor() {
         this.scanner = null;
         this.isScanning = false;
-        this.html5QrCode = null;
+        this.lastScan = 0;
+        this.scanCooldown = 2000; // 2 segundos entre escaneos
     }
 
     async start(elementId, onSuccess, onError) {
-        if (this.isScanning) {
-            console.warn('Scanner ya está activo');
-            return;
-        }
+        if (this.isScanning) return;
 
         try {
-            // Primero seleccionar la cámara trasera
             const cameras = await Html5Qrcode.getCameras();
             const backCamera = this.findBackCamera(cameras);
 
-            if (!backCamera) {
-                throw new Error('No se encontró cámara trasera');
-            }
+            if (!backCamera) throw new Error('Cámara no disponible');
 
-            // Iniciar con la cámara trasera directamente
-            this.html5QrCode = new Html5Qrcode(elementId);
+            this.scanner = new Html5Qrcode(elementId);
 
-            await this.html5QrCode.start(
-                backCamera.id,
+            // Configuración flexible: intenta primero con cámara trasera, luego cualquier cámara
+            const configOptions = [
+                // Opción 1: Cámara trasera ideal (no exact)
                 {
-                    fps: 30, // Aumentado para mejor rendimiento
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0,
-                    disableFlip: false,
-                    videoConstraints: {
-                        facingMode: { exact: "environment" },
-                        advanced: [
-                            { zoom: 1.5 } // Zoom para mejor lectura
-                        ]
-                    }
-                },
-                onSuccess,
-                onError
-            );
-
-            this.isScanning = true;
-            console.log('Scanner iniciado con cámara trasera:', backCamera.label);
-
-            // Optimizaciones UI
-            setTimeout(() => this.optimizeUI(), 300);
-
-        } catch (error) {
-            console.error('Error iniciando scanner:', error);
-
-            // Fallback: usar el scanner con UI por defecto
-            try {
-                this.scanner = new Html5QrcodeScanner(elementId, {
                     fps: 30,
                     qrbox: { width: 250, height: 250 },
-                    rememberLastUsedCamera: true,
-                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-                    showTorchButtonIfSupported: true
-                });
+                    aspectRatio: 1.0,
+                    videoConstraints: {
+                        facingMode: { ideal: "environment" }, // CAMBIO: ideal en vez de exact
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                },
+                // Opción 2: Sin restricciones específicas (fallback)
+                {
+                    fps: 30,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                }
+            ];
 
-                this.scanner.render(onSuccess, onError);
-                this.isScanning = true;
+            let scannerStarted = false;
+            let lastError = null;
 
-                setTimeout(() => {
-                    this.hideFileInput();
-                    this.selectBackCamera();
-                }, 500);
-            } catch (fallbackError) {
-                console.error('Error en fallback del scanner:', fallbackError);
-                throw fallbackError;
+            // Intentar con diferentes configuraciones
+            for (const config of configOptions) {
+                try {
+                    await this.scanner.start(
+                        backCamera.id,
+                        config,
+                        (text) => this.handleScan(text, onSuccess),
+                        (err) => this.handleError(err, onError)
+                    );
+                    scannerStarted = true;
+                    break; // Si funciona, salir del loop
+                } catch (err) {
+                    lastError = err;
+                    console.warn('Intento de configuración falló, probando siguiente...', err);
+                }
             }
+
+            if (!scannerStarted) {
+                throw lastError || new Error('No se pudo iniciar la cámara');
+            }
+
+            this.isScanning = true;
+            setTimeout(() => this.optimizeUI(), 300);
+        } catch (error) {
+            console.error('Error iniciando scanner:', error);
+            throw error;
+        }
+    }
+
+    handleScan(text, callback) {
+        const now = Date.now();
+        if (now - this.lastScan < this.scanCooldown) {
+            return; // Ignorar escaneos múltiples
+        }
+
+        this.lastScan = now;
+        callback(text);
+    }
+
+    handleError(error, callback) {
+        if (error && !error.includes('No QR') && !error.includes('NotFoundException')) {
+            callback(error);
         }
     }
 
     findBackCamera(cameras) {
-        if (!cameras || cameras.length === 0) return null;
+        if (!cameras?.length) return null;
 
-        const backCameraPatterns = [
-            'back', 'trasera', 'rear', 'environment',
-            'posterior', 'externa', 'back camera', 'cámara trasera'
-        ];
-
-        // Buscar cámara que coincida con los patrones
-        for (const pattern of backCameraPatterns) {
-            const camera = cameras.find(cam =>
-                cam.label.toLowerCase().includes(pattern)
-            );
-            if (camera) return camera;
+        const patterns = ['back', 'trasera', 'rear', 'environment', 'posterior'];
+        for (const pattern of patterns) {
+            const cam = cameras.find(c => c.label.toLowerCase().includes(pattern));
+            if (cam) return cam;
         }
 
-        // Si hay múltiples cámaras, la trasera suele ser la última
         return cameras.length > 1 ? cameras[cameras.length - 1] : cameras[0];
     }
 
     async stop() {
-        if (this.html5QrCode && this.isScanning) {
-            try {
-                await this.html5QrCode.stop();
-                this.html5QrCode = null;
-                this.isScanning = false;
-            } catch (error) {
-                console.error('Error deteniendo html5QrCode:', error);
-            }
-        }
-
         if (this.scanner && this.isScanning) {
             try {
-                await this.scanner.clear();
+                await this.scanner.stop();
+                this.scanner.clear();
                 this.scanner = null;
                 this.isScanning = false;
             } catch (error) {
@@ -369,112 +602,39 @@ class QRScannerService {
         }
     }
 
-    hideFileInput() {
-        // Ocultar opción de subir imagen
-        const fileInput = document.querySelector('#qr-reader__dashboard_section_swaplink');
-        if (fileInput) {
-            fileInput.style.display = 'none';
-            fileInput.remove();
-        }
-
-        const fileScanButton = document.querySelector('#qr-reader__filescan_input');
-        if (fileScanButton) {
-            fileScanButton.style.display = 'none';
-            fileScanButton.remove();
-        }
-
-        // Ocultar cualquier botón relacionado con archivos
-        const dashboardSection = document.querySelector('#qr-reader__dashboard_section');
-        if (dashboardSection) {
-            const fileButtons = dashboardSection.querySelectorAll('button, a, input[type="file"]');
-            fileButtons.forEach(btn => {
-                if (btn.textContent.toLowerCase().includes('file') ||
-                    btn.textContent.toLowerCase().includes('archivo') ||
-                    btn.textContent.toLowerCase().includes('imagen')) {
-                    btn.style.display = 'none';
-                    btn.remove();
-                }
-            });
-        }
-    }
-
     optimizeUI() {
-        this.hideFileInput();
+        // Ocultar controles innecesarios
+        const elements = ['#qr-reader__dashboard_section_swaplink', '#qr-reader__filescan_input', '#qr-reader__header_message'];
+        elements.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) el.remove();
+        });
 
-        // Ocultar elementos innecesarios
-        const headerMessage = document.querySelector('#qr-reader__header_message');
-        if (headerMessage) {
-            headerMessage.style.display = 'none';
-        }
-
-        // Ajustar el tamaño del video
         const video = document.querySelector('#qr-reader video');
         if (video) {
             video.style.borderRadius = '0.5rem';
             video.style.maxWidth = '100%';
         }
     }
-
-    async selectBackCamera() {
-        try {
-            const cameras = await Html5Qrcode.getCameras();
-            if (!cameras || cameras.length === 0) return;
-
-            const backCamera = this.findBackCamera(cameras);
-            if (!backCamera) return;
-
-            const cameraSelector = document.getElementById('qr-reader__camera_selection');
-            if (cameraSelector) {
-                cameraSelector.value = backCamera.id;
-                cameraSelector.dispatchEvent(new Event('change', { bubbles: true }));
-
-                setTimeout(() => {
-                    const startButton = document.querySelector('#qr-reader__camera_permission_button');
-                    if (startButton && startButton.textContent.includes('Start')) {
-                        startButton.click();
-                    }
-                }, 300);
-            }
-        } catch (error) {
-            console.error('Error seleccionando cámara trasera:', error);
-        }
-    }
 }
 
 // ============================================
-// COMPONENTE VUE PRINCIPAL
+// COMPONENTE VUE OPTIMIZADO
 // ============================================
 
 const DashboardApp = {
     data() {
         return {
-            user: {
-                id: null,
-                name: '',
-                empresaId: null
-            },
-            stats: {
-                asistencias: 0,
-                tardanzas: 0,
-                tareas: 0,
-                progreso: 0
-            },
+            user: { id: null, name: '', empresaId: null },
+            stats: { asistencias: 0, tardanzas: [], tareas: 0, progreso: 0 },
             tareas: [],
             isProcessing: false,
             isMobile: false,
-            autoStartEnabled: false,
-            permissionsGranted: {
-                location: false,
-                camera: false,
-                tasks: false
-            },
-            modals: {
-                asistencia: false,
-                tareas: false
-            },
+            modals: { asistencia: false, tareas: false },
             qrScanner: null,
             attendanceQueue: null,
-            apiService: new ApiService()
+            apiService: null,
+            sessionManager: null
         };
     },
 
@@ -482,107 +642,132 @@ const DashboardApp = {
         this.initializeApp();
     },
 
+    beforeUnmount() {
+        this.cleanup();
+    },
+
     methods: {
         async initializeApp() {
-            console.log('🚀 Iniciando aplicación...');
+            console.log('🚀 Iniciando aplicación optimizada...');
+
+            // Inicializar servicios
+            this.apiService = new ApiService();
+            this.sessionManager = new SessionManager();
+            this.attendanceQueue = new AttendanceQueue(this.apiService);
+
+            // Iniciar gestión de sesión
+            this.sessionManager.init();
 
             this.loadUserData();
             this.detectDevice();
 
-            // IMPORTANTE: Dar tiempo para que se cargue el DOM
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await this.$nextTick();
 
-            // Si es móvil, iniciar proceso automático
             if (this.isMobile) {
-                console.log('📱 Iniciando proceso automático para móvil...');
-                await this.iniciarProcesoAutomaticoMovil();
+                console.log('📱 Modo automático móvil');
+                await this.iniciarProcesoAutomatico();
             } else {
-                console.log('💻 Cargando dashboard para desktop...');
-                // Desktop: cargar dashboard normal
+                console.log('💻 Modo desktop');
                 this.setupEventListeners();
                 await this.loadDashboardData();
-                this.initializeCalendar();
             }
 
-            // Inicializar sistema de colas
-            this.attendanceQueue = new AttendanceQueue();
-            this.attendanceQueue.processItem = (item) => this.procesarAsistenciaEnCola(item);
-
-            console.log('✅ Aplicación inicializada correctamente');
+            console.log('✅ Aplicación lista');
         },
 
         detectDevice() {
             this.isMobile = DeviceService.isMobileDevice();
-
-            console.log('🔍 Detección de dispositivo:', {
-                isMobile: this.isMobile,
-                width: window.innerWidth,
-                height: window.innerHeight,
-                userAgent: navigator.userAgent,
-                touchPoints: navigator.maxTouchPoints
-            });
-
-            if (this.isMobile) {
-                console.log('📱 Dispositivo móvil detectado - Iniciando modo automático');
-                const indicator = document.getElementById('mobile-auto-indicator');
-                if (indicator) {
-                    indicator.classList.remove('hidden');
-                }
-            } else {
-                console.log('💻 Dispositivo desktop detectado - Modo manual');
-            }
+            console.log('Dispositivo:', this.isMobile ? '📱 Móvil' : '💻 Desktop');
         },
 
-        async iniciarProcesoAutomaticoMovil() {
-            console.log('🔄 Iniciando proceso automático móvil...');
-
+        async iniciarProcesoAutomatico() {
             try {
-                // Mostrar pantalla de carga
-                this.mostrarPantallaCarga();
+                this.mostrarPantallaCarga('Iniciando sistema...');
 
-                console.log('⏳ Paso 1: Verificando tareas...');
-                // Paso 1: Verificar y cargar tareas
-                await this.verificarTareasConProgreso();
+                // Verificar permisos en paralelo
+                const [tasksOk, locationOk, cameraOk] = await Promise.allSettled([
+                    this.verificarTareas(),
+                    this.verificarUbicacion(),
+                    this.verificarCamara()
+                ]);
 
-                console.log('⏳ Paso 2: Solicitando ubicación...');
-                // Paso 2: Solicitar permiso de ubicación
-                await this.solicitarUbicacionConProgreso();
+                if (tasksOk.status === 'rejected') throw tasksOk.reason;
+                if (locationOk.status === 'rejected') throw locationOk.reason;
+                if (cameraOk.status === 'rejected') throw cameraOk.reason;
 
-                console.log('⏳ Paso 3: Verificando cámara...');
-                // Paso 3: Verificar permisos de cámara (implícito al iniciar scanner)
-                await this.verificarCamaraConProgreso();
-
-                console.log('✅ Todos los pasos completados, abriendo scanner...');
-                // Todo listo: abrir modal de escaneo automáticamente
-                await this.abrirModalAsistenciaAutomatico();
-
-                // Ocultar pantalla de carga
+                await this.abrirModalAsistenciaAuto();
                 this.ocultarPantallaCarga();
-
-                console.log('✅ Proceso automático completado exitosamente');
-
             } catch (error) {
-                console.error('❌ Error en proceso automático:', error);
+                console.error('Error en inicio automático:', error);
                 this.ocultarPantallaCarga();
-                this.showError('Error en inicio automático', error.message);
 
-                // Cargar dashboard normal como fallback
-                console.log('🔄 Cargando dashboard normal como fallback...');
-                this.setupEventListeners();
+                if (error.message === 'SESSION_EXPIRED') {
+                    this.sessionManager.handleSessionExpired();
+                    return;
+                }
+
+                this.showError('Error de inicio', error.message);
                 await this.loadDashboardData();
             }
         },
 
-        mostrarPantallaCarga() {
-            console.log('📺 Mostrando pantalla de carga...');
-            const screen = document.getElementById('mobile-loading-screen');
-            if (screen) {
-                screen.classList.remove('hidden');
-                console.log('✅ Pantalla de carga visible');
-            } else {
-                console.error('❌ No se encontró el elemento mobile-loading-screen');
+        async verificarTareas() {
+            this.updateProgress('tasks', 0, '⏳ Cargando...');
+
+            try {
+                this.tareas = await this.apiService.get(`/actividades/listar/${this.user.id}`);
+
+                if (!this.tareas?.length) {
+                    throw new Error('Sin tareas asignadas. Contacta a tu supervisor.');
+                }
+
+                this.updateProgress('tasks', 100, '✅ Listas');
+            } catch (error) {
+                this.updateProgress('tasks', 0, '❌ Error');
+                throw error;
             }
-            this.actualizarEstadoCarga('Iniciando sistema de marcado...', 'loading');
+        },
+
+        async verificarUbicacion() {
+            this.updateProgress('location', 0, '⏳ Solicitando...');
+
+            try {
+                await LocationService.getCurrentPosition();
+                this.updateProgress('location', 100, '✅ Activa');
+            } catch (error) {
+                this.updateProgress('location', 0, '❌ Denegada');
+                throw new Error('Activa la ubicación para continuar');
+            }
+        },
+
+        async verificarCamara() {
+            this.updateProgress('camera', 50, '⏳ Verificando...');
+
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                if (!cameras?.length) throw new Error('Sin cámaras');
+
+                this.updateProgress('camera', 100, '✅ Lista');
+            } catch (error) {
+                this.updateProgress('camera', 0, '❌ No disponible');
+                throw new Error('Se requiere acceso a la cámara');
+            }
+        },
+
+        updateProgress(tipo, pct, estado) {
+            const bar = document.getElementById(`${tipo}-progress`);
+            const status = document.getElementById(`${tipo}-status`);
+
+            if (bar) bar.style.width = `${pct}%`;
+            if (status) status.textContent = estado;
+        },
+
+        mostrarPantallaCarga(msg) {
+            const screen = document.getElementById('mobile-loading-screen');
+            if (screen) screen.classList.remove('hidden');
+
+            const status = document.getElementById('loading-status');
+            if (status) status.textContent = msg;
         },
 
         ocultarPantallaCarga() {
@@ -591,94 +776,12 @@ const DashboardApp = {
             }, 500);
         },
 
-        actualizarEstadoCarga(mensaje, tipo = 'loading') {
-            const statusEl = document.getElementById('loading-status');
-            if (statusEl) {
-                statusEl.textContent = mensaje;
-            }
-        },
-
-        async verificarTareasConProgreso() {
-            this.actualizarProgreso('tasks', 0, '⏳ Cargando...');
-
-            try {
-                const tasks = await this.apiService.get(`/actividades/listar/${this.user.id}`);
-
-                if (!tasks || tasks.length === 0) {
-                    throw new Error('No tienes tareas asignadas. Solicita a tu supervisor que agregue tus tareas.');
-                }
-
-                this.tareas = tasks;
-                this.permissionsGranted.tasks = true;
-                this.actualizarProgreso('tasks', 100, '✅ Tareas cargadas');
-
-                return true;
-            } catch (error) {
-                this.actualizarProgreso('tasks', 0, '❌ Error');
-                throw error;
-            }
-        },
-
-        async solicitarUbicacionConProgreso() {
-            this.actualizarProgreso('location', 0, '⏳ Solicitando...');
-
-            try {
-                // Intentar obtener ubicación
-                await LocationService.getCurrentPosition();
-
-                this.permissionsGranted.location = true;
-                this.actualizarProgreso('location', 100, '✅ Activada');
-
-                return true;
-            } catch (error) {
-                this.actualizarProgreso('location', 0, '❌ Denegada');
-                throw new Error('Se requiere activar la ubicación para marcar asistencia');
-            }
-        },
-
-        async verificarCamaraConProgreso() {
-            this.actualizarProgreso('camera', 50, '⏳ Verificando...');
-
-            try {
-                // Verificar si hay cámaras disponibles
-                const cameras = await Html5Qrcode.getCameras();
-
-                if (!cameras || cameras.length === 0) {
-                    throw new Error('No se detectaron cámaras en el dispositivo');
-                }
-
-                this.permissionsGranted.camera = true;
-                this.actualizarProgreso('camera', 100, '✅ Lista');
-
-                return true;
-            } catch (error) {
-                this.actualizarProgreso('camera', 0, '❌ No disponible');
-                throw new Error('Se requiere acceso a la cámara');
-            }
-        },
-
-        actualizarProgreso(tipo, porcentaje, estado) {
-            const progressBar = document.getElementById(`${tipo}-progress`);
-            const statusSpan = document.getElementById(`${tipo}-status`);
-
-            if (progressBar) {
-                progressBar.style.width = `${porcentaje}%`;
-            }
-
-            if (statusSpan) {
-                statusSpan.textContent = estado;
-            }
-        },
-
-        async abrirModalAsistenciaAutomatico() {
+        async abrirModalAsistenciaAuto() {
             this.modals.asistencia = true;
             document.getElementById('modal-asistencia')?.classList.remove('hidden');
 
-            // Pequeño delay para asegurar que el modal esté renderizado
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // Iniciar scanner automáticamente
-            await this.iniciarScanner();
+            await this.$nextTick();
+            setTimeout(() => this.iniciarScanner(), 300);
         },
 
         loadUserData() {
@@ -688,102 +791,108 @@ const DashboardApp = {
         },
 
         setupEventListeners() {
-            // Botón marcar asistencia (solo para desktop)
-            document.getElementById('btn-marcar-asistencia')?.addEventListener('click', () => {
-                this.iniciarAsistencia();
-            });
+            const handlers = {
+                'btn-marcar-asistencia': () => this.iniciarAsistencia(),
+                'btn-cerrar-modal': () => this.cerrarModalAsistencia(),
+                'btn-cancelar-escaneo': () => this.cerrarModalAsistencia(),
+                'btn-cerrar-tareas': () => this.cerrarModalTareas()
+            };
 
-            // Cerrar modales
-            document.getElementById('btn-cerrar-modal')?.addEventListener('click', () => {
-                this.cerrarModalAsistencia();
-            });
-
-            document.getElementById('btn-cancelar-escaneo')?.addEventListener('click', () => {
-                this.cerrarModalAsistencia();
-            });
-
-            document.getElementById('btn-cerrar-tareas')?.addEventListener('click', () => {
-                this.cerrarModalTareas();
+            Object.entries(handlers).forEach(([id, handler]) => {
+                document.getElementById(id)?.addEventListener('click', handler);
             });
         },
 
         async loadDashboardData() {
             try {
-                await Promise.all([
-                    this.loadStats(),
-                    this.loadRecentTasks(),
-                    this.loadLastAttendance()
+                const [stats, tasks, attendance] = await Promise.allSettled([
+                    this.apiService.get(`/dashboard/stats/${this.user.id}`),
+                    this.apiService.get(`/actividades/listar/${this.user.id}`),
+                    this.apiService.get(`/asistencias/ultima/${this.user.id}`)
                 ]);
-            } catch (error) {
-                console.error('Error cargando datos del dashboard:', error);
-            }
-        },
 
-        async loadStats() {
-            try {
-                const data = await this.apiService.get(`/api/dashboard/stats/${this.user.id}`);
-                this.stats = { ...this.stats, ...data };
-                this.updateStatsUI();
-            } catch (error) {
-                console.error('Error cargando estadísticas:', error);
-            }
-        },
+                // 🔍 Log detallado: resultados de todas las promesas
+                console.log('🔍 Resultado de Promise.allSettled:', {
+                    stats,
+                    tasks,
+                    attendance
+                });
 
-        async loadRecentTasks() {
-            try {
-                const tasks = await this.apiService.get(`/actividades/listar/${this.user.id}`);
-                this.tareas = tasks || [];
-                this.renderRecentTasks();
-            } catch (error) {
-                console.error('Error cargando tareas:', error);
-            }
-        },
+                if (stats.status === 'fulfilled') {
+                    //console.log('✅ Datos de stats recibidos:', stats.value);
+                    this.stats = { ...this.stats, ...stats.value };
+                    this.updateStatsUI();
+                } else {
+                    console.error('❌ Error en stats:', stats.reason);
+                }
 
-        async loadLastAttendance() {
-            try {
-                const attendance = await this.apiService.get(`/api/asistencias/ultima/${this.user.id}`);
-                this.renderLastAttendance(attendance);
+                if (tasks.status === 'fulfilled') {
+                    //console.log('✅ Datos de tareas recibidos:', tasks.value);
+                    this.tareas = Array.isArray(tasks.value) ? tasks.value : [];
+                    this.renderRecentTasks();
+                } else {
+                    console.error('❌ Error en tareas:', tasks.reason);
+                }
+
+                if (attendance.status === 'fulfilled') {
+                    //console.log('✅ Datos de última asistencia recibidos:', attendance.value);
+                    this.renderLastAttendance(attendance.value);
+                } else {
+                    console.error('❌ Error en asistencia:', attendance.reason);
+                }
+
             } catch (error) {
-                console.error('Error cargando última asistencia:', error);
+                console.error('🚨 Error inesperado en loadDashboardData:', error);
+                if (error.message === 'SESSION_EXPIRED') {
+                    this.sessionManager.handleSessionExpired();
+                } else {
+                    console.error('Error cargando dashboard:', error);
+                }
             }
         },
 
         updateStatsUI() {
-            document.getElementById('stat-asistencias').textContent = this.stats.asistencias;
-            document.getElementById('stat-tardanzas').textContent = this.stats.tardanzas;
-            document.getElementById('stat-tareas').textContent = this.stats.tareas;
-            document.getElementById('stat-progreso').textContent = `${this.stats.progreso}%`;
+            const updates = {
+                'stat-asistencias': this.stats.total_asistencias,
+                'stat-puntualidad': this.stats.total_Puntual,
+                'stat-tardanzas': this.stats.total_tardanza,
+                'stat-tareas': this.stats.total_tareas,
+                'stat-progreso': `${this.stats.porcentaje_avance_mes}%`
+            };
+
+            Object.entries(updates).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            });
         },
 
         renderRecentTasks() {
             const container = document.getElementById('tareas-recientes');
             if (!container) return;
 
-            if (this.tareas.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-4">No hay tareas disponibles</p>';
+            if (!this.tareas.length) {
+                container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-4">Sin tareas</p>';
                 return;
             }
 
-            const tasksHTML = this.tareas.slice(0, 5).map(tarea => `
+            container.innerHTML = this.tareas.slice(0, 5).map(t => `
                 <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-0">
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">${tarea.nameActividad}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${tarea.status || 'Pendiente'}</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">${t.nameActividad}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${t.status || 'Pendiente'}</p>
                     </div>
-                    <span class="px-2 py-1 text-xs rounded-full ${this.getTaskStatusColor(tarea.status)}">
-                        ${tarea.status || 'Todo'}
+                    <span class="px-2 py-1 text-xs rounded-full ${this.getStatusColor(t.status, 'task')}">
+                        ${t.status || 'Todo'}
                     </span>
                 </div>
             `).join('');
-
-            container.innerHTML = tasksHTML;
         },
 
-        renderLastAttendance(attendance) {
+        renderLastAttendance(att) {
             const container = document.getElementById('ultima-asistencia');
             if (!container) return;
 
-            if (!attendance) {
+            if (!att) {
                 container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-4">Sin registros</p>';
                 return;
             }
@@ -792,107 +901,70 @@ const DashboardApp = {
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-400">Fecha:</span>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">${attendance.fecha}</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">${att.fecha_registro}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-400">Hora:</span>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">${attendance.hora}</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">${att.hora_ingreso}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-400">Estado:</span>
-                        <span class="px-3 py-1 text-xs rounded-full ${this.getAttendanceStatusColor(attendance.tipo_horario)}">
-                            ${attendance.tipo_horario}
+                        <span class="px-3 py-1 text-xs rounded-full text-gray-900 dark:text-white ${this.getStatusColor(att.tipo_horario, 'attendance')}">
+                            ${att.tipo_horario}
                         </span>
                     </div>
                 </div>
             `;
         },
 
-        getTaskStatusColor(status) {
+        getStatusColor(status, type) {
             const colors = {
-                'Todo': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-                'Doing': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-                'Done': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                task: {
+                    'Todo': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+                    'Doing': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                    'Done': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                },
+                attendance: {
+                    'Puntual': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                    'Tarde': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                    'Fuera de horario': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                }
             };
-            return colors[status] || colors['Todo'];
-        },
 
-        getAttendanceStatusColor(type) {
-            const colors = {
-                'Puntual': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-                'Tarde': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-                'Fuera de horario': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-            };
-            return colors[type] || colors['Fuera de horario'];
+            return colors[type]?.[status] || colors[type]?.['Todo'] || '';
         },
-
-        initializeCalendar() {
-            try {
-                const calendar = new eventCalendar.Calendar('#calendar', {
-                    // Configuración del calendario
-                });
-            } catch (error) {
-                console.error('Error inicializando calendario:', error);
-            }
-        },
-
-        // ============================================
-        // PROCESO DE ASISTENCIA
-        // ============================================
 
         async iniciarAsistencia() {
             if (this.isProcessing) {
-                this.showWarning('Ya hay un proceso en curso');
+                this.showWarning('Proceso en curso');
                 return;
             }
 
-            // Verificar tareas
-            if (this.tareas.length === 0) {
+            if (!this.tareas.length) {
                 await this.loadRecentTasks();
-
-                if (this.tareas.length === 0) {
-                    this.showInfo(
-                        'Sin tareas asignadas',
-                        'Solicita a tu supervisor que asigne tus tareas antes de registrar asistencia.'
-                    );
+                if (!this.tareas.length) {
+                    this.showInfo('Sin tareas', 'Solicita tareas a tu supervisor.');
                     return;
                 }
             }
 
-            // Verificar tipo de dispositivo
             if (!DeviceService.isMobileDevice()) {
-                this.showInfo(
-                    'Dispositivo no compatible',
-                    'El marcado de asistencia está optimizado para dispositivos móviles. Usa un smartphone o tablet.'
-                );
+                this.showInfo('Dispositivo no compatible', 'Usa un dispositivo móvil.');
                 return;
             }
 
-            // Verificar permisos
             try {
-                await this.verificarPermisos();
+                await this.verificarUbicacion();
                 this.abrirModalAsistencia();
             } catch (error) {
                 this.showError('Permisos requeridos', error.message);
             }
         },
 
-        async verificarPermisos() {
-            try {
-                await LocationService.getCurrentPosition();
-                return true;
-            } catch (error) {
-                throw new Error('Se requiere acceso a la ubicación para registrar asistencia');
-            }
-        },
-
         abrirModalAsistencia() {
             this.modals.asistencia = true;
             document.getElementById('modal-asistencia')?.classList.remove('hidden');
-
-            setTimeout(() => {
-                this.iniciarScanner();
-            }, 300);
+            setTimeout(() => this.iniciarScanner(), 300);
         },
 
         cerrarModalAsistencia() {
@@ -908,63 +980,48 @@ const DashboardApp = {
         async iniciarScanner() {
             try {
                 this.qrScanner = new QRScannerService();
-
                 await this.qrScanner.start(
                     'qr-reader',
-                    (decodedText) => this.onQRSuccess(decodedText),
-                    (error) => this.onQRError(error)
+                    (text) => this.onQRSuccess(text),
+                    (err) => this.onQRError(err)
                 );
 
-                this.updateQRStatus('Escaneando... Posiciona el QR frente a la cámara', 'info');
+                this.updateQRStatus('Escaneando... Posiciona el QR', 'info');
             } catch (error) {
                 console.error('Error iniciando scanner:', error);
-                this.showError('No se pudo iniciar la cámara. Verifica los permisos.');
+                this.showError('Error', 'No se pudo iniciar la cámara.');
             }
         },
 
         async onQRSuccess(qrCode) {
-            if (this.isProcessing) {
-                console.log('Proceso en curso, añadiendo a cola...');
-                return;
-            }
+            if (this.isProcessing) return;
 
             this.isProcessing = true;
             this.updateQRStatus('✓ QR detectado, procesando...', 'success');
 
             try {
-                // Detener scanner inmediatamente
-                if (this.qrScanner) {
-                    await this.qrScanner.stop();
+                await this.qrScanner?.stop();
+                await this.procesarAsistencia(qrCode);
+            } catch (error) {
+                console.error('Error procesando QR:', error);
+                this.isProcessing = false;
+
+                if (error.message === 'SESSION_EXPIRED') {
+                    this.sessionManager.handleSessionExpired();
+                    return;
                 }
 
-                // Agregar a la cola de procesamiento
-                const queueId = this.attendanceQueue.add({
-                    qrCode: qrCode,
-                    userId: this.user.id,
-                    userName: this.user.name,
-                    empresaId: this.user.empresaId
-                });
+                this.showError('Error', error.message || 'No se pudo procesar el QR');
 
-                console.log('Asistencia agregada a la cola:', queueId);
-
-            } catch (error) {
-                console.error('Error al procesar QR:', error);
-                this.isProcessing = false;
-                this.showError('Error', 'No se pudo procesar el código QR');
-
-                setTimeout(() => {
-                    if (this.modals.asistencia) {
-                        this.iniciarScanner();
-                    }
-                }, 2000);
+                if (this.modals.asistencia) {
+                    setTimeout(() => this.iniciarScanner(), 2000);
+                }
             }
         },
 
-        async procesarAsistenciaEnCola(item) {
+        async procesarAsistencia(qrCode) {
             try {
-                const data = item.data;
-
-                // Obtener datos necesarios en paralelo para mayor velocidad
+                // Obtener datos en paralelo
                 const [fechaHora, position] = await Promise.all([
                     TimeService.getPeruTime(),
                     LocationService.getCurrentPosition()
@@ -976,36 +1033,30 @@ const DashboardApp = {
                     position.coords.longitude
                 );
 
-                // Preparar datos
+                // Preparar FormData
                 const formData = new FormData();
-                formData.append('nombre_trabajador', data.userName);
+                formData.append('nombre_trabajador', this.user.name);
                 formData.append('tipo_horario', tipoAsistencia);
                 formData.append('fecha', fechaHora.toISOString().split('T')[0]);
                 formData.append('horaLima', fechaHora.toLocaleTimeString('es-PE', { hour12: false }));
                 formData.append('ubicacion', ubicacion);
-                formData.append('id_trabajador', data.userId);
-                formData.append('id_empresa', data.empresaId);
-                formData.append('qr_code', data.qrCode);
+                formData.append('id_trabajador', this.user.id);
+                formData.append('id_empresa', this.user.empresaId);
+                formData.append('qr_code', qrCode);
 
-                // Registrar asistencia con timeout
-                const response = await Promise.race([
-                    this.apiService.post('/calendarios/registrar-asistencia', formData),
-                    new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout')), 10000)
-                    )
-                ]);
+                // Procesar con sistema de cola
+                const response = await this.attendanceQueue.process(formData);
 
                 if (response.success) {
                     this.cerrarModalAsistencia();
 
                     const mensaje = TimeService.getAttendanceMessage(tipoAsistencia);
-
                     await this.showSuccess(tipoAsistencia, mensaje);
 
-                    // Mostrar modal de tareas
                     this.abrirModalTareas();
 
-                    // Actualizar dashboard
+                    // Limpiar cache y recargar datos
+                    this.apiService.clearCache();
                     await this.loadDashboardData();
 
                     this.isProcessing = false;
@@ -1013,14 +1064,14 @@ const DashboardApp = {
                     throw new Error(response.error || 'Error al registrar asistencia');
                 }
             } catch (error) {
-                console.error('Error procesando asistencia:', error);
-                throw error; // Propagar error para reintentos
+                this.isProcessing = false;
+                throw error;
             }
         },
 
         onQRError(error) {
-            // Ignorar errores de "no QR found"
-            if (error && !error.includes('No QR code found') && !error.includes('NotFoundException')) {
+            // Ignorar errores comunes de "no QR found"
+            if (error && !error.includes('No QR') && !error.includes('NotFoundException')) {
                 console.error('QR Error:', error);
             }
         },
@@ -1029,22 +1080,26 @@ const DashboardApp = {
             const statusEl = document.getElementById('qr-status');
             if (!statusEl) return;
 
-            const colors = {
-                info: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900 dark:to-cyan-900 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200',
-                success: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200',
-                error: 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900 dark:to-pink-900 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200'
+            const styles = {
+                info: {
+                    bg: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900 dark:to-cyan-900 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200',
+                    icon: '<div class="animate-spin w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>'
+                },
+                success: {
+                    bg: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200',
+                    icon: '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+                },
+                error: {
+                    bg: 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900 dark:to-pink-900 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200',
+                    icon: '<svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>'
+                }
             };
 
-            const icons = {
-                info: '<div class="animate-spin w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>',
-                success: '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
-                error: '<svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>'
-            };
-
-            statusEl.className = `mb-4 p-4 rounded-lg border-2 ${colors[type]}`;
+            const style = styles[type] || styles.info;
+            statusEl.className = `mb-4 p-4 rounded-lg border-2 ${style.bg}`;
             statusEl.innerHTML = `
                 <div class="flex items-center justify-center gap-3">
-                    ${icons[type]}
+                    ${style.icon}
                     <p class="text-sm font-medium">${message}</p>
                 </div>
             `;
@@ -1071,24 +1126,24 @@ const DashboardApp = {
 
             if (!container) return;
 
-            if (this.tareas.length === 0) {
-                container.innerHTML = '<p class="col-span-2 text-center text-gray-500 dark:text-gray-400 py-8">No hay tareas disponibles</p>';
-                contador.textContent = 'Total: 0 tareas';
+            if (!this.tareas.length) {
+                container.innerHTML = '<p class="col-span-2 text-center text-gray-500 dark:text-gray-400 py-8">Sin tareas</p>';
+                if (contador) contador.textContent = 'Total: 0 tareas';
                 return;
             }
 
-            const tareasHTML = this.tareas.map(tarea => `
+            container.innerHTML = this.tareas.map(t => `
                 <button 
-                    data-tarea-id="${tarea.actividadId}"
+                    data-tarea-id="${t.actividadId}"
                     class="tarea-btn p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-cyan-500 dark:hover:border-cyan-400 transition-all transform hover:scale-105 text-left group bg-white dark:bg-gray-800"
                 >
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
                             <h4 class="font-semibold text-gray-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                                ${tarea.nameActividad}
+                                ${t.nameActividad}
                             </h4>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                ${tarea.descripcion || 'Sin descripción'}
+                                ${t.descripcion || 'Sin descripción'}
                             </p>
                         </div>
                         <svg class="w-5 h-5 text-gray-400 group-hover:text-cyan-500 transition-colors flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1098,10 +1153,11 @@ const DashboardApp = {
                 </button>
             `).join('');
 
-            container.innerHTML = tareasHTML;
-            contador.textContent = `Total: ${this.tareas.length} tarea${this.tareas.length !== 1 ? 's' : ''}`;
+            if (contador) {
+                contador.textContent = `Total: ${this.tareas.length} tarea${this.tareas.length !== 1 ? 's' : ''}`;
+            }
 
-            // Agregar eventos
+            // Eventos
             container.querySelectorAll('.tarea-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const tareaId = e.currentTarget.dataset.tareaId;
@@ -1123,26 +1179,30 @@ const DashboardApp = {
                 );
 
                 if (response.success) {
-                    await this.showSuccess(
-                        'Tarea iniciada',
-                        'Has comenzado a trabajar en esta tarea. ¡Éxito!'
-                    );
-
+                    await this.showSuccess('Tarea iniciada', 'Has comenzado a trabajar en esta tarea. ¡Éxito!');
                     this.cerrarModalTareas();
+
+                    // Limpiar cache y recargar
+                    this.apiService.clearCache();
                     await this.loadDashboardData();
                 } else {
                     throw new Error(response.error || 'Error al actualizar tarea');
                 }
             } catch (error) {
                 console.error('Error seleccionando tarea:', error);
-                this.showError('Error', 'No se pudo actualizar la tarea');
+
+                if (error.message === 'SESSION_EXPIRED') {
+                    this.sessionManager.handleSessionExpired();
+                } else {
+                    this.showError('Error', 'No se pudo actualizar la tarea');
+                }
             } finally {
                 this.isProcessing = false;
             }
         },
 
         // ============================================
-        // ALERTAS Y NOTIFICACIONES
+        // ALERTAS
         // ============================================
 
         showLoading(message) {
@@ -1152,9 +1212,7 @@ const DashboardApp = {
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => Swal.showLoading()
             });
         },
 
@@ -1198,6 +1256,24 @@ const DashboardApp = {
                 confirmButtonText: 'Aceptar',
                 confirmButtonColor: '#3b82f6'
             });
+        },
+
+        // ============================================
+        // LIMPIEZA
+        // ============================================
+
+        cleanup() {
+            if (this.qrScanner) {
+                this.qrScanner.stop();
+            }
+
+            if (this.sessionManager) {
+                this.sessionManager.destroy();
+            }
+
+            if (this.apiService) {
+                this.apiService.clearCache();
+            }
         }
     }
 };
@@ -1206,11 +1282,18 @@ const DashboardApp = {
 // INICIALIZACIÓN
 // ============================================
 
-
 document.addEventListener('DOMContentLoaded', () => {
     const app = createApp(DashboardApp);
     app.mount('#dashboard-app');
 });
 
-// Exportar para uso global si es necesario
-export { DashboardApp, ApiService, TimeService, LocationService, QRScannerService, AttendanceQueue };
+// Exportar para uso global
+export {
+    DashboardApp,
+    ApiService,
+    TimeService,
+    LocationService,
+    QRScannerService,
+    AttendanceQueue,
+    SessionManager
+};

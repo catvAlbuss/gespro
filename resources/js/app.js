@@ -9,6 +9,7 @@ import './dashboard/dashboardGeneral.js';
 
 /**Contabilidad */
 import './contabilidad/kanban.js';
+import './contabilidad/reporteskanban.js';
 import './tramites/tramites.js';
 import './programasgespro/cotizador.js';
 
@@ -16,12 +17,15 @@ import './proyectos/portadaproyectos.js';
 import './proyectos/detallesproyectos.js';
 import './proyectos/reporteProyectos.js';
 
-import './contabilidad/balanceGV.js';
+import './contabilidad/balanceGV.js';  
 
 //MANTENIMIENTO 
 import './programasgespro/mantenimiento.js';
 import './metrados/metrado_electricas.js';
-import './metrados/metrado_comunicacion.js';
+//import './metrados/metrado_comunicacion.js';
+import './metrados/metrado_comunicacion.jsx';
+
+
 //COSTOSresources/js/costos/main.js
 import './costos/main.js';
 // Configurar globals ANTES de todo

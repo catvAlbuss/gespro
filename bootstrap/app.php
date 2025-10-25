@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\RoleRedirect;
+use App\Http\Middleware\TrackSessionActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'check.session' => \App\Http\Middleware\SessionTimeoutMiddleware::class,
             'role.redirect' => RoleRedirect::class,
+            TrackSessionActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
