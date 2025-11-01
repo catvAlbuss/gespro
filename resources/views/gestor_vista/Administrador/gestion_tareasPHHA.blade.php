@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div id="app" class="font-sans antialiased">
+    <div id="app" data-module="contabilidad/kanban" class="font-sans antialiased">
         {{-- ======================= SCRIPTS & STYLES ======================= --}}
         <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

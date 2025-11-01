@@ -1,218 +1,66 @@
 <x-app-layout>
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tabulator CSS -->
-    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/tabulator_simple.min.css') }}">
 
-    <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
-
-    <!-- Tabulator JS -->
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-
-    <x-slot name="header">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <!-- Título -->
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                <i class="fas fa-broadcast-tower mr-2 text-blue-600"></i>
-                {{ __('Gestión Metrados Electricas') }}
-            </h2>
-
-            <!-- Botones de acción -->
-            <div class="flex flex-wrap items-center gap-2">
-                <!-- Descargar Excel -->
-                <button id="download-xlsx"
-                    class="inline-flex items-center justify-center w-10 h-10 text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 rounded-lg transition-all duration-200 hover:scale-105"
-                    data-tooltip="Descargar hoja de cálculo Excel" title="Descargar hoja de cálculo Excel">
-                    <i class="fas fa-file-excel text-base"></i>
-                </button>
-
-                <!-- Separador visual -->
-                <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-
-                <div class="flex items-center gap-2">
-                    <!-- Iniciar auto-actualización -->
-                    <div class="relative group">
-                        <button id="btnIniciarAuto"
-                            class="inline-flex items-center justify-center w-10 h-10 text-white bg-green-600 hover:bg-green-700 shadow-lg rounded-lg transition-all duration-200 hover:scale-105">
-                            <i class="fas fa-play text-base"></i>
-                        </button>
-                        <div
-                            class="absolute left-1/2 top-full mt-1 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Iniciar auto-actualización
-                        </div>
-                    </div>
-
-                    <!-- Intervalo de tiempo (informativo) -->
-                    <div class="relative group">
-                        <button id="btnTemporizador"
-                            class="inline-flex items-center justify-center w-16 h-10 text-white bg-blue-500 shadow-lg rounded-lg transition-all duration-200 cursor-default text-sm font-mono">
-                            <span id="timerDisplay">2:00</span>
-                        </button>
-                        <div
-                            class="absolute left-1/2 top-full mt-1 -translate-x-1/2 bg-gray-700 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Tiempo restante
-                        </div>
-                    </div>
-
-
-                    <!-- Pausar auto-actualización -->
-                    <div class="relative group">
-                        <button id="btnPausarAuto"
-                            class="inline-flex items-center justify-center w-10 h-10 text-white bg-yellow-500 hover:bg-yellow-600 shadow-lg rounded-lg transition-all duration-200 hover:scale-105">
-                            <i class="fas fa-pause text-base"></i>
-                        </button>
-                        <div
-                            class="absolute left-1/2 top-full mt-1 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Pausar auto-actualización
-                        </div>
-                    </div>
-
-                    <!-- Guardar manual -->
-                    <div class="relative group">
-                        <button id="btnGuardarAhora"
-                            class="inline-flex items-center justify-center w-10 h-10 text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg rounded-lg transition-all duration-200 hover:scale-105">
-                            <i class="fas fa-save text-base"></i>
-                        </button>
-                        <div
-                            class="absolute left-1/2 top-full mt-1 -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            Guardar cambios
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Separador visual -->
-                <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-
-                <!-- Subir archivo -->
-                <div class="flex items-center gap-2">
-                    <label for="fileUpload"
-                        class="inline-flex items-center justify-center w-10 h-10 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer"
-                        data-tooltip="Seleccionar archivo Excel" title="Seleccionar archivo Excel">
-                        <i class="fas fa-upload text-base"></i>
-                    </label>
-                    <input type="file" id="fileUpload" accept=".xls,.xlsx" class="hidden" />
-
-                    <!-- Procesar archivo -->
-                    <button id="uploadExcel"
-                        class="inline-flex items-center justify-center w-10 h-10 text-white bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-orange-300 dark:focus:ring-orange-800 shadow-lg rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        data-tooltip="Procesar archivo Excel" title="Procesar archivo Excel" disabled>
-                        <i class="fas fa-cogs text-base"></i>
-                    </button>
-                </div>
-
-                <!-- Separador visual -->
-                <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-
-                <!-- Regresar -->
-                <a href="{{ route('costos.index') }}"
-                    class="inline-flex items-center justify-center w-10 h-10 text-white bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-800 shadow-lg rounded-lg transition-all duration-200 hover:scale-105"
-                    data-tooltip="Volver al listado" title="Volver al listado">
-                    <i class="fas fa-arrow-left text-base"></i>
-                </a>
-            </div>
-        </div>
-    </x-slot>
-
-    <!-- Tooltips CSS -->
+    <!-- CDN -->
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    {{-- <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.0/dist/hyperformula.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/arquero@5.2.0/dist/arquero.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- Librerías no React --}}
+    <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.0/dist/hyperformula.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/arquero@5.2.0/dist/arquero.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+    <input type="hidden" name="id_arquitectura" id="id_arquitectura" value="{{ $metradoarquitectura->id_arquitectura }}">
+    <input type="hidden" id="costos" value='@json($costos)'>
+    <!-- Tu JS personalizado -->
     <style>
-        /* Tooltips personalizados */
-        [data-tooltip] {
-            position: relative;
+        .tabulator {
+            font-size: 13px;
+            border: 1px solid #e5e7eb;
         }
 
-        [data-tooltip]:hover::before {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: 120%;
-            /* Se muestra debajo */
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            white-space: nowrap;
-            z-index: 1000;
-            opacity: 0;
-            animation: tooltipFadeIn 0.2s ease-in-out forwards;
-            pointer-events: none;
+        .tabulator-header {
+            background-color: #f3f4f6;
+            border-bottom: 2px solid #d1d5db;
         }
 
-        [data-tooltip]:hover::after {
-            content: '';
-            position: absolute;
-            top: 110%;
-            /* Flecha justo encima del tooltip */
-            left: 50%;
-            transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-bottom-color: rgba(0, 0, 0, 0.9);
-            /* Flecha hacia arriba */
-            z-index: 1000;
-            opacity: 0;
-            animation: tooltipFadeIn 0.2s ease-in-out forwards;
+        .tabulator .tabulator-cell.wrap-text {
+            white-space: normal !important;
+            word-wrap: break-word;
+            line-height: 1.4;
+            min-height: 20px;
+            max-height: 100px;
+            overflow-y: auto;
         }
 
-        @keyframes tooltipFadeIn {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-5px);
-                /* animación desde arriba */
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+        /* Celdas editables/calculables */
+        .tabulator .tabulator-cell.bg-yellow-100 {
+            background-color: #fef3c7 !important;
         }
 
-        /* Indicador visual de archivo seleccionado */
-        .file-selected {
-            background: linear-gradient(to right, #10b981, #059669, #047857) !important;
+        /* Resultado del cálculo */
+        .tabulator .tabulator-cell.bg-blue-100 {
+            background-color: #dbeafe !important;
+            font-weight: 600;
         }
 
-        .file-selected i {
-            animation: pulse 2s infinite;
+        /* Total */
+        .tabulator .tabulator-cell.bg-green-100 {
+            background-color: #dcfce7 !important;
+            font-weight: bold;
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.7;
-            }
+        /* Fila seleccionada */
+        .tabulator-row.tabulator-selected {
+            background-color: #e0e7ff !important;
         }
     </style>
 
-    <div class="py-5">
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6">
-                <!-- Tablas de metrados -->
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-gray-800 dark:text-gray-200 text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-table text-blue-600 mr-2"></i>
-                            Metrados de Arquitectura
-                        </h3>
-                        <div class="overflow-x-auto border rounded-lg" id="metrados-table"></div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-gray-800 dark:text-gray-200 text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-chart-bar text-green-600 mr-2"></i>
-                            Resumen de Arquitectura
-                        </h3>
-                        <div class="overflow-x-auto border rounded-lg" id="metrados-resumen"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="metradoArquitectura" data-module="metrados/metrado_arquitectura" class="p-4 grid grid-cols-1 gap-4"></div>
+    @vite(['resources/js/app.js'])
 </x-app-layout>

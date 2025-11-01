@@ -11,7 +11,7 @@
     </x-slot>
 
     <div class="py-6 px-4 sm:px-6 lg:px-8">
-        <div id="reportes-app-container"></div>
+        <div id="reportes-app-container" data-module="contabilidad/reporteskanban"></div>
     </div>
 
     <script>

@@ -474,7 +474,7 @@ const BalanceApp = {
         const apiService = {
             async loadData() {
                 try {
-                    const response = await fetch('/obtener-balance-real', {
+                    const response = await fetch('/contabilidad/obtener-balance-real', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

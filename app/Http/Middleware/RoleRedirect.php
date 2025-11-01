@@ -12,59 +12,40 @@ class RoleRedirect
         $user = Auth::user();
 
         if (!$user) {
-            return redirect()->route('login');
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Tu sesión ha expirado.');
         }
 
-        // Rutas protegidas para el Administrador
+        // Rutas de administrador
         $adminRoutes = ['permissions', 'roles', 'users', 'admin/dashboard'];
+        $isAdminRoute = collect($adminRoutes)->contains(fn($route) => $request->is($route) || $request->is($route . '/*'));
 
-        // Verificar si la ruta actual está en las rutas protegidas
-        $isAdminRoute = collect($adminRoutes)->contains(function ($route) use ($request) {
-            return $request->is($route) || $request->is($route . '/*');
-        });
+        // Mapear roles a rutas
+        $roleRoutes = [
+            1 => 'admin.dashboard',
+            2 => 'manager.dashboard',
+            3 => 'administradores.dashboard',
+            4 => 'logistico.dashboard',
+            5 => 'jefe.dashboard',
+            6 => 'trabajador.dashboard',
+        ];
 
-        if ($user->roles->contains('id', 1)) { // Administrador
-            if (!$isAdminRoute) {
-                return redirect()->route('admin.dashboard');
-            }
-        } elseif ($user->roles->contains('id', 2)) { // Gerente
-            if ($isAdminRoute) {
-                abort(403, 'Acceso no autorizado.');
-            }
-            if (!$request->is('manager/dashboard')) {
-                return redirect()->route('manager.dashboard');
-            }
-        } elseif ($user->roles->contains('id', 3)) { // Jefe
-            if ($isAdminRoute) {
-                abort(403, 'Acceso no autorizado.');
-            }
-            if (!$request->is('administradores/dashboard')) {
-                return redirect()->route('administradores.dashboard');
-            }
-        } elseif ($user->roles->contains('id', 4)) { // Logístico
-            if ($isAdminRoute) {
-                abort(403, 'Acceso no autorizado.');
-            }
-            if (!$request->is('logistico/dashboard')) {
-                return redirect()->route('logistico.dashboard');
-            }
-        } elseif ($user->roles->contains('id', 5)) { // Jefe de área
-            if ($isAdminRoute) {
-                abort(403, 'Acceso no autorizado.');
-            }
-            if (!$request->is('jefe/dashboard')) {
-                return redirect()->route('jefe.dashboard');
-            }
-        } elseif ($user->roles->contains('id', 6)) { // Trabajador
-            if ($isAdminRoute) {
-                abort(403, 'Acceso no autorizado.');
-            }
-            if (!$request->is('trabajador/dashboard')) {
-                return redirect()->route('trabajador.dashboard');
-            }
-        } else {
-            // Si el usuario no tiene ningún rol válido, redirige a la página de inicio
-            return redirect()->route('home');
+        $roleId = $user->roles->first()->id ?? null;
+
+        if (!$roleId || !isset($roleRoutes[$roleId])) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'No tienes un rol asignado.');
+        }
+
+        // Si entra a rutas admin sin ser admin → lo mando a su dashboard
+        if ($isAdminRoute && $roleId !== 1) {
+            return redirect()->route($roleRoutes[$roleId])->with('error', 'No tienes permiso para acceder a esta ruta.');
+        }
+
+        // Si la ruta actual no coincide con su dashboard → redirigir
+        $expectedPath = str_replace('.dashboard', '/dashboard', $roleRoutes[$roleId]);
+        if (!$request->is($expectedPath)) {
+            return redirect()->route($roleRoutes[$roleId]);
         }
 
         return $next($request);

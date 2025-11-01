@@ -36,7 +36,7 @@
         @endif
     </x-slot>
 
-    <div id="dashboard-app" class="py-2">
+    <div id="dashboard-app" data-module="dashboard/dashboardGeneral" class="py-2">
         <!-- Pantalla de carga inicial para móviles -->
         <div id="mobile-loading-screen"
             class="hidden fixed inset-0 z-50 bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600">
@@ -239,7 +239,7 @@
 
                                 <a href="{{ route('logistica.requerimientos.gestor', ['empresaId' => $empresaId]) }}"
                                     class=" items-center gap-x-2 px-6 py-3 text-sm font-semibold rounded-lg border border-transparent bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                    Requerimientos
+                                    Reporte Asistencias
                                 </a>
 
                                 @if ($empresaId == 3)

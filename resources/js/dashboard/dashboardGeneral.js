@@ -1,6 +1,6 @@
 // dashboardGeneral.js - Vue 3 + Sistema Optimizado de Asistencias
 import { createApp } from 'vue';
-
+console.log('🚀 Cargando módulo dashboardGeneral.js...');
 // ============================================
 // GESTIÓN DE SESIÓN Y AUTENTICACIÓN
 // ============================================
@@ -1282,10 +1282,19 @@ const DashboardApp = {
 // INICIALIZACIÓN
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
+// Montaje robusto: si el módulo se carga después de DOMContentLoaded,
+// document.addEventListener no se disparará — montar inmediatamente si ya está listo.
+const mountDashboardApp = () => {
     const app = createApp(DashboardApp);
     app.mount('#dashboard-app');
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountDashboardApp);
+} else {
+    // DOM ya listo -> montar inmediatamente
+    mountDashboardApp();
+}
 
 // Exportar para uso global
 export {

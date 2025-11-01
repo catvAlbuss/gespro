@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div id="appProgramas" class="font-sans antialiased">
+    <div id="appProgramas" data-module="programasgespro/cotizador" class="font-sans antialiased">
         {{-- ======================= SCRIPTS & STYLES ======================= --}}
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.tailwindcss.com/"></script>

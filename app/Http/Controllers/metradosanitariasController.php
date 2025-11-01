@@ -289,28 +289,60 @@ class metradosanitariasController extends Controller
         try {
             $metradosanitarias = metradosanitarias::findOrFail($id);
 
-            // Si es una petición AJAX, devolver JSON
-            if (request()->expectsJson()) {
-                // Preparar datos para el modal de edición
-                $data = [
-                    'nombre_proyecto' => $metradosanitarias->nombre_proyecto,
-                    'uei' => $metradosanitarias->uei,
-                    'codigo_snip' => $metradosanitarias->codigosnip,
-                    'codigo_cui' => $metradosanitarias->codigocui,
-                    'unidad_ejecutora' => $metradosanitarias->unidad_ejecutora,
-                    'codigo_local' => $metradosanitarias->codigo_local,
-                    'codigo_modular' => $metradosanitarias->codigo_modular,
-                    'especialidad' => $metradosanitarias->especialidad,
-                    'fecha' => $metradosanitarias->fecha,
-                    'ubicacion' => $metradosanitarias->ubicacion ?? $metradosanitarias->localidad,
-                    'cantidadModulo' => $metradosanitarias->cantidadModulo,
-                ];
+            // Si no se encuentra el registro
+            if (!$metradosanitarias) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Metrado no encontrado',
+                    ], 404);
+                }
 
-                return response()->json($data);
+                return redirect()->back()->with('error', 'Metrado no encontrado');
             }
+            // ✅ Obtener los datos de costos asociados (solo el id del metrado + campos de costos)
+            $costos = DB::table('costos AS c')
+                ->join('costos_metrados AS cm', 'c.id', '=', 'cm.costos_id')
+                ->join('metradosanitarias AS m', 'm.idmetradosan', '=', 'cm.m_san_id')
+                ->select(
+                    'm.idmetradosan',
+                    'c.name',
+                    'c.codigouei',
+                    'c.codigosnip',
+                    'c.codigocui',
+                    'c.unidad_ejecutora',
+                    'c.codigolocal',
+                    'c.codigomodular',
+                    'c.fecha',
+                    'c.region',
+                    'c.provincia',
+                    'c.distrito',
+                    'c.centropoblado'
+                )
+                ->where('m.idmetradosan', $id)
+                ->first();
 
+            // ✅ Preparar solo los datos relevantes del metrado
+            $data = [
+                'id' => $metradosanitarias->idmetradosan,
+                'cantidadModulo' => $metradosanitarias->cantidadModulo,
+                'especialidad' => $metradosanitarias->especialidad,
+                'documentosdata' => json_decode($metradosanitarias->documentosdata ?? '[]', true),
+                'resumenmetrados' => json_decode($metradosanitarias->resumenmetrados ?? '[]', true),
+            ];
+
+            // ✅ Si la petición viene desde React/AJAX → devolver JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'metrado' => $data,
+                        'costos' => $costos,
+                    ],
+                ]);
+            }
             // Para vista normal
-            return view('gestor_vista.Construyehc.metradosSanitarias.show', compact('metradosanitarias'));
+            return view('gestor_vista.Construyehc.metradosSanitarias.show', compact('metradosanitarias', 'costos'));
         } catch (Exception $e) {
             if (request()->expectsJson()) {
                 return response()->json([
@@ -429,36 +461,27 @@ class metradosanitariasController extends Controller
         }
     }
 
-    public function actualizar_data(Request $request)
+    public function actualizar_data_sanitarias(Request $request)
     {
         // Validar los datos de entrada
         $request->validate([
-            'modulos' => 'required|array',
-            'cisterna' => 'required|array',
-            'exterior' => 'required|array',
+            'id' => 'required|integer',
+            'modulos' => 'required',
+            'resumencm' => 'required|array',
         ]);
 
-        // Preparar los datos para la columna `documentosdata`
-        $data = [
-            'modulos' => $request->modulos,
-            'cisterna' => $request->cisterna,
-            'exterior' => $request->exterior,
-        ];
+        // Obtener el ID de 'metrado' y los 'modulos' enviados en la solicitud
+        $id = $request->id;
 
-        $resumendata = [
-            'resumensa' => $request->resumensa,
-        ];
-
-        // Convertir los datos en formato JSON
-        $documentosData = json_encode($data);
-        $resumenData = json_encode($resumendata);
+        // Buscar el registro correspondiente al 'id' recibido
+        $metrado = metradosanitarias::find($id);
 
         // Actualizar la columna `documentosdata` en la tabla `metradosanitarias`
-        $metradosanitarias = metradosanitarias::first(); // Obtener el primer registro (o ajustar la lógica según sea necesario)
-        if ($metradosanitarias) {
-            $metradosanitarias->documentosdata = $documentosData;
-            $metradosanitarias->resumenmetrados = $resumenData;
-            $metradosanitarias->save();
+        if ($metrado) {
+            $metrado->documentosdata = json_encode(['modulos' => $request['modulos']]);
+            $metrado->resumenmetrados = json_encode(['resumencm' => $request['resumencm']]);
+            $metrado->save();
+
             return response()->json(['message' => 'Data updated successfully'], 200);
         }
 

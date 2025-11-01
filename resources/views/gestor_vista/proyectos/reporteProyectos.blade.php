@@ -7,7 +7,7 @@
     <script src="https://cdn.zingchart.com/modules/zingchart-treemap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <div id="appreportesProyecto" class="min-h-screen">
+    <div id="appreportesProyecto" data-module="proyectos/reporteProyectos" class="min-h-screen">
         <x-slot name="header">
             <div class="flex items-center justify-between">
                 <div>

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\metradogas;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class metradogasController extends Controller
 {
@@ -106,14 +108,123 @@ class metradogasController extends Controller
     /**
      * Display the specified resource.
      */
+    // public function show(string $id)
+    // {
+    //     try {
+    //         $metradogases = metradogas::findOrFail($id);
+
+    //         // Si no se encuentra el registro
+    //         if (!$metradogases) {
+    //             if (request()->expectsJson()) {
+    //                 return response()->json([
+    //                     'success' => false,
+    //                     'message' => 'Metrado no encontrado',
+    //                 ], 404);
+    //             }
+
+    //             return redirect()->back()->with('error', 'Metrado no encontrado');
+    //         }
+    //         $data = [
+    //             'id' => $metradogases->idmetradogas,
+    //             'especialidad' => $metradogases->especialidad,
+    //             'documentosdata' => json_decode($metradogases->documentosdata ?? '[]', true),
+    //             'resumenmetrados' => json_decode($metradogases->resumenmetrados ?? '[]', true),
+    //         ];
+
+    //         // ✅ Si la petición viene desde React/AJAX → devolver JSON
+    //         if (request()->expectsJson()) {
+    //             return response()->json([
+    //                 'success' => true,
+    //                 'data' => $data,
+    //             ]);
+    //         }
+    //         // Para vista normal
+    //         return view('gestor_vista.Construyehc.metradoGas.show', compact('metradogases'));
+    //     } catch (Exception $e) {
+    //         if (request()->expectsJson()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Metrado no encontrado'
+    //             ], 404);
+    //         }
+
+    //         return redirect()->back()->with('error', 'Metrado no encontrado');
+    //     }
+    // }
+
     public function show(string $id)
     {
-        // Obtener el metrado sanitario por su ID
-        $metradogases = metradogas::findOrFail($id);
+        try {
+            // ✅ Buscar el metrado con Eloquent
+            $metradogases = metradogas::find($id);
 
-        // Retornar la vista con el dato del metrado
-        return view('gestor_vista.Construyehc.metradoGas.show', compact('metradogases'));
+            // Si no se encuentra el registro
+            if (!$metradogases) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Metrado no encontrado',
+                    ], 404);
+                }
+
+                return redirect()->back()->with('error', 'Metrado no encontrado');
+            }
+
+            // ✅ Obtener los datos de costos asociados (solo el id del metrado + campos de costos)
+            $costos = DB::table('costos AS c')
+                ->join('costos_metrados AS cm', 'c.id', '=', 'cm.costos_id')
+                ->join('metradogas AS m', 'm.idmetradogas', '=', 'cm.m_gas_id')
+                ->select(
+                    'm.idmetradogas',
+                    'c.name',
+                    'c.codigouei',
+                    'c.codigosnip',
+                    'c.codigocui',
+                    'c.unidad_ejecutora',
+                    'c.codigolocal',
+                    'c.codigomodular',
+                    'c.fecha',
+                    'c.region',
+                    'c.provincia',
+                    'c.distrito',
+                    'c.centropoblado'
+                )
+                ->where('m.idmetradogas', $id)
+                ->first();
+
+            // ✅ Preparar solo los datos relevantes del metrado
+            $data = [
+                'id' => $metradogases->idmetradogas,
+                'especialidad' => $metradogases->especialidad,
+                'documentosdata' => json_decode($metradogases->documentosdata ?? '[]', true),
+                'resumenmetrados' => json_decode($metradogases->resumenmetrados ?? '[]', true),
+            ];
+
+            // ✅ Si la petición viene desde React/AJAX → devolver todo en JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'metrado' => $data,
+                        'costos' => $costos,
+                    ],
+                ]);
+            }
+
+            // ✅ Para vista Blade normal
+            return view('gestor_vista.Construyehc.metradoGas.show', compact('metradogases', 'costos'));
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error interno del servidor',
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Error al obtener metrado');
+        }
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -123,35 +234,19 @@ class metradogasController extends Controller
         // Validar los datos de entrada
         $request->validate([
             'id' => 'required|integer', // Validar que el ID es un entero
-            'modulos' => 'required|array', // Validar que 'modulos' es un arreglo
+            'modulos' => 'required|array',
+            'resumencm' => 'required|array'
         ]);
 
         // Obtener el ID de 'metrado' y los 'modulos' enviados en la solicitud
         $id = $request->id;
-        $modulos = $request->modulos;
-        $resumengas = $request->resumengas;
-        
+
         // Buscar el registro correspondiente al 'id' recibido
         $metrado = metradogas::find($id);
 
         if ($metrado) {
-            // Preparar los datos para la columna 'documentosdata'
-            // Puedes agregar más datos si es necesario, como en el ejemplo de 'cisterna' o 'exterior'.
-            $data = [
-                'modulos' => $modulos,
-            ];
-            
-            $dataresumen = [
-                'resumengas' => $resumengas,
-            ];
-            
-            // Convertir los datos en formato JSON
-            $documentosData = json_encode($data);
-            $resumenData = json_encode($dataresumen);
-            
-            // Actualizar la columna 'documentosdata' en el registro encontrado
-            $metrado->documentosdata = $documentosData;
-            $metrado->resumenmetrados = $resumenData;
+            $metrado->documentosdata = json_encode(['modulos' => $request['modulos']]);
+            $metrado->resumenmetrados = json_encode(['resumencm' => $request['resumencm']]);
             $metrado->save(); // Guardar los cambios
 
             // Responder con un mensaje de éxito
@@ -165,7 +260,7 @@ class metradogasController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-      public function edit(string $id)
+    public function edit(string $id)
     {
         $metrado = metradogas::findOrFail($id);
         return view('gestor_vista.Construyehc.metradoGas.edit', compact('metrado'));

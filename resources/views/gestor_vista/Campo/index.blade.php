@@ -22,7 +22,7 @@
                                     </svg>
                                 </span>
                                 <a class="text-lg font-bold text-blue-500"
-                                    href="{{ route('mantenimientoCampo.index') }}">Gestion
+                                    href="{{ route('campo.mantenimiento.index') }}">Gestion
                                     Mantenimiento</a>
                             </div>
                             

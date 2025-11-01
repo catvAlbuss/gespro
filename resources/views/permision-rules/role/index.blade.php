@@ -15,7 +15,7 @@
                         </h3>
                         <div class="overflow-auto">
                             <form method="POST"
-                                action="{{ isset($role) ? route('roles.update', $role->id) : route('roles.store') }}">
+                                action="{{ isset($role) ? route('admin.roles.update', $role->id) : route('admin.roles.store') }}">
                                 @csrf
                                 @if (isset($role))
                                     @method('PUT')
@@ -104,11 +104,11 @@
                                                 </ul>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <a href="{{ route('roles.edit', $role->id) }}"
+                                                <a href="{{ route('admin.roles.edit', $role->id) }}"
                                                     class="text-blue-600">Editar</a>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <form action="{{ route('roles.destroy', $role->id) }}" method="POST"
+                                                <form action="{{ route('admin.roles.destroy', $role->id) }}" method="POST"
                                                     class="inline">
                                                     @csrf
                                                     @method('DELETE')

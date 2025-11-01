@@ -232,9 +232,9 @@ class TrabajadorController extends Controller
             // Eliminar el usuario
             $user->delete();
 
-            return redirect()->route('users.index')->with('success', 'Usuario eliminado exitosamente.');
+            return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('users.index')->with('error', 'Error al eliminar el usuario: ' . $e->getMessage());
+            return redirect()->route('admin.users.index')->with('error', 'Error al eliminar el usuario: ' . $e->getMessage());
         }
     }
 }

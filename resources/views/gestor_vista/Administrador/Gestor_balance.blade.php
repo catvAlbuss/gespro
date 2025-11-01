@@ -30,7 +30,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-    <div class="" id="appBalances">
+    <div class="" id="appBalances" data-module="contabilidad/balanceGV">
         <div class="w-full">
             <section id="balance_real">
                 <div class="w-full p-2 text-gray-900 dark:text-gray-100">

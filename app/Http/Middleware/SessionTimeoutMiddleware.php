@@ -18,7 +18,6 @@ class SessionTimeoutMiddleware
     {
         // Verificar si hay un usuario autenticado
         if (!Auth::check()) {
-            // Si es una petición AJAX/Fetch
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'message' => 'Sesión expirada. Por favor, inicia sesión nuevamente.',
@@ -27,14 +26,13 @@ class SessionTimeoutMiddleware
                 ], 401);
             }
 
-            // Si es una petición normal
-            Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             return redirect()->route('login')
                 ->with('session_expired', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
         }
+
 
         // Actualizar el timestamp de última actividad
         session(['last_activity' => now()]);

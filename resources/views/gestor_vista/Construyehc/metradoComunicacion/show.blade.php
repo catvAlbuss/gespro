@@ -12,6 +12,13 @@
     <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.0/dist/hyperformula.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/arquero@5.2.0/dist/arquero.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+
+    <input type="hidden" name="idmetradocomunicacion" id="idmetradocomunicacion"
+        value="{{ $metradocomunicacion->idmetradocomunicacion }}">
+    <input type="hidden" id="costos" value='@json($costos)'>
 
     <!-- Tu JS personalizado -->
     <style>
@@ -57,12 +64,6 @@
         }
     </style>
 
-    <div id="metradoComunicacion" class="p-4 grid grid-cols-1 gap-4">
-        <div id="tbl_insumos" class="border rounded-xl shadow"></div>
-        <div class="flex flex-wrap gap-2 mb-2">
-            <button onclick="generateResumen()"
-                class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700">Actualizar Resumen</button>
-        </div>
-        <div id="tbl_resumen" class="border rounded-xl shadow"></div>
-    </div>
+    <div id="metradoComunicacion" data-module="metrados/metrado_comunicacion" class="p-4 grid grid-cols-1 gap-4"></div>
+    @vite(['resources/js/app.js'])
 </x-app-layout>

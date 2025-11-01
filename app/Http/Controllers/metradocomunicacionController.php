@@ -14,17 +14,39 @@ class metradocomunicacionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    // public function index()
+    // {
+    //     try {
+    //         $metradocomunicaciones = metradocomunicacion::orderBy('created_at', 'desc')->get();
+    //         return view('gestor_vista.Construyehc.metradoComunicacion.index', compact('metradocomunicaciones'));
+    //     } catch (Exception $e) {
+    //         Log::error('Error al cargar metrados: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Error al cargar los metrados');
+    //     }
+    // }
+
+    public function index($id)
     {
         try {
-            $metradocomunicaciones = metradocomunicacion::orderBy('created_at', 'desc')->get();
-            return view('gestor_vista.Construyehc.metradoComunicacion.index', compact('metradocomunicaciones'));
-        } catch (Exception $e) {
-            Log::error('Error al cargar metrados: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error al cargar los metrados');
+            $metrado = metradocomunicacion::findOrFail($id);
+
+            $modulos = [];
+            if ($metrado->documentosdata) {
+                $data = json_decode($metrado->documentosdata, true);
+                $modulos = $data['modulos'] ?? [];
+            }
+
+            return response()->json([
+                'success' => true,
+                'modulos' => $modulos
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'modulos' => []
+            ], 404);
         }
     }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -171,40 +193,75 @@ class metradocomunicacionController extends Controller
     public function show(string $id)
     {
         try {
-            $metradocomunicaciones = metradocomunicacion::findOrFail($id);
+            // ✅ Buscar el metrado con Eloquent
+            $metradocomunicacion = Metradocomunicacion::find($id);
 
-            // Si es una petición AJAX, devolver JSON
-            if (request()->expectsJson()) {
-                // Preparar datos para el modal de edición
-                $data = [
-                    'nombre_proyecto' => $metradocomunicaciones->nombre_proyecto,
-                    'uei' => $metradocomunicaciones->uei,
-                    'codigo_snip' => $metradocomunicaciones->codigosnip,
-                    'codigo_cui' => $metradocomunicaciones->codigocui,
-                    'unidad_ejecutora' => $metradocomunicaciones->unidad_ejecutora,
-                    'codigo_local' => $metradocomunicaciones->codigo_local,
-                    'codigo_modular' => $metradocomunicaciones->codigo_modular,
-                    'especialidad' => $metradocomunicaciones->especialidad,
-                    'fecha' => $metradocomunicaciones->fecha,
-                    'ubicacion' => $metradocomunicaciones->ubicacion ?? $metradocomunicaciones->localidad,
-                ];
+            // Si no se encuentra el registro
+            if (!$metradocomunicacion) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Metrado no encontrado',
+                    ], 404);
+                }
 
-                return response()->json($data);
+                return redirect()->back()->with('error', 'Metrado no encontrado');
             }
 
-            // Para vista normal
-            return view('gestor_vista.Construyehc.metradoComunicacion.show', compact('metradocomunicaciones'));
-        } catch (Exception $e) {
+            // ✅ Obtener los datos de costos asociados (solo el id del metrado + campos de costos)
+            $costos = DB::table('costos AS c')
+                ->join('costos_metrados AS cm', 'c.id', '=', 'cm.costos_id')
+                ->join('metradocomunicacions AS m', 'm.idmetradocomunicacion', '=', 'cm.m_com_id')
+                ->select(
+                    'm.idmetradocomunicacion',
+                    'c.name',
+                    'c.codigouei',
+                    'c.codigosnip',
+                    'c.codigocui',
+                    'c.unidad_ejecutora',
+                    'c.codigolocal',
+                    'c.codigomodular',
+                    'c.fecha',
+                    'c.region',
+                    'c.provincia',
+                    'c.distrito',
+                    'c.centropoblado'
+                )
+                ->where('m.idmetradocomunicacion', $id)
+                ->first();
+
+            // ✅ Preparar solo los datos relevantes del metrado
+            $data = [
+                'id' => $metradocomunicacion->idmetradocomunicacion,
+                'especialidad' => $metradocomunicacion->especialidad,
+                'documentosdata' => json_decode($metradocomunicacion->documentosdata ?? '[]', true),
+                'resumenmetrados' => json_decode($metradocomunicacion->resumenmetrados ?? '[]', true),
+            ];
+
+            // ✅ Si la petición viene desde React/AJAX → devolver todo en JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'metrado' => $data,
+                        'costos' => $costos,
+                    ],
+                ]);
+            }
+
+            // ✅ Para vista Blade normal
+            return view('gestor_vista.Construyehc.metradoComunicacion.show', compact('metradocomunicacion', 'costos'));
+        } catch (\Exception $e) {
             Log::error('Error al obtener metrado: ' . $e->getMessage());
 
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Metrado no encontrado'
-                ], 404);
+                    'message' => 'Error interno del servidor',
+                ], 500);
             }
 
-            return redirect()->back()->with('error', 'Metrado no encontrado');
+            return redirect()->back()->with('error', 'Error al obtener metrado');
         }
     }
 
@@ -328,34 +385,20 @@ class metradocomunicacionController extends Controller
         // Validar los datos de entrada
         $request->validate([
             'id' => 'required|integer', // Validar que el ID es un entero
-            'modulos' => 'required|array', // Validar que 'modulos' es un arreglo
+            'modulos' => 'required|array',
+            'resumencm' => 'required|array'
         ]);
 
         // Obtener el ID de 'metrado' y los 'modulos' enviados en la solicitud
         $id = $request->id;
-        $modulos = $request->modulos;
-        $resumencm = $request->resumencm;
 
         // Buscar el registro correspondiente al 'id' recibido
         $metrado = metradocomunicacion::find($id);
 
         if ($metrado) {
-            // Preparar los datos para la columna 'documentosdata'
-            // Puedes agregar más datos si es necesario, como en el ejemplo de 'cisterna' o 'exterior'.
-            $data = [
-                'modulos' => $modulos,
-            ];
-
-            $dataresumen = [
-                'resumencm' => $resumencm,
-            ];
-            // Convertir los datos en formato JSON
-            $documentosData = json_encode($data);
-            $resumenData = json_encode($dataresumen);
-
             // Actualizar la columna 'documentosdata' en el registro encontrado
-            $metrado->documentosdata = $documentosData;
-            $metrado->resumenmetrados = $resumenData;
+            $metrado->documentosdata = json_encode(['modulos' => $request['modulos']]);
+            $metrado->resumenmetrados = json_encode(['resumencm' => $request['resumencm']]);
             $metrado->save(); // Guardar los cambios
 
             // Responder con un mensaje de éxito

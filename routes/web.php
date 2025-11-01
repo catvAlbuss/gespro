@@ -147,8 +147,32 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Mapear roles a rutas específicas
+        $roleRoutes = [
+            1 => 'admin.dashboard',
+            2 => 'manager.dashboard',
+            3 => 'administradores.dashboard',
+            4 => 'logistico.dashboard',
+            5 => 'jefe.dashboard',
+            6 => 'trabajador.dashboard',
+        ];
+
+        $roleId = $user->roles->first()->id ?? null;
+
+        if (!$roleId || !isset($roleRoutes[$roleId])) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Rol no válido o sin permisos.');
+        }
+
+        return redirect()->route($roleRoutes[$roleId]);
     })->name('dashboard');
+
 
     Route::get('/check-session', [SessionController::class, 'checkSession']);
     Route::post('/ping-session', [SessionController::class, 'pingSession']);
@@ -589,7 +613,7 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
 
         // Sanitarias
         Route::resource('sanitarias', metradosanitariasController::class);
-        Route::post('sanitarias/actualizar', [metradosanitariasController::class, 'actualizar_data'])->name('sanitarias.actualizar');
+        Route::post('sanitarias/actualizar', [metradosanitariasController::class, 'actualizar_data_sanitarias'])->name('sanitarias.actualizar');
 
         // Eléctricas
         Route::resource('electricas', metradoelectricasController::class);
@@ -610,7 +634,7 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | PRESUPUESTOS Y COSTOS
+    | PRESUPUESTOS Y COSTOS revisar 403, error kanban, tramites, al inicio se va a otro  www.dominio/dashboard, pero la ruta es trabajador/dashboard
     |--------------------------------------------------------------------------
     */
     Route::prefix('presupuestos')->name('presupuestos.')->group(function () {
@@ -624,7 +648,7 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
     });
 
     Route::prefix('costos')->name('costos.')->group(function () {
-        Route::resource('/', CostosController::class)->parameters(['' => 'costo']);
+        Route::resource('/', CostosController::class)->parameters(['' => 'costo'])->except(['show']);;
         Route::post('control', [CostosController::class, 'showSecure'])->name('control');
     });
 

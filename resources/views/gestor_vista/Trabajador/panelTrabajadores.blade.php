@@ -37,7 +37,7 @@
         @endif
     </x-slot>
 
-    <div id="dashboard-app" class="py-2">
+    <div id="dashboard-app" data-module="dashboard/dashboardGeneral"  class="py-2">
         <!-- Pantalla de carga inicial para móviles -->
         <div id="mobile-loading-screen"
             class="hidden fixed inset-0 z-50 bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600">
@@ -378,5 +378,5 @@
         console.log('🔍 Forzar modo móvil:', window.FORCE_MOBILE_MODE);
     </script>
 
-    {{-- <script src="{{ asset('js/dashboardGeneral.js') }}" type="module"></script> --}}
+
 </x-app-layout>

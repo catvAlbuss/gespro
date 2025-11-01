@@ -871,34 +871,28 @@ class CostosController extends Controller
             foreach ($presupuestos as $presupuesto) {
                 Log::info('Procesando presupuesto', ['presupuesto_id' => $presupuesto->id]);
 
-                //     // Eliminar ramas de presupuesto (ajusta según tus tablas relacionadas)
-                //     // Ejemplo: si tienes tablas como presupuesto_detalles, presupuesto_partidas, etc.
+                // Eliminar ramas de presupuesto
+                if (Schema::hasTable('presupuesto_detalles')) {
+                    DB::table('presupuesto_detalles')
+                        ->where('presupuesto_id', $presupuesto->id)
+                        ->delete();
+                    Log::info('Detalles de presupuesto eliminados', ['presupuesto_id' => $presupuesto->id]);
+                }
 
-                //     // Si tienes una tabla de detalles de presupuesto
-                //     if (Schema::hasTable('presupuesto_detalles')) {
-                //         DB::table('presupuesto_detalles')
-                //             ->where('presupuesto_id', $presupuesto->id)
-                //             ->delete();
-                //         Log::info('Detalles de presupuesto eliminados', ['presupuesto_id' => $presupuesto->id]);
-                //     }
+                if (Schema::hasTable('presupuesto_partidas')) {
+                    DB::table('presupuesto_partidas')
+                        ->where('presupuesto_id', $presupuesto->id)
+                        ->delete();
+                    Log::info('Partidas de presupuesto eliminadas', ['presupuesto_id' => $presupuesto->id]);
+                }
 
-                //     // Si tienes una tabla de partidas de presupuesto
-                //     if (Schema::hasTable('presupuesto_partidas')) {
-                //         DB::table('presupuesto_partidas')
-                //             ->where('presupuesto_id', $presupuesto->id)
-                //             ->delete();
-                //         Log::info('Partidas de presupuesto eliminadas', ['presupuesto_id' => $presupuesto->id]);
-                //     }
+                if (Schema::hasTable('analisis_precios_unitarios')) {
+                    DB::table('analisis_precios_unitarios')
+                        ->where('presupuesto_id', $presupuesto->id)
+                        ->delete();
+                    Log::info('APUs eliminados', ['presupuesto_id' => $presupuesto->id]);
+                }
 
-                //     // Si tienes una tabla de análisis de precios unitarios
-                //     if (Schema::hasTable('analisis_precios_unitarios')) {
-                //         DB::table('analisis_precios_unitarios')
-                //             ->where('presupuesto_id', $presupuesto->id)
-                //             ->delete();
-                //         Log::info('APUs eliminados', ['presupuesto_id' => $presupuesto->id]);
-                //     }
-
-                // Eliminar el presupuesto principal
                 $presupuesto->delete();
                 Log::info('✓ Presupuesto eliminado', ['presupuesto_id' => $presupuesto->id]);
             }
@@ -912,9 +906,6 @@ class CostosController extends Controller
             $especificaciones = especificacionesTecnicas::where('costos_ettp_id', $id)->get();
 
             foreach ($especificaciones as $especificacion) {
-                // Si tienes sub-tablas de especificaciones técnicas, elimínalas aquí
-                // Ejemplo: detalles de especificaciones, documentos adjuntos, etc.
-
                 $especificacion->delete();
                 Log::info('✓ Especificación técnica eliminada', ['especificacion_id' => $especificacion->id]);
             }
@@ -928,11 +919,20 @@ class CostosController extends Controller
             $costoCron = costo_cronograma::where('costos_cron_id', $id)->first();
 
             if ($costoCron) {
-                // Eliminar cronograma general
-                if (!empty($costoCron->cron_gen_id)) {
-                    $cronogramaGeneral = Cronograma::find($costoCron->cron_gen_id);
+                // Guardar los IDs de los cronogramas antes de eliminar la relación
+                $cronGenId = $costoCron->cron_gen_id;
+                $cronValId = $costoCron->cron_val_id;
+                $cronMatId = $costoCron->cron_mat_id;
+
+                // PRIMERO: Eliminar la relación costo_cronograma para evitar restricción de FK
+                Log::info('Eliminando relación costo_cronograma PRIMERO');
+                $costoCron->delete();
+                Log::info('✓ Registro costo_cronograma eliminado');
+
+                // DESPUÉS: Eliminar cronograma general
+                if (!empty($cronGenId)) {
+                    $cronogramaGeneral = Cronograma::find($cronGenId);
                     if ($cronogramaGeneral) {
-                        // Si tienes sub-tablas de cronograma general
                         if (Schema::hasTable('cronograma_actividades')) {
                             DB::table('cronograma_actividades')
                                 ->where('cronograma_id', $cronogramaGeneral->id)
@@ -941,15 +941,14 @@ class CostosController extends Controller
                         }
 
                         $cronogramaGeneral->delete();
-                        Log::info('✓ Cronograma general eliminado', ['id' => $costoCron->cron_gen_id]);
+                        Log::info('✓ Cronograma general eliminado', ['id' => $cronGenId]);
                     }
                 }
 
                 // Eliminar cronograma valorizado
-                if (!empty($costoCron->cron_val_id)) {
-                    $cronogramaValorizado = Cronograma::find($costoCron->cron_val_id);
+                if (!empty($cronValId)) {
+                    $cronogramaValorizado = Cronograma::find($cronValId);
                     if ($cronogramaValorizado) {
-                        // Si tienes sub-tablas de cronograma valorizado
                         if (Schema::hasTable('cronograma_valorizado_detalles')) {
                             DB::table('cronograma_valorizado_detalles')
                                 ->where('cronograma_id', $cronogramaValorizado->id)
@@ -958,15 +957,14 @@ class CostosController extends Controller
                         }
 
                         $cronogramaValorizado->delete();
-                        Log::info('✓ Cronograma valorizado eliminado', ['id' => $costoCron->cron_val_id]);
+                        Log::info('✓ Cronograma valorizado eliminado', ['id' => $cronValId]);
                     }
                 }
 
                 // Eliminar cronograma de materiales
-                if (!empty($costoCron->cron_mat_id)) {
-                    $cronogramaMateriales = Cronograma::find($costoCron->cron_mat_id);
+                if (!empty($cronMatId)) {
+                    $cronogramaMateriales = Cronograma::find($cronMatId);
                     if ($cronogramaMateriales) {
-                        // Si tienes sub-tablas de cronograma de materiales
                         if (Schema::hasTable('cronograma_materiales_detalles')) {
                             DB::table('cronograma_materiales_detalles')
                                 ->where('cronograma_id', $cronogramaMateriales->id)
@@ -975,13 +973,9 @@ class CostosController extends Controller
                         }
 
                         $cronogramaMateriales->delete();
-                        Log::info('✓ Cronograma materiales eliminado', ['id' => $costoCron->cron_mat_id]);
+                        Log::info('✓ Cronograma materiales eliminado', ['id' => $cronMatId]);
                     }
                 }
-
-                // Eliminar la relación costo_cronograma
-                $costoCron->delete();
-                Log::info('✓ Registro costo_cronograma eliminado');
             } else {
                 Log::info('⊘ No existe registro costo_cronograma para este proyecto');
             }
@@ -995,11 +989,24 @@ class CostosController extends Controller
             $costoMet = costo_metrado::where('costos_id', $id)->first();
 
             if ($costoMet) {
+                // Guardar los IDs antes de eliminar la relación
+                $mArqId = $costoMet->m_arq_id;
+                $mEstId = $costoMet->m_est_id;
+                $mSanId = $costoMet->m_san_id;
+                $mElecId = $costoMet->m_elec_id;
+                $mComId = $costoMet->m_com_id;
+                $mGasId = $costoMet->m_gas_id;
+
+                // PRIMERO: Eliminar la relación costos_metrados
+                Log::info('Eliminando relación costos_metrados PRIMERO');
+                $costoMet->delete();
+                Log::info('✓ Registro costos_metrados eliminado');
+
+                // DESPUÉS: Eliminar cada metrado
                 // Metrado de Arquitectura
-                if (!empty($costoMet->m_arq_id)) {
-                    $metradoArq = metradoarquitectura::where('id_arquitectura', $costoMet->m_arq_id)->first();
+                if (!empty($mArqId)) {
+                    $metradoArq = metradoarquitectura::where('id_arquitectura', $mArqId)->first();
                     if ($metradoArq) {
-                        // Si tienes sub-tablas de metrado arquitectura
                         if (Schema::hasTable('metrado_arquitectura_detalles')) {
                             DB::table('metrado_arquitectura_detalles')
                                 ->where('metrado_arq_id', $metradoArq->id_arquitectura)
@@ -1008,15 +1015,14 @@ class CostosController extends Controller
                         }
 
                         $metradoArq->delete();
-                        Log::info('✓ Metrado arquitectura eliminado', ['id' => $costoMet->m_arq_id]);
+                        Log::info('✓ Metrado arquitectura eliminado', ['id' => $mArqId]);
                     }
                 }
 
                 // Metrado de Estructuras
-                if (!empty($costoMet->m_est_id)) {
-                    $metradoEst = metradoestructuras::where('idmetradoestructuras', $costoMet->m_est_id)->first();
+                if (!empty($mEstId)) {
+                    $metradoEst = metradoestructuras::where('idmetradoestructuras', $mEstId)->first();
                     if ($metradoEst) {
-                        // Si tienes sub-tablas de metrado estructuras
                         if (Schema::hasTable('metrado_estructuras_detalles')) {
                             DB::table('metrado_estructuras_detalles')
                                 ->where('metrado_est_id', $metradoEst->idmetradoestructuras)
@@ -1025,15 +1031,14 @@ class CostosController extends Controller
                         }
 
                         $metradoEst->delete();
-                        Log::info('✓ Metrado estructuras eliminado', ['id' => $costoMet->m_est_id]);
+                        Log::info('✓ Metrado estructuras eliminado', ['id' => $mEstId]);
                     }
                 }
 
                 // Metrado de Sanitarias
-                if (!empty($costoMet->m_san_id)) {
-                    $metradoSan = metradosanitarias::where('idmetradosan', $costoMet->m_san_id)->first();
+                if (!empty($mSanId)) {
+                    $metradoSan = metradosanitarias::where('idmetradosan', $mSanId)->first();
                     if ($metradoSan) {
-                        // Si tienes sub-tablas de metrado sanitarias
                         if (Schema::hasTable('metrado_sanitarias_detalles')) {
                             DB::table('metrado_sanitarias_detalles')
                                 ->where('metrado_san_id', $metradoSan->idmetradosan)
@@ -1042,18 +1047,14 @@ class CostosController extends Controller
                         }
 
                         $metradoSan->delete();
-                        Log::info('✓ Metrado sanitarias eliminado', [
-                            'id' => $costoMet->m_san_id,
-                            'cantidad_modulos' => $metradoSan->cantidadModulo
-                        ]);
+                        Log::info('✓ Metrado sanitarias eliminado', ['id' => $mSanId]);
                     }
                 }
 
                 // Metrado de Eléctricas
-                if (!empty($costoMet->m_elec_id)) {
-                    $metradoElec = metradoelectricas::where('idmeelectrica', $costoMet->m_elec_id)->first();
+                if (!empty($mElecId)) {
+                    $metradoElec = metradoelectricas::where('idmeelectrica', $mElecId)->first();
                     if ($metradoElec) {
-                        // Si tienes sub-tablas de metrado eléctricas
                         if (Schema::hasTable('metrado_electricas_detalles')) {
                             DB::table('metrado_electricas_detalles')
                                 ->where('metrado_elec_id', $metradoElec->idmeelectrica)
@@ -1062,15 +1063,14 @@ class CostosController extends Controller
                         }
 
                         $metradoElec->delete();
-                        Log::info('✓ Metrado eléctricas eliminado', ['id' => $costoMet->m_elec_id]);
+                        Log::info('✓ Metrado eléctricas eliminado', ['id' => $mElecId]);
                     }
                 }
 
                 // Metrado de Comunicación
-                if (!empty($costoMet->m_com_id)) {
-                    $metradoCom = metradocomunicacion::where('idmetradocomunicacion', $costoMet->m_com_id)->first();
+                if (!empty($mComId)) {
+                    $metradoCom = metradocomunicacion::where('idmetradocomunicacion', $mComId)->first();
                     if ($metradoCom) {
-                        // Si tienes sub-tablas de metrado comunicación
                         if (Schema::hasTable('metrado_comunicacion_detalles')) {
                             DB::table('metrado_comunicacion_detalles')
                                 ->where('metrado_com_id', $metradoCom->idmetradocomunicacion)
@@ -1079,15 +1079,14 @@ class CostosController extends Controller
                         }
 
                         $metradoCom->delete();
-                        Log::info('✓ Metrado comunicación eliminado', ['id' => $costoMet->m_com_id]);
+                        Log::info('✓ Metrado comunicación eliminado', ['id' => $mComId]);
                     }
                 }
 
                 // Metrado de Gas
-                if (!empty($costoMet->m_gas_id)) {
-                    $metradoGas = metradogas::where('idmetradogas', $costoMet->m_gas_id)->first();
+                if (!empty($mGasId)) {
+                    $metradoGas = metradogas::where('idmetradogas', $mGasId)->first();
                     if ($metradoGas) {
-                        // Si tienes sub-tablas de metrado gas
                         if (Schema::hasTable('metrado_gas_detalles')) {
                             DB::table('metrado_gas_detalles')
                                 ->where('metrado_gas_id', $metradoGas->idmetradogas)
@@ -1096,13 +1095,9 @@ class CostosController extends Controller
                         }
 
                         $metradoGas->delete();
-                        Log::info('✓ Metrado gas eliminado', ['id' => $costoMet->m_gas_id]);
+                        Log::info('✓ Metrado gas eliminado', ['id' => $mGasId]);
                     }
                 }
-
-                // Eliminar la relación costos_metrados
-                $costoMet->delete();
-                Log::info('✓ Registro costos_metrados eliminado');
             } else {
                 Log::info('⊘ No existe registro costos_metrados para este proyecto');
             }

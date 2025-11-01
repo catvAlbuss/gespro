@@ -159,46 +159,128 @@ class metradoelectricasController extends Controller
         }
     }
 
+    // public function show(string $id)
+    // {
+    //     try {
+    //         $metradoelectricas = metradoelectricas::findOrFail($id);
+
+    //         // Si no se encuentra el registro
+    //         if (!$metradoelectricas) {
+    //             if (request()->expectsJson()) {
+    //                 return response()->json([
+    //                     'success' => false,
+    //                     'message' => 'Metrado no encontrado',
+    //                 ], 404);
+    //             }
+
+    //             return redirect()->back()->with('error', 'Metrado no encontrado');
+    //         }
+
+    //         $data = [
+    //             'id' => $metradoelectricas->idmetradocomunicacion,
+    //             'especialidad' => $metradoelectricas->especialidad,
+    //             'documentosdata' => json_decode($metradoelectricas->documentosdata ?? '[]', true),
+    //             'resumenmetrados' => json_decode($metradoelectricas->resumenmetrados ?? '[]', true),
+    //         ];
+
+    //         // ✅ Si la petición viene desde React/AJAX → devolver JSON
+    //         if (request()->expectsJson()) {
+    //             return response()->json([
+    //                 'success' => true,
+    //                 'data' => $data,
+    //             ]);
+    //         }
+    //         // Para vista normal
+    //         return view('gestor_vista.Construyehc.metradosElectricas.show', compact('metradoelectricas'));
+    //     } catch (Exception $e) {
+    //         Log::error('Error al obtener metrado: ' . $e->getMessage());
+
+    //         if (request()->expectsJson()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Metrado no encontrado'
+    //             ], 404);
+    //         }
+
+    //         return redirect()->back()->with('error', 'Metrado no encontrado');
+    //     }
+    // }
 
     public function show(string $id)
     {
         try {
-            $metradoelectricas = metradoelectricas::findOrFail($id);
+            // ✅ Buscar el metrado con Eloquent
+            $metradoelectricas = metradoelectricas::find($id);
 
-            // Si es una petición AJAX, devolver JSON
-            if (request()->expectsJson()) {
-                // Preparar datos para el modal de edición
-                $data = [
-                    'nombre_proyecto' => $metradoelectricas->nombre_proyecto,
-                    'uei' => $metradoelectricas->uei,
-                    'codigo_snip' => $metradoelectricas->codigosnip,
-                    'codigo_cui' => $metradoelectricas->codigocui,
-                    'unidad_ejecutora' => $metradoelectricas->unidad_ejecutora,
-                    'codigo_local' => $metradoelectricas->codigo_local,
-                    'codigo_modular' => $metradoelectricas->codigo_modular,
-                    'especialidad' => $metradoelectricas->especialidad,
-                    'fecha' => $metradoelectricas->fecha,
-                    'ubicacion' => $metradoelectricas->ubicacion ?? $metradoelectricas->localidad,
-                ];
+            // Si no se encuentra el registro
+            if (!$metradoelectricas) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Metrado no encontrado',
+                    ], 404);
+                }
 
-                return response()->json($data);
+                return redirect()->back()->with('error', 'Metrado no encontrado');
             }
 
-            // Para vista normal
-            return view('gestor_vista.Construyehc.metradosElectricas.show', compact('metradoelectricas'));
-        } catch (Exception $e) {
+            // ✅ Obtener los datos de costos asociados (solo el id del metrado + campos de costos)
+            $costos = DB::table('costos AS c')
+                ->join('costos_metrados AS cm', 'c.id', '=', 'cm.costos_id')
+                ->join('metradoelectricas AS m', 'm.idmeelectrica', '=', 'cm.m_elec_id')
+                ->select(
+                    'm.idmeelectrica',
+                    'c.name',
+                    'c.codigouei',
+                    'c.codigosnip',
+                    'c.codigocui',
+                    'c.unidad_ejecutora',
+                    'c.codigolocal',
+                    'c.codigomodular',
+                    'c.fecha',
+                    'c.region',
+                    'c.provincia',
+                    'c.distrito',
+                    'c.centropoblado'
+                )
+                ->where('m.idmeelectrica', $id)
+                ->first();
+
+            // ✅ Preparar solo los datos relevantes del metrado
+            $data = [
+                'id' => $metradoelectricas->idmeelectrica,
+                'especialidad' => $metradoelectricas->especialidad,
+                'documentosdata' => json_decode($metradoelectricas->documentosdata ?? '[]', true),
+                'resumenmetrados' => json_decode($metradoelectricas->resumenmetrados ?? '[]', true),
+            ];
+
+            // ✅ Si la petición viene desde React/AJAX → devolver todo en JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'metrado' => $data,
+                        'costos' => $costos,
+                    ],
+                ]);
+            }
+
+            // ✅ Para vista Blade normal
+            return view('gestor_vista.Construyehc.metradosElectricas.show', compact('metradoelectricas', 'costos'));
+        } catch (\Exception $e) {
             Log::error('Error al obtener metrado: ' . $e->getMessage());
 
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Metrado no encontrado'
-                ], 404);
+                    'message' => 'Error interno del servidor',
+                ], 500);
             }
 
-            return redirect()->back()->with('error', 'Metrado no encontrado');
+            return redirect()->back()->with('error', 'Error al obtener metrado');
         }
     }
+
 
     public function update(Request $request, string $id)
     {
@@ -316,35 +398,18 @@ class metradoelectricasController extends Controller
         // Validar los datos de entrada
         $request->validate([
             'id' => 'required|integer', // Validar que el ID es un entero
-            'modulos' => 'required|array', // Validar que 'modulos' es un arreglo
+            'modulos' => 'required|array',
+            'resumencm' => 'required|array'
         ]);
 
         // Obtener el ID de 'metrado' y los 'modulos' enviados en la solicitud
         $id = $request->id;
-        $modulos = $request->modulos;
-        $resumenel = $request->resumenel;
-
         // Buscar el registro correspondiente al 'id' recibido
         $metrado = metradoelectricas::find($id);
 
         if ($metrado) {
-            // Preparar los datos para la columna 'documentosdata'
-            // Puedes agregar más datos si es necesario, como en el ejemplo de 'cisterna' o 'exterior'.
-            $data = [
-                'modulos' => $modulos,
-            ];
-
-            $resumenel = [
-                'resumenel' => $resumenel,
-            ];
-
-            // Convertir los datos en formato JSON
-            $documentosData = json_encode($data);
-            $resumenData = json_encode($resumenel);
-
-            // Actualizar la columna 'documentosdata' en el registro encontrado
-            $metrado->documentosdata = $documentosData;
-            $metrado->resumenmetrados = $resumenData;
+            $metrado->documentosdata = json_encode(['modulos' => $request['modulos']]);
+            $metrado->resumenmetrados = json_encode(['resumencm' => $request['resumencm']]);
             $metrado->save(); // Guardar los cambios
 
             // Responder con un mensaje de éxito

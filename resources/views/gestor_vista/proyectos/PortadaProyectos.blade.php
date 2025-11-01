@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div id="appProyectos" class="font-sans antialiased">
+    <div id="appProyectos" data-module="proyectos/portadaproyectos" class="font-sans antialiased">
         {{-- ======================= SCRIPTS & STYLES ======================= --}}
         <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.tailwindcss.css">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -52,6 +52,6 @@
         </script>
 
         {{-- ======================= VUE SCRIPTS ======================= --}}
-        @vite(['resources/js/proyectos/portadaproyectos.js'])
+        {{-- @vite(['resources/js/proyectos/portadaproyectos.js']) --}}
     </div>
 </x-app-layout>

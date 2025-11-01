@@ -1,4 +1,4 @@
-import { createApp, ref, reactive, onMounted } from 'vue';
+import { createApp, ref, reactive, onMounted, computed } from 'vue';
 
 const { costos, presupuestosIds, metradoIds, cronogramaIds, ettpIds, routes, csrfToken } = window.APP_INIT || {};
 
@@ -9,8 +9,27 @@ const app = createApp({
         const cronogramas = cronogramaIds?.[0] || {};
         const ettp = ettpIds?.[0] || {};
 
+        console.log('Metrado:', metrado);
+        console.log('Presupuesto:', presupuesto);
+        console.log('Cronogramas:', cronogramas);
+        console.log('ETTP:', ettp);
+
+        // Función helper para verificar si un ID es válido
+        const isValidId = (id) => {
+            // Validar que no sea null, undefined o string vacío
+            if (id === null || id === undefined || id === '') return false;
+
+            // Validar que no sea un objeto vacío
+            if (typeof id === 'object' && Object.keys(id).length === 0) return false;
+
+            // Validar que no sea un array vacío
+            if (Array.isArray(id) && id.length === 0) return false;
+
+            return true;
+        };
+
         // Estructura del árbol con descripciones
-        const treeData = reactive({
+        const treeDataRaw = {
             name: 'Costos',
             description: 'Gestión integral de costos del proyecto',
             children: [
@@ -24,37 +43,43 @@ const app = createApp({
                             icon: '🏛️',
                             name: 'Metrados Arquitectura',
                             description: 'Mediciones de elementos arquitectónicos: muros, pisos, acabados',
-                            route: `${routes.metradoarquitectura}/${metrado.m_arq_id}`
+                            route: `${routes.metradoarquitectura}/${metrado.m_arq_id}`,
+                            visible: isValidId(metrado.m_arq_id)
                         },
                         {
                             icon: '🏗️',
                             name: 'Metrado Estructura',
                             description: 'Cuantificación de elementos estructurales: columnas, vigas, losas',
-                            route: `${routes.metradoestructuras}/${metrado.m_arq_id}`
+                            route: `${routes.metradoestructuras}/${metrado.m_est_id}`,
+                            visible: isValidId(metrado.m_est_id)
                         },
                         {
                             icon: '🚿',
                             name: 'Metrado Sanitarias',
                             description: 'Mediciones de instalaciones de agua y desagüe',
-                            route: `${routes.metradosanitarias}/${metrado.m_san_id}`
+                            route: `${routes.metradosanitarias}/${metrado.m_san_id}`,
+                            visible: isValidId(metrado.m_san_id)
                         },
                         {
                             icon: '💡',
                             name: 'Metrado Electricas',
                             description: 'Cuantificación de instalaciones eléctricas y alumbrado',
-                            route: `${routes.metradoelectricas}/${metrado.m_elec_id}`
+                            route: `${routes.metradoelectricas}/${metrado.m_elec_id}`,
+                            visible: isValidId(metrado.m_elec_id)
                         },
                         {
                             icon: '🧱',
                             name: 'Metrado Comunicaciones',
                             description: 'Mediciones de redes de datos y comunicaciones',
-                            route: `${routes.metradocomunicacion}/${metrado.m_com_id}`
+                            route: `${routes.metradocomunicacion}/${metrado.m_com_id}`,
+                            visible: isValidId(metrado.m_com_id)
                         },
                         {
                             icon: '🔥',
                             name: 'Metrado Gas',
                             description: 'Cuantificación de instalaciones de gas natural',
-                            route: `${routes.metradogas}/${metrado.m_gas_id}`
+                            route: `${routes.metradogas}/${metrado.m_gas_id}`,
+                            visible: isValidId(metrado.m_gas_id)
                         }
                     ]
                 },
@@ -62,7 +87,8 @@ const app = createApp({
                     name: 'Presupuestos',
                     icon: '💰',
                     description: 'Valorización económica del proyecto y análisis de costos unitarios',
-                    route: `${routes.presupuestos}/${presupuesto}`
+                    route: `${routes.presupuestos}/${presupuesto}`,
+                    visible: isValidId(presupuesto)
                 },
                 {
                     name: 'Cronogramas',
@@ -74,30 +100,71 @@ const app = createApp({
                             icon: '📊',
                             name: 'Cronograma General',
                             description: 'Programación de actividades y hitos del proyecto',
-                            route: `${routes.cronogramageneral}/${cronogramas.cron_gen_id}`
+                            route: `${routes.cronogramageneral}/${cronogramas.cron_gen_id}`,
+                            visible: isValidId(cronogramas.cron_gen_id)
                         },
                         {
                             icon: '💵',
                             name: 'Cronograma Valorizado',
                             description: 'Distribución temporal de costos y avances económicos',
-                            route: '#m-est'
+                            route: `${routes.cronogramavalorizado}/${cronogramas.cron_val_id}`,
+                            visible: isValidId(cronogramas.cron_val_id)
                         },
+                        {
+                            icon: '📦',
+                            name: 'Cronograma de Materiales',
+                            description: 'Planificación de adquisición y uso de materiales',
+                            route: `${routes.cronogramamateriales}/${cronogramas.cron_mat_id}`,
+                            visible: isValidId(cronogramas.cron_mat_id)
+                        }
                     ]
                 },
                 {
                     name: 'Especificaciones Técnicas',
                     icon: '📋',
                     description: 'Documentación técnica detallada de partidas y procedimientos',
-                    route: `${routes.especificacionestecnicas}/${ettp}`
+                    route: `${routes.especificacionestecnicas}/${ettp}`,
+                    visible: isValidId(ettp)
                 },
                 {
                     name: 'Formula Polinómica',
                     icon: '📈',
                     description: 'Cálculo de reajuste de precios por variación de índices',
-                    route: '#fp'
+                    route: '#fp',
+                    visible: true // Siempre visible
                 }
             ]
-        });
+        };
+
+        // Función recursiva para filtrar nodos no visibles
+        const filterTreeData = (node) => {
+            // Si el nodo tiene hijos, filtrarlos recursivamente
+            if (node.children && node.children.length > 0) {
+                const filteredChildren = node.children
+                    .map(child => filterTreeData(child))
+                    .filter(child => child !== null);
+
+                // Si después de filtrar no quedan hijos visibles y el nodo padre no tiene ruta propia, ocultarlo
+                if (filteredChildren.length === 0 && !node.route) {
+                    return null;
+                }
+
+                return {
+                    ...node,
+                    children: filteredChildren
+                };
+            }
+
+            // Si es un nodo hoja, verificar si es visible
+            if (node.visible === false) {
+                return null;
+            }
+
+            return node;
+        };
+
+        // Aplicar filtro y convertir a reactive
+        const treeData = reactive(filterTreeData(treeDataRaw));
 
         // Estado para controlar qué nodos están expandidos
         const expanded = ref(new Set());
@@ -108,11 +175,13 @@ const app = createApp({
             expanded.value.add(treeData.name);
 
             // Expandir todos los nodos de primer nivel que tienen hijos
-            treeData.children.forEach(child => {
-                if (child.children && child.children.length > 0) {
-                    expanded.value.add(child.name);
-                }
-            });
+            if (treeData.children) {
+                treeData.children.forEach(child => {
+                    if (child.children && child.children.length > 0) {
+                        expanded.value.add(child.name);
+                    }
+                });
+            }
         });
 
         const toggleExpand = (name) => {
@@ -155,10 +224,16 @@ const app = createApp({
             <!-- Árbol de costos mejorado -->
             <div class="max-w-7xl mx-auto">
                 <TreeNode 
+                    v-if="treeData"
                     :node="treeData" 
                     :level="0" 
                     :expanded="isExpanded" 
                     @toggle="toggleExpand"/>
+                <div v-else class="bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 p-4 rounded-lg">
+                    <p class="text-yellow-800 dark:text-yellow-200">
+                        <strong>⚠️ Aviso:</strong> No hay datos disponibles para mostrar en este momento.
+                    </p>
+                </div>
             </div>
         </div>
 `

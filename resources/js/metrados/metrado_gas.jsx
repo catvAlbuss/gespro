@@ -1,8 +1,8 @@
+
 import React, { useEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
 import { Plus, Trash2, Calculator, FileDown, SortAsc, ChevronRight, ChevronDown } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
 import { reportes_metrados } from './reportes_metrados.jsx';
-
 // ============================================
 // CONSTANTES
 // ============================================
@@ -13,10 +13,19 @@ const COL_NAMES = ['ITEM', 'DESCRIPCIÓN', 'UND', 'ELEM.', 'L.', 'ANC.', 'ALT.',
 
 const UNIT_EDITABLE_COLS = {
   m: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.NVECES],
+  ml: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.NVECES],
+  km: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.NVECES],
+  m2: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.LON, COL.NVECES],
+  'm²': [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.LON, COL.NVECES],
   m3: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.LON, COL.AREA, COL.NVECES],
   'm³': [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.LON, COL.AREA, COL.NVECES],
+  kg: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.VOL, COL.NVECES],
+  tn: [COL.ELEM_L, COL.L, COL.ANC, COL.ALT, COL.VOL, COL.NVECES],
   und: [COL.ELEM_L, COL.NVECES],
-  glb: [COL.ELEM_L, COL.NVECES]
+  Pto: [COL.ANC],
+  pza: [COL.ELEM_L, COL.NVECES],
+  glb: [COL.ELEM_L, COL.NVECES],
+  pln: [COL.ELEM_L, COL.NVECES]
 };
 
 const ROW_HEIGHT = 34;
@@ -29,11 +38,11 @@ const HEADER_HEIGHT = 34;
 // Después de las constantes, antes de HierarchyManager
 const API = {
   async cargarDatos() {
-    const idmetrado = document.getElementById('idmetradocomunicacion')?.value;
+    const idmetrado = document.getElementById('idmetradogas')?.value;
     if (!idmetrado) return null;
 
     try {
-      const response = await fetch(`/metrados/comunicacion/${idmetrado}`, {
+      const response = await fetch(`/metrados/gas/${idmetrado}`, {
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
           'Accept': 'application/json',
@@ -58,11 +67,11 @@ const API = {
   },
 
   async guardarDatos(rows, resumenData) {
-    const idmetrado = document.getElementById('idmetradocomunicacion')?.value;
+    const idmetrado = document.getElementById('idmetradogas')?.value;
     if (!idmetrado) throw new Error('ID del metrado no encontrado');
 
     try {
-      const response = await fetch('/metrados/comunicacion/actualizar', {
+      const response = await fetch('/metrados/gas/actualizar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -173,7 +182,15 @@ const calculateRow = (row) => {
 
   switch (tipo) {
     case 'm':
+    case 'ml':
+    case 'km':
       newRow[COL.LON] = elem * (l + anc + alt) * nveces;
+      newRow[COL.UNDC] = '';
+      break;
+
+    case 'm2':
+    case 'm²':
+      newRow[COL.AREA] = elem * l * anc * alt * nveces * lon;
       newRow[COL.UNDC] = '';
       break;
 
@@ -185,8 +202,30 @@ const calculateRow = (row) => {
       break;
     }
 
+    case 'kg':
+    case 'tn': {
+      const longitud = elem * (l + anc + alt) * nveces;
+      newRow[COL.LON] = longitud;
+      const vol = safeFloat(row[COL.VOL]);
+      newRow[COL.KG] = longitud * vol;
+      newRow[COL.UNDC] = '';
+      break;
+    }
+
+    case 'pto': {
+      newRow[COL.UNDC] = '';
+      newRow[COL.NVECES] = '';
+      newRow[COL.LON] = '';
+      newRow[COL.AREA] = anc > 0 ? anc : '';
+      newRow[COL.VOL] = '';
+      newRow[COL.KG] = '';
+      break
+    }
+
     case 'und':
-    case 'glb': {
+    case 'pza':
+    case 'glb':
+    case 'pln': {
       const result = elem * nveces;
       newRow[COL.UNDC] = result > 0 ? result : '';
       newRow[COL.LON] = '';
@@ -229,10 +268,19 @@ const calculateTotals = (rows) => {
     const safeFloat = (v) => parseFloat(v) || 0;
     switch (tipo) {
       case 'm':
+      case 'ml':
+      case 'km':
         return safeFloat(row[COL.LON]);
+      case 'm2':
+      case 'm²':
+      case 'pto':
+        return safeFloat(row[COL.AREA]);
       case 'm3':
       case 'm³':
         return safeFloat(row[COL.VOL]);
+      case 'kg':
+      case 'tn':
+        return safeFloat(row[COL.KG]);
       default:
         return safeFloat(row[COL.UNDC]);
     }
@@ -303,7 +351,7 @@ const TableRow = memo(({ row, realIdx, indent, hasChildren, isCollapsed, editabl
           value={row[COL.UND] || ''} onChange={(e) => onUpdateImmediate(realIdx, COL.UND, e.target.value)} onMouseDown={(e) => onMouseDown(realIdx, COL.UND, e)}
           onMouseEnter={() => onMouseEnter(realIdx, COL.UND)}>
           <option value=""></option>
-          {['m', 'm3', 'und', 'glb'].map(u => (
+          {['m', 'm2', 'm3', 'kg', 'und', 'pto', 'pza', 'glb', 'ml', 'km', 'tn'].map(u => (
             <option key={u} value={u}>{u}</option>
           ))}
         </select>
@@ -393,8 +441,8 @@ export default function MetradoOptimizado() {
         // No hay datos, usar sample data
         initialRows = [
           { [COL.ITEM]: '01', [COL.DESCRIPCION]: 'TRABAJOS PRELIMINARES', [COL.UND]: '', id: 1 },
-          { [COL.ITEM]: '01.01', [COL.DESCRIPCION]: 'LIMPIEZA DE TERRENO', [COL.UND]: 'm3', id: 2 },
-          { [COL.ITEM]: '', [COL.DESCRIPCION]: 'Área principal', [COL.UND]: 'm3', [COL.ELEM_L]: '1', [COL.L]: '10', [COL.ANC]: '5', [COL.NVECES]: '1', id: 3 },
+          { [COL.ITEM]: '01.01', [COL.DESCRIPCION]: 'LIMPIEZA DE TERRENO', [COL.UND]: 'm2', id: 2 },
+          { [COL.ITEM]: '', [COL.DESCRIPCION]: 'Área principal', [COL.UND]: 'm2', [COL.ELEM_L]: '1', [COL.L]: '10', [COL.ANC]: '5', [COL.NVECES]: '1', id: 3 },
           { [COL.ITEM]: '02', [COL.DESCRIPCION]: 'MOVIMIENTO DE TIERRAS', [COL.UND]: '', id: 4 },
           { [COL.ITEM]: '02.01', [COL.DESCRIPCION]: 'EXCAVACIÓN', [COL.UND]: 'm3', id: 5 },
           { [COL.ITEM]: '', [COL.DESCRIPCION]: 'Zanja tipo A', [COL.UND]: 'm3', [COL.ELEM_L]: '1', [COL.L]: '20', [COL.ANC]: '0.5', [COL.ALT]: '1.5', [COL.NVECES]: '1', id: 6 },
@@ -953,7 +1001,7 @@ export default function MetradoOptimizado() {
         costosData.distrito,
         costosData.centropoblado
       ].filter(Boolean).join(" - "),
-      especialidad: 'COMUNICACIONES', // o podrías usar dinámico si lo tienes en tu JSON
+      especialidad: 'GAS', // o podrías usar dinámico si lo tienes en tu JSON
       logo1: {
         data: logo1Buffer,
         extension: logo1Ext
@@ -963,16 +1011,13 @@ export default function MetradoOptimizado() {
         extension: logo2Ext
       }
     };
-        console.log(options);
     // 📤 Exportar
     await rep.download(hierarchical, resumen, options, `metrado_${new Date().toISOString().split('T')[0]}.xlsx`);
     setShowExportModal(false);
     showStatus('✅ Excel exportado correctamente', 2000);
   }, [rows, logo1, logo2, showStatus]);
 
-
   // const exportToExcel = useCallback(() => {
-  //   const reportes = new reportes_metrados();
   //   const headers = COL_NAMES.join('\t');
   //   const data = rows.map(row =>
   //     COL_NAMES.map((_, i) => row[i] || '').join('\t')
@@ -1189,7 +1234,6 @@ export default function MetradoOptimizado() {
           title="Exportar a Excel">
           <FileDown className="w-4 h-4 text-purple-600" />
         </button>
-
         {/* <button onClick={exportToExcel} className="p-2 hover:bg-purple-50 rounded" title="Exportar a TSV (Excel)">
           <FileDown className="w-4 h-4 text-purple-600" />
         </button> */}
@@ -1424,7 +1468,7 @@ export default function MetradoOptimizado() {
   );
 }
 
-const container = document.getElementById('metradoComunicacion');
+const container = document.getElementById('metradoGas');
 if (container) {
   const root = createRoot(container);
   root.render(<MetradoOptimizado />);

@@ -14,6 +14,21 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('sweetalert2')) return 'vendor_swal';
+                        if (id.includes('alpinejs')) return 'vendor_alpine';
+                        if (id.includes('vue')) return 'vendor_vue';
+                        return 'vendor';
+                    }
+                },
+            },
+        },
+        chunkSizeWarningLimit: 1000,
+    },
     // Provide Vue feature flags for better tree-shaking and enable runtime template compilation
     define: {
         __VUE_OPTIONS_API__: true,

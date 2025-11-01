@@ -96,8 +96,8 @@
                     </svg>
                 </a>
 
-                {{-- Mantenimientos  <a href="{{ route('mantenimientoCampo.show', $mantenimiento->id_mantimiento) }}" --}}
-                <a href="{{ route('mantenimientoCampo.show', 1) }}" title="mantenimientos"
+                {{-- Mantenimientos  <a href="{{ route('campo.mantenimiento.show', $mantenimiento->id_mantimiento) }}" --}}
+                <a href="{{ route('campo.mantenimiento.show', 1) }}" title="mantenimientos"
                     class="p-2 rounded-lg text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500">
                     <svg class="w-5 h-5 text-gray-800 dark:text-white" aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"

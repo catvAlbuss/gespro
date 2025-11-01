@@ -57,5 +57,5 @@
             /* Add scrollbar for overflow */
         }
     </style>
-    <div class="w-full" id="metradotableSystem"></div>
+    {{-- <div class="w-full" id="metradotableSystem"></div> --}}
 </x-app-layout>

@@ -10,657 +10,684 @@
         </h2>
     </x-slot>
 
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <div class="py-2">
         <div
             class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl">
             <div class="p-6">
+                <!-- Header con botón y estadísticas -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Lista de Proyecto Costos
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Lista de Proyectos de Costos
                         </h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestiona los proyectos</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Total: <span
+                                class="font-semibold">{{ $costos->count() }}</span> proyectos</p>
                     </div>
-                    <button onclick="openModal('create')"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                        Agregar Costos
+                    <button onclick="openWizard()"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        Nuevo Proyecto
                     </button>
                 </div>
 
+                <!-- Controles de tabla -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-700 dark:text-gray-300">Mostrar:</label>
+                        <select id="entriesPerPage" onchange="updateTable()"
+                            class="px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Buscar proyecto..."
+                            class="pl-10 pr-4 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
+                        <svg class="absolute left-3 top-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Tabla mejorada -->
                 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                    <table id="pagination-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700 text-center">
+                    <table id="costosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col"
-                                    class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Proyecto</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Fecha</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    UEI</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    SNIP</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    unidad_ejecutora</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Ubicación</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Acciones</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        Proyecto
+                                    </div>
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        Fecha
+                                    </div>
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                                            </path>
+                                        </svg>
+                                        Códigos
+                                    </div>
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                            </path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        Ubicación
+                                    </div>
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Acciones
+                                </th>
                             </tr>
                         </thead>
-                        <tbody
-                            class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-center">
-                            @foreach ($costos as $costo)
-                                <tr class="hover:bg-gray-950 dark:hover:bg-gray-750 transition-colors duration-150">
-                                    <td class="px-6 py-4 max-w-xs whitespace-normal break-words">
-                                        <div class="flex items-center">
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @forelse ($costos as $costo)
+                                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-start">
+                                            <div
+                                                class="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                                    </path>
+                                                </svg>
+                                            </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                <div
+                                                    class="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
                                                     {{ $costo->name }}
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ $costo->fecha }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                            {{ $costo->codigouei }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                            {{ $costo->codigosnip }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 max-w-[12rem] whitespace-normal break-words">
-                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            <div class="flex items-center">
-                                                <div class="ml-4">
-                                                    {{ $costo->unidad_ejecutora }}
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    UE: {{ $costo->unidad_ejecutora }}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 max-w-[12rem] whitespace-normal break-words">
-                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            <div class="flex items-center">
-                                                <div class="ml-4">
-                                                    {{ "$costo->region $costo->provincia $costo->distrito $costo->centropoblado" }}
-                                                </div>
-                                            </div>
+
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="text-sm text-gray-900 dark:text-gray-100">{{ $costo->fecha }}</span>
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded">
+                                                UEI: {{ $costo->codigouei }}
+                                            </span>
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded">
+                                                SNIP: {{ $costo->codigosnip }}
+                                            </span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex justify-end space-x-3">
+
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                                            {{ $costo->region }}, {{ $costo->provincia }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $costo->distrito }}{{ $costo->centropoblado ? ', ' . $costo->centropoblado : '' }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex justify-center gap-2">
                                             <form action="{{ route('costos.control') }}" method="POST"
                                                 style="display:inline;">
                                                 @csrf
                                                 <input type="hidden" name="id" value="{{ $costo->id }}">
                                                 <button type="submit" title="Visualizar"
-                                                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 20 20" fill="currentColor">
-                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                        <path fill-rule="evenodd"
-                                                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                            clip-rule="evenodd" />
+                                                    class="p-2 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900 rounded-lg transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+                                                        </path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                        </path>
                                                     </svg>
                                                 </button>
                                             </form>
-                                            <button onclick="openModal('edit', {{ $costo->id }})"
-                                                class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors duration-200"
-                                                title="Editar">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path
-                                                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+
+                                            <button onclick="openWizard('edit', {{ $costo->id }})" title="Editar"
+                                                class="p-2 text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-900 rounded-lg transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                    </path>
                                                 </svg>
                                             </button>
+
                                             <form action="{{ route('costos.destroy', $costo->id) }}" method="POST"
-                                                onsubmit="return confirmDelete(event, this);" style="display: inline;">
+                                                onsubmit="return confirmDelete(event, this);"
+                                                style="display: inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
-                                                    title="Eliminar">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd"
-                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                            clip-rule="evenodd" />
+                                                <button type="submit" title="Eliminar"
+                                                    class="p-2 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900 rounded-lg transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                        </path>
                                                     </svg>
                                                 </button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center">
+                                        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No hay
+                                            proyectos registrados</h3>
+                                        <p class="mt-1 text-gray-500 dark:text-gray-400">Comienza creando tu primer
+                                            proyecto</p>
+                                        <button onclick="openWizard()"
+                                            class="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                            Crear Proyecto
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                @if ($costos->count() === 0)
-                    <div class="text-center py-12">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No hay Proyecto de
-                            COSTO registrados</h3>
-                        <p class="mt-1 text-gray-500 dark:text-gray-400">Comienza agregando un proyecto nuevo de
-                            COSTOS</p>
-                        <div class="mt-6">
-                            <button id="agregar_ms_vacio" data-modal-target="crud-modal"
-                                data-modal-toggle="crud-modal"
-                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Agregar Costos
-                            </button>
-                        </div>
+                <!-- Paginación -->
+                <div id="pagination" class="flex justify-between items-center mt-4">
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        Mostrando <span id="showingStart">0</span> a <span id="showingEnd">0</span> de <span
+                            id="totalEntries">0</span> entradas
                     </div>
-                @endif
+                    <div id="paginationButtons" class="flex gap-2"></div>
+                </div>
             </div>
         </div>
     </div>
-    </div>
 
-    <!-- Modal mejorado -->
-    <div id="crud-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title"
-        role="dialog" aria-modal="true">
+    <!-- Modal Wizard Multi-paso -->
+    <div id="wizard-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Fondo oscuro con animación -->
             <div class="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-50 backdrop-blur-sm"
-                aria-hidden="true" id="modal-backdrop"></div>
+                onclick="closeWizard()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-            <!-- Centrado del modal -->
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <!-- Contenido del modal con animación -->
-            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full"
-                id="modal-content">
-                <!-- Encabezado del modal -->
-                <div class="bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div
-                                class="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                            </div>
-                            <h3 id="modal-title" class="ml-3 text-xl font-bold text-gray-900 dark:text-gray-100">
-                                Registrar Costos
-                            </h3>
-                        </div>
-                        <button type="button" onclick="closeModal()"
-                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <div
+                class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <!-- Progress Bar -->
+                <div class="bg-gray-100 dark:bg-gray-700 px-6 py-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Paso <span
+                                id="currentStep">1</span> de 3</span>
+                        <button onclick="closeWizard()" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                     </div>
+                    <div class="flex gap-2">
+                        <div id="step-indicator-1" class="flex-1 h-2 bg-blue-600 rounded-full transition-all"></div>
+                        <div id="step-indicator-2"
+                            class="flex-1 h-2 bg-gray-300 dark:bg-gray-600 rounded-full transition-all"></div>
+                        <div id="step-indicator-3"
+                            class="flex-1 h-2 bg-gray-300 dark:bg-gray-600 rounded-full transition-all"></div>
+                    </div>
                 </div>
 
-                <!-- Cuerpo del modal -->
-                <form id="metrado-form" class="bg-white dark:bg-gray-800" onsubmit="handleSubmit(event)">
-                    <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <!-- Nombre del Proyecto -->
-                            <div class="sm:col-span-2">
-                                <label for="nombre_proyecto"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <form id="wizard-form" onsubmit="handleWizardSubmit(event)">
+                    <!-- Paso 1: Información General -->
+                    <div id="step-1" class="step-content p-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Información General del Proyecto
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Nombre del Proyecto <span class="text-red-500">*</span>
                                 </label>
-                                <textarea id="nombre_proyecto" name="nombre_proyecto" rows="2" required
+                                <textarea name="nombre_proyecto" rows="2" required
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                    placeholder="Escribe el nombre del proyecto"></textarea>
+                                    placeholder="Ej: Mejoramiento del servicio educativo..."></textarea>
                             </div>
 
-                            <!-- UEI y Unidad Ejecutora -->
                             <div>
-                                <label for="uei"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     UEI <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="uei" id="uei" required
+                                <input type="text" name="uei" required
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                    placeholder="Ej: 2999">
+                                    placeholder="2999">
                             </div>
 
                             <div>
-                                <label for="unidad_ejecutora"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Unidad Ejecutora <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="unidad_ejecutora" id="unidad_ejecutora" required
+                                <input type="text" name="unidad_ejecutora" required
                                     class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                    placeholder="Ej: 2999">
+                                    placeholder="UGEL">
                             </div>
 
-                            <!-- Códigos del proyecto -->
-                            <div class="col-span-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                <div>
-                                    <label for="codigo_snip"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Código SNIP <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="codigo_snip" id="codigo_snip" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="SNIP123456">
-                                </div>
-
-                                <div>
-                                    <label for="codigo_cui"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Código CUI <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="codigo_cui" id="codigo_cui" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="CUI123456">
-                                </div>
-
-                                <div>
-                                    <label for="codigo_local"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Código Local <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="codigo_local" id="codigo_local" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="CL-001234">
-                                </div>
-
-                                <div>
-                                    <label for="fecha"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Fecha <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="date" name="fecha" id="fecha" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
-                                </div>
-                            </div>
-
-                            <!-- Código Modular (Checklist) -->
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Código Modular <span class="text-red-500">*</span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Código SNIP <span class="text-red-500">*</span>
                                 </label>
-                                <div
-                                    class="space-y-3 p-4 border border-gray-300 rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                                    <!-- Inicial -->
-                                    <div>
-                                        <div class="flex items-center">
-                                            <input id="check-inicial" name="nivel_educativo[]" type="checkbox"
-                                                value="inicial"
-                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                onchange="toggleNivelInput('inicial')">
-                                            <label for="check-inicial"
-                                                class="ml-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                Nivel Inicial
-                                            </label>
-                                        </div>
-                                        <input type="text" id="input-inicial" name="codigo_modular_inicial"
-                                            class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
-                                            placeholder="Ingrese código modular de nivel inicial">
-                                    </div>
+                                <input type="text" name="codigo_snip" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="123456">
+                            </div>
 
-                                    <!-- Primaria -->
-                                    <div>
-                                        <div class="flex items-center">
-                                            <input id="check-primaria" name="nivel_educativo[]" type="checkbox"
-                                                value="primaria"
-                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                onchange="toggleNivelInput('primaria')">
-                                            <label for="check-primaria"
-                                                class="ml-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                Nivel Primaria
-                                            </label>
-                                        </div>
-                                        <input type="text" id="input-primaria" name="codigo_modular_primaria"
-                                            class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
-                                            placeholder="Ingrese código modular de nivel primaria">
-                                    </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Código CUI <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" name="codigo_cui" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="CUI123456">
+                            </div>
 
-                                    <!-- Secundaria -->
-                                    <div>
-                                        <div class="flex items-center">
-                                            <input id="check-secundaria" name="nivel_educativo[]" type="checkbox"
-                                                value="secundaria"
-                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                onchange="toggleNivelInput('secundaria')">
-                                            <label for="check-secundaria"
-                                                class="ml-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                Nivel Secundaria
-                                            </label>
-                                        </div>
-                                        <input type="text" id="input-secundaria" name="codigo_modular_secundaria"
-                                            class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
-                                            placeholder="Ingrese código modular de nivel secundaria">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Código Local <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" name="codigo_local" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="CL-001234">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Fecha <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" name="fecha" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                            </div>
+
+                            <!-- Códigos Modulares -->
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Códigos Modulares <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div
+                                        class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                                        <label class="flex items-center mb-2">
+                                            <input type="checkbox" name="nivel_inicial"
+                                                onchange="toggleCodigoModular('inicial', this.checked)"
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <span
+                                                class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">Inicial</span>
+                                        </label>
+                                        <input type="text" name="codigo_modular_inicial"
+                                            class="codigo-modular-input hidden w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-600 dark:text-gray-100"
+                                            placeholder="Código">
+                                    </div>
+                                    <div
+                                        class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                                        <label class="flex items-center mb-2">
+                                            <input type="checkbox" name="nivel_primaria"
+                                                onchange="toggleCodigoModular('primaria', this.checked)"
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <span
+                                                class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">Primaria</span>
+                                        </label>
+                                        <input type="text" name="codigo_modular_primaria"
+                                            class="codigo-modular-input hidden w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-600 dark:text-gray-100"
+                                            placeholder="Código">
+                                    </div>
+                                    <div
+                                        class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                                        <label class="flex items-center mb-2">
+                                            <input type="checkbox" name="nivel_secundaria"
+                                                onchange="toggleCodigoModular('secundaria', this.checked)"
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <span
+                                                class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">Secundaria</span>
+                                        </label>
+                                        <input type="text" name="codigo_modular_secundaria"
+                                            class="codigo-modular-input hidden w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-600 dark:text-gray-100"
+                                            placeholder="Código">
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Ubicación -->
-                            <div class="col-span-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                <div>
-                                    <label for="region"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Región <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="region" id="region" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="Huánuco">
-                                </div>
-                                <div>
-                                    <label for="provincia"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Provincia <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="provincia" id="provincia" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="Huánuco">
-                                </div>
-                                <div>
-                                    <label for="distrito"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Distrito <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="distrito" id="distrito" required
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="Huánuco">
-                                </div>
-                                <div>
-                                    <label for="centropoblado"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Centro Poblado
-                                    </label>
-                                    <input type="text" name="centropoblado" id="centropoblado"
-                                        class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                                        placeholder="Opcional">
-                                </div>
-                            </div>
-
-                            <!-- SECCIÓN DE PLUGINS/MÓDULOS -->
-                            <div class="sm:col-span-2 mt-2">
-                                <div
-                                    class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                                    <h4
-                                        class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center">
-                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                                        </svg>
-                                        Módulos del Sistema
-                                    </h4>
-                                    <p class="text-sm text-blue-700 dark:text-blue-300 mb-4">
-                                        Seleccione los módulos que desea activar para este proyecto
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Plugin de Metrados -->
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <span class="flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor"
-                                            viewBox="0 0 20 20">
-                                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                            <path fill-rule="evenodd"
-                                                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Metrados
-                                    </span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Región <span class="text-red-500">*</span>
                                 </label>
-                                <div
-                                    class="space-y-3 p-4 border border-gray-300 rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                                    <div class="flex items-center mb-3">
-                                        <input id="check-metrados-all" type="checkbox" onchange="toggleAllMetrados()"
-                                            class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                        <label for="check-metrados-all"
-                                            class="ml-2 block text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                            Seleccionar Todos
-                                        </label>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-metrado-arquitectura" name="metrados[]" type="checkbox"
-                                                value="arquitectura"
-                                                class="metrado-checkbox h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                            <label for="check-metrado-arquitectura"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Arquitectura
-                                            </label>
-                                        </div>
-
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-metrado-estructuras" name="metrados[]" type="checkbox"
-                                                value="estructuras"
-                                                class="metrado-checkbox h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                            <label for="check-metrado-estructuras"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Estructuras
-                                            </label>
-                                        </div>
-
-                                        <div
-                                            class="flex flex-col p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <div class="flex items-center">
-                                                <input id="check-metrado-sanitarias" name="metrados[]"
-                                                    type="checkbox" value="sanitarias"
-                                                    class="metrado-checkbox h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                                                    onchange="toggleModuloInput('sanitarias')">
-                                                <label for="check-metrado-sanitarias"
-                                                    class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                    Instalaciones Sanitarias
-                                                </label>
-                                            </div>
-
-                                            <!-- Input numérico oculto por defecto -->
-                                            <input type="number" id="input-sanitarias" name="modulos_sanitarias"
-                                                min="1"
-                                                class="mt-2 hidden block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500"
-                                                placeholder="Ingrese cantidad de módulos sanitarios">
-                                        </div>
-
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-metrado-electricas" name="metrados[]" type="checkbox"
-                                                value="electricas"
-                                                class="metrado-checkbox h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                            <label for="check-metrado-electricas"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Instalaciones Eléctricas
-                                            </label>
-                                        </div>
-
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-metrado-comunicacion" name="metrados[]" type="checkbox"
-                                                value="comunicacion"
-                                                class="metrado-checkbox h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                            <label for="check-metrado-comunicacion"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Comunicación
-                                            </label>
-                                        </div>
-
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-metrado-gas" name="metrados[]" type="checkbox"
-                                                value="gas"
-                                                class="metrado-checkbox h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                            <label for="check-metrado-gas"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Instalaciones de Gas
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
+                                <input type="text" name="region" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="Huánuco">
                             </div>
 
-                            <!-- Plugin de Presupuestos -->
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <span class="flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor"
-                                            viewBox="0 0 20 20">
-                                            <path
-                                                d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                                            <path fill-rule="evenodd"
-                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Presupuestos
-                                    </span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Provincia <span class="text-red-500">*</span>
                                 </label>
-                                <div
-                                    class="p-4 border border-gray-300 rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                                    <div class="flex items-center">
-                                        <input id="check-presupuesto" name="presupuesto" type="checkbox"
-                                            value="activo"
-                                            class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                        <label for="check-presupuesto"
-                                            class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                            Activar módulo de presupuestos
-                                        </label>
-                                    </div>
-                                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                        Genera automáticamente presupuestos basados en los metrados seleccionados
-                                    </p>
-                                </div>
+                                <input type="text" name="provincia" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="Huánuco">
                             </div>
 
-                            <!-- Plugin de Cronogramas -->
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <span class="flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-orange-600" fill="currentColor"
-                                            viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Cronogramas
-                                    </span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Distrito <span class="text-red-500">*</span>
                                 </label>
-                                <div
-                                    class="space-y-3 p-4 border border-gray-300 rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                                    <div class="flex items-center mb-3">
-                                        <input id="check-cronogramas-all" type="checkbox"
-                                            onchange="toggleAllCronogramas()"
-                                            class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
-                                        <label for="check-cronogramas-all"
-                                            class="ml-2 block text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                            Seleccionar Todos
-                                        </label>
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-cronograma-general" name="cronogramas[]" type="checkbox"
-                                                value="general"
-                                                class="cronograma-checkbox h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
-                                            <label for="check-cronograma-general"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Cronograma General
-                                            </label>
-                                        </div>
-
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-cronograma-valorizado" name="cronogramas[]"
-                                                type="checkbox" value="valorizado"
-                                                class="cronograma-checkbox h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
-                                            <label for="check-cronograma-valorizado"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Cronograma Valorizado
-                                            </label>
-                                        </div>
-
-                                        <div
-                                            class="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                                            <input id="check-cronograma-materiales" name="cronogramas[]"
-                                                type="checkbox" value="materiales"
-                                                class="cronograma-checkbox h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
-                                            <label for="check-cronograma-materiales"
-                                                class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                                Cronograma de Materiales
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
+                                <input type="text" name="distrito" required
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="Distrito">
                             </div>
 
-                            <!-- Plugin de Especificaciones Técnicas -->
-                            <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <span class="flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor"
-                                            viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Especificaciones Técnicas
-                                    </span>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Centro Poblado
                                 </label>
-                                <div
-                                    class="p-4 border border-gray-300 rounded-lg dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                                    <div class="flex items-center">
-                                        <input id="check-especificaciones" name="especificaciones" type="checkbox"
-                                            value="activo"
-                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                                        <label for="check-especificaciones"
-                                            class="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                                            Activar módulo de especificaciones técnicas
-                                        </label>
-                                    </div>
-                                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                        Genera documentación técnica detallada de todos los componentes del proyecto
-                                    </p>
-                                </div>
+                                <input type="text" name="centropoblado"
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                                    placeholder="Opcional">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Footer -->
-                    <div
-                        class="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 space-y-2 sm:space-y-0">
-                        <button type="button" onclick="closeModal()"
-                            class="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700 transition-colors">
-                            Cancelar
-                        </button>
-                        <button type="submit" id="submit-btn"
-                            class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                            <span id="submit-text">Guardar Costos</span>
-                            <svg id="loading-spinner" class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                    stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    <!-- Paso 2: Módulos/Plugins -->
+                    <div id="step-2" class="step-content hidden p-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
                                 </path>
                             </svg>
+                            Selecciona los Módulos del Proyecto
+                        </h3>
+
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Elige los módulos que necesitas
+                            activar para tu proyecto. Puedes seleccionar los que necesites.</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Metrados -->
+                            <div
+                                class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+                                <div class="flex items-start mb-4">
+                                    <input type="checkbox" name="modulo_metrados" id="modulo-metrados"
+                                        onchange="toggleModulo('metrados', this.checked)"
+                                        class="mt-1 h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                                    <div class="ml-3">
+                                        <label for="modulo-metrados"
+                                            class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center cursor-pointer">
+                                            <svg class="w-6 h-6 mr-2 text-purple-600" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                                                </path>
+                                            </svg>
+                                            Metrados
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cálculo de cantidades
+                                            de obra</p>
+                                    </div>
+                                </div>
+                                <div id="metrados-opciones" class="hidden pl-8 space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="metrados[]" value="arquitectura"
+                                            class="h-4 w-4 text-purple-600 rounded">
+                                        <span class="ml-2 text-sm">Arquitectura</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="metrados[]" value="estructuras"
+                                            class="h-4 w-4 text-purple-600 rounded">
+                                        <span class="ml-2 text-sm">Estructuras</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="metrados[]" value="sanitarias"
+                                            onchange="toggleSanitarias(this.checked)"
+                                            class="h-4 w-4 text-purple-600 rounded">
+                                        <span class="ml-2 text-sm">Instalaciones Sanitarias</span>
+                                    </label>
+                                    <div id="sanitarias-cantidad" class="hidden ml-6 mt-2">
+                                        <input type="number" name="modulos_sanitarias" min="1"
+                                            placeholder="Cantidad de módulos"
+                                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:text-gray-100">
+                                    </div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="metrados[]" value="electricas"
+                                            class="h-4 w-4 text-purple-600 rounded">
+                                        <span class="ml-2 text-sm">Instalaciones Eléctricas</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="metrados[]" value="comunicacion"
+                                            class="h-4 w-4 text-purple-600 rounded">
+                                        <span class="ml-2 text-sm">Comunicación</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="metrados[]" value="gas"
+                                            class="h-4 w-4 text-purple-600 rounded">
+                                        <span class="ml-2 text-sm">Instalaciones de Gas</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Presupuestos -->
+                            <div
+                                class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+                                <div class="flex items-start">
+                                    <input type="checkbox" name="modulo_presupuesto" id="modulo-presupuesto"
+                                        class="mt-1 h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                    <div class="ml-3">
+                                        <label for="modulo-presupuesto"
+                                            class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center cursor-pointer">
+                                            <svg class="w-6 h-6 mr-2 text-green-600" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                </path>
+                                            </svg>
+                                            Presupuestos
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cálculo automático de
+                                            costos</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cronogramas -->
+                            <div
+                                class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+                                <div class="flex items-start mb-4">
+                                    <input type="checkbox" name="modulo_cronogramas" id="modulo-cronogramas"
+                                        onchange="toggleModulo('cronogramas', this.checked)"
+                                        class="mt-1 h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                                    <div class="ml-3">
+                                        <label for="modulo-cronogramas"
+                                            class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center cursor-pointer">
+                                            <svg class="w-6 h-6 mr-2 text-orange-600" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                </path>
+                                            </svg>
+                                            Cronogramas
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Programación de
+                                            actividades</p>
+                                    </div>
+                                </div>
+                                <div id="cronogramas-opciones" class="hidden pl-8 space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="cronogramas[]" value="general"
+                                            class="h-4 w-4 text-orange-600 rounded">
+                                        <span class="ml-2 text-sm">Cronograma General</span>
+                                    </label>
+                                    <label class="flex items-center opacity-50 cursor-not-allowed"
+                                        title="En desarrollo">
+                                        <input type="checkbox" disabled class="h-4 w-4 text-orange-600 rounded">
+                                        <span class="ml-2 text-sm">Cronograma Valorizado <span
+                                                class="text-xs">(Próximamente)</span></span>
+                                    </label>
+                                    <label class="flex items-center opacity-50 cursor-not-allowed"
+                                        title="En desarrollo">
+                                        <input type="checkbox" disabled class="h-4 w-4 text-orange-600 rounded">
+                                        <span class="ml-2 text-sm">Cronograma de Materiales <span
+                                                class="text-xs">(Próximamente)</span></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Especificaciones Técnicas -->
+                            <div
+                                class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 hover:border-blue-500 transition-colors">
+                                <div class="flex items-start">
+                                    <input type="checkbox" name="modulo_especificaciones"
+                                        id="modulo-especificaciones"
+                                        class="mt-1 h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <div class="ml-3">
+                                        <label for="modulo-especificaciones"
+                                            class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center cursor-pointer">
+                                            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                </path>
+                                            </svg>
+                                            Especificaciones Técnicas
+                                        </label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Documentación técnica
+                                            detallada</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="mt-6 p-4 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <p class="text-sm text-blue-800 dark:text-blue-200">
+                                <strong>Nota:</strong> Los módulos son opcionales. Si no seleccionas ninguno, se creará
+                                un proyecto básico que podrás configurar posteriormente.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3: Previsualización -->
+                    <div id="step-3" class="step-content hidden p-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Revisión y Confirmación
+                        </h3>
+
+                        <div class="space-y-6">
+                            <!-- Información General -->
+                            <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                <h4
+                                    class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Información General
+                                </h4>
+                                <div id="preview-general" class="grid grid-cols-2 gap-4 text-sm"></div>
+                            </div>
+
+                            <!-- Módulos Seleccionados -->
+                            <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                                <h4
+                                    class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                        </path>
+                                    </svg>
+                                    Módulos Activados
+                                </h4>
+                                <div id="preview-modulos" class="flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de navegación -->
+                    <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-between">
+                        <button type="button" id="btn-prev" onclick="previousStep()"
+                            class="hidden px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700 transition-colors">
+                            Anterior
+                        </button>
+                        <div class="flex-1"></div>
+                        <button type="button" id="btn-next" onclick="nextStep()"
+                            class="px-6 py-3 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                            Siguiente
+                        </button>
+                        <button type="submit" id="btn-submit"
+                            class="hidden px-6 py-3 border border-transparent rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors">
+                            <span id="submit-text">Guardar Proyecto</span>
                         </button>
                     </div>
                 </form>
@@ -670,354 +697,370 @@
 
     <script>
         // Variables globales
-        let currentMode = 'create';
-        let currentId = null;
+        let currentWizardStep = 1;
+        let wizardMode = 'create';
+        let editId = null;
+        let allRows = [];
+        let currentPage = 1;
+        let entriesPerPage = 10;
 
-        // Funciones para manejar el modal
-        function openModal(mode, id = null) {
-            currentMode = mode;
-            currentId = id;
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('input[name="fecha"]').value = today;
 
-            const modal = document.getElementById('crud-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const submitText = document.getElementById('submit-text');
-            const form = document.getElementById('metrado-form');
+            // Guardar todas las filas para paginación
+            const tbody = document.querySelector('#costosTable tbody');
+            allRows = Array.from(tbody.querySelectorAll('tr'));
+            updateTable();
+        });
 
-            // Configurar modal según el modo
-            if (mode === 'create') {
-                modalTitle.textContent = 'Registrar Costos';
-                submitText.textContent = 'Guardar Costos';
-                form.reset();
-                clearNivelesEducativos();
-                clearAllPlugins();
-                // Establecer fecha actual por defecto
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('fecha').value = today;
-            } else if (mode === 'edit') {
-                modalTitle.textContent = 'Editar Costos';
-                submitText.textContent = 'Actualizar Costos';
-                loadMetradoData(id);
+        // ========== FUNCIONES DE TABLA ==========
+        function searchTable() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const tbody = document.querySelector('#costosTable tbody');
+            const rows = tbody.querySelectorAll('tr');
+
+            allRows = [];
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(input)) {
+                    row.style.display = '';
+                    allRows.push(row);
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            currentPage = 1;
+            updateTable();
+        }
+
+        function updateTable() {
+            entriesPerPage = parseInt(document.getElementById('entriesPerPage').value);
+            const start = (currentPage - 1) * entriesPerPage;
+            const end = start + entriesPerPage;
+
+            const tbody = document.querySelector('#costosTable tbody');
+            const rows = tbody.querySelectorAll('tr');
+
+            // Ocultar todas las filas primero
+            rows.forEach(row => row.style.display = 'none');
+
+            // Mostrar solo las filas de la página actual
+            const visibleRows = allRows.slice(start, end);
+            visibleRows.forEach(row => row.style.display = '');
+
+            // Actualizar información de paginación
+            const totalEntries = allRows.length;
+            document.getElementById('showingStart').textContent = totalEntries > 0 ? start + 1 : 0;
+            document.getElementById('showingEnd').textContent = Math.min(end, totalEntries);
+            document.getElementById('totalEntries').textContent = totalEntries;
+
+            // Renderizar botones de paginación
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(allRows.length / entriesPerPage);
+            const container = document.getElementById('paginationButtons');
+            container.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            // Botón anterior
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '&laquo;';
+            prevBtn.className = 'px-3 py-2 text-sm border border-gray-300 rounded-md dark:border-gray-600 ' +
+                (currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-700');
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {
+                currentPage--;
+                updateTable();
+            };
+            container.appendChild(prevBtn);
+
+            // Números de página
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    const btn = document.createElement('button');
+                    btn.textContent = i;
+                    btn.className = 'px-3 py-2 text-sm border border-gray-300 rounded-md dark:border-gray-600 ' +
+                        (i === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700');
+                    btn.onclick = () => {
+                        currentPage = i;
+                        updateTable();
+                    };
+                    container.appendChild(btn);
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'px-2';
+                    container.appendChild(dots);
+                }
             }
 
-            modal.classList.remove('hidden');
+            // Botón siguiente
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = '&raquo;';
+            nextBtn.className = 'px-3 py-2 text-sm border border-gray-300 rounded-md dark:border-gray-600 ' +
+                (currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-700');
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {
+                currentPage++;
+                updateTable();
+            };
+            container.appendChild(nextBtn);
+        }
+
+        // ========== FUNCIONES DEL WIZARD ==========
+        function openWizard(mode = 'create', id = null) {
+            wizardMode = mode;
+            editId = id;
+            currentWizardStep = 1;
+
+            document.getElementById('wizard-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-        }
 
-        function closeModal() {
-            const modal = document.getElementById('crud-modal');
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-
-            // Resetear formulario
-            document.getElementById('metrado-form').reset();
-            clearNivelesEducativos();
-            clearAllPlugins();
-            currentMode = 'create';
-            currentId = null;
-        }
-
-        // Función auxiliar para manejar el cambio de checkboxes de niveles educativos
-        function toggleNivelInput(nivel) {
-            const checkbox = document.getElementById(`check-${nivel}`);
-            const input = document.getElementById(`input-${nivel}`);
-
-            if (checkbox && input) {
-                if (checkbox.checked) {
-                    input.classList.remove('hidden');
-                    input.required = true;
-                } else {
-                    input.classList.add('hidden');
-                    input.required = false;
-                    input.value = '';
-                }
-            }
-        }
-
-        // Función mejorada para limpiar niveles educativos
-        function clearNivelesEducativos() {
-            const niveles = ['inicial', 'primaria', 'secundaria'];
-            niveles.forEach(nivel => {
-                const checkbox = document.getElementById(`check-${nivel}`);
-                const input = document.getElementById(`input-${nivel}`);
-
-                if (checkbox) {
-                    checkbox.checked = false;
-                }
-                if (input) {
-                    input.classList.add('hidden');
-                    input.required = false;
-                    input.value = '';
-                }
-            });
-        }
-
-        // ===== FUNCIONES PARA PLUGINS/MÓDULOS =====
-
-        // Metrados - Seleccionar todos
-        function toggleAllMetrados() {
-            const checkAll = document.getElementById('check-metrados-all');
-            const checkboxes = document.querySelectorAll('.metrado-checkbox');
-
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = checkAll.checked;
-                // Disparar el evento onchange para cada checkbox
-                const event = new Event('change');
-                checkbox.dispatchEvent(event);
-            });
-        }
-
-        // Función mejorada para manejar módulos con input adicional (ej: sanitarias)
-        function toggleModuloInput(nombre) {
-            const checkbox = document.getElementById(`check-metrado-${nombre}`);
-            const input = document.getElementById(`input-${nombre}`);
-
-            if (checkbox && input) {
-                if (checkbox.checked) {
-                    input.classList.remove('hidden');
-                    input.required = true;
-                    // Establecer valor por defecto si está vacío
-                    if (!input.value) {
-                        input.value = '1';
-                    }
-                } else {
-                    input.classList.add('hidden');
-                    input.required = false;
-                    input.value = '0'; // Establecer en 0 cuando no está seleccionado
-                }
-            }
-        }
-
-        // Cronogramas - Seleccionar todos (MEJORADO con validación)
-        function toggleAllCronogramas() {
-            const checkAll = document.getElementById('check-cronogramas-all');
-            const generalCheckbox = document.getElementById('check-cronograma-general');
-
-            // Solo permitir marcar "General" con el "Seleccionar todos"
-            if (checkAll.checked) {
-                if (generalCheckbox) {
-                    generalCheckbox.checked = true;
-                }
-                // Mostrar mensaje sobre módulos en desarrollo
-                showAlert('info', 'Solo el Cronograma General está disponible. Los demás módulos están en desarrollo.');
+            if (mode === 'edit') {
+                loadProjectData(id);
             } else {
-                if (generalCheckbox) {
-                    generalCheckbox.checked = false;
+                document.getElementById('wizard-form').reset();
+                const today = new Date().toISOString().split('T')[0];
+                document.querySelector('input[name="fecha"]').value = today;
+            }
+
+            showStep(1);
+        }
+
+        function closeWizard() {
+            document.getElementById('wizard-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+            document.getElementById('wizard-form').reset();
+        }
+
+        function showStep(step) {
+            // Ocultar todos los pasos
+            document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+
+            // Mostrar paso actual
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            document.getElementById('currentStep').textContent = step;
+
+            // Actualizar indicadores de progreso
+            for (let i = 1; i <= 3; i++) {
+                const indicator = document.getElementById(`step-indicator-${i}`);
+                if (i < step) {
+                    indicator.className = 'flex-1 h-2 bg-green-600 rounded-full transition-all';
+                } else if (i === step) {
+                    indicator.className = 'flex-1 h-2 bg-blue-600 rounded-full transition-all';
+                } else {
+                    indicator.className = 'flex-1 h-2 bg-gray-300 dark:bg-gray-600 rounded-full transition-all';
                 }
+            }
+
+            // Mostrar/ocultar botones
+            document.getElementById('btn-prev').classList.toggle('hidden', step === 1);
+            document.getElementById('btn-next').classList.toggle('hidden', step === 3);
+            document.getElementById('btn-submit').classList.toggle('hidden', step !== 3);
+
+            // Si es el paso 3, generar preview
+            if (step === 3) {
+                generatePreview();
             }
         }
 
-        // Función para validar cronogramas en desarrollo
-        function validateCronogramaSelection(value) {
-            if (value !== 'general') {
-                showAlert('info',
-                    'Este módulo de cronograma está en proceso de desarrollo. Por el momento, solo está disponible el Cronograma General.'
-                    );
+        function nextStep() {
+            if (currentWizardStep === 1) {
+                if (!validateStep1()) return;
+            }
+
+            if (currentWizardStep < 3) {
+                currentWizardStep++;
+                showStep(currentWizardStep);
+            }
+        }
+
+        function previousStep() {
+            if (currentWizardStep > 1) {
+                currentWizardStep--;
+                showStep(currentWizardStep);
+            }
+        }
+
+        function validateStep1() {
+            const form = document.getElementById('wizard-form');
+            const requiredFields = form.querySelectorAll('#step-1 [required]');
+
+            for (let field of requiredFields) {
+                if (!field.value.trim()) {
+                    showAlert('error', 'Por favor, complete todos los campos obligatorios');
+                    field.focus();
+                    return false;
+                }
+            }
+
+            // Validar que al menos un nivel educativo esté seleccionado
+            const nivelesChecked = ['inicial', 'primaria', 'secundaria'].some(nivel =>
+                form.querySelector(`input[name="nivel_${nivel}"]`).checked &&
+                form.querySelector(`input[name="codigo_modular_${nivel}"]`).value.trim()
+            );
+
+            if (!nivelesChecked) {
+                showAlert('error', 'Debe seleccionar al menos un nivel educativo con su código modular');
                 return false;
             }
+
             return true;
         }
 
-        // Limpiar todos los plugins
-        function clearAllPlugins() {
-            // Limpiar metrados
-            document.getElementById('check-metrados-all').checked = false;
-            document.querySelectorAll('.metrado-checkbox').forEach(cb => {
-                cb.checked = false;
-            });
+        function toggleCodigoModular(nivel, checked) {
+            const input = document.querySelector(`input[name="codigo_modular_${nivel}"]`);
+            if (checked) {
+                input.classList.remove('hidden');
+                input.required = true;
+            } else {
+                input.classList.add('hidden');
+                input.required = false;
+                input.value = '';
+            }
+        }
 
-            // Limpiar y resetear input de sanitarias
-            const inputSanitarias = document.getElementById('input-sanitarias');
-            if (inputSanitarias) {
-                inputSanitarias.classList.add('hidden');
-                inputSanitarias.required = false;
-                inputSanitarias.value = '0';
+        function toggleModulo(modulo, checked) {
+            const opciones = document.getElementById(`${modulo}-opciones`);
+            if (checked) {
+                opciones.classList.remove('hidden');
+            } else {
+                opciones.classList.add('hidden');
+                // Desmarcar todas las opciones
+                opciones.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                if (modulo === 'metrados') {
+                    toggleSanitarias(false);
+                }
+            }
+        }
+
+        function toggleSanitarias(checked) {
+            const cantidad = document.getElementById('sanitarias-cantidad');
+            const input = cantidad.querySelector('input');
+
+            if (checked) {
+                cantidad.classList.remove('hidden');
+                input.required = false; // No obligatorio para evitar errores de validación HTML
+            } else {
+                cantidad.classList.add('hidden');
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function generatePreview() {
+            const form = document.getElementById('wizard-form');
+            const formData = new FormData(form);
+
+            // Preview información general
+            const previewGeneral = document.getElementById('preview-general');
+
+            // Obtener niveles educativos
+            const nivelesHtml = ['inicial', 'primaria', 'secundaria']
+                .filter(nivel => form.querySelector(`input[name="nivel_${nivel}"]`).checked)
+                .map(nivel => {
+                    const codigo = formData.get(`codigo_modular_${nivel}`);
+                    return `<span class="inline-block px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">${nivel.charAt(0).toUpperCase() + nivel.slice(1)}: ${codigo}</span>`;
+                })
+                .join(' ');
+
+            previewGeneral.innerHTML = `
+                <div class="col-span-2"><strong class="text-gray-700 dark:text-gray-300">Proyecto:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('nombre_proyecto')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">UEI:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('uei')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Unidad Ejecutora:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('unidad_ejecutora')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">SNIP:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('codigo_snip')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">CUI:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('codigo_cui')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Código Local:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('codigo_local')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Fecha:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('fecha')}</span></div>
+                <div class="col-span-2"><strong class="text-gray-700 dark:text-gray-300">Niveles Educativos:</strong><br>${nivelesHtml}</div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Región:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('region')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Provincia:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('provincia')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Distrito:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('distrito')}</span></div>
+                <div><strong class="text-gray-700 dark:text-gray-300">Centro Poblado:</strong><br><span class="text-gray-900 dark:text-gray-100">${formData.get('centropoblado') || 'N/A'}</span></div>
+            `;
+
+            // Preview módulos
+            const previewModulos = document.getElementById('preview-modulos');
+            const modulos = [];
+
+            if (form.querySelector('#modulo-metrados')?.checked) {
+                const metradosSeleccionados = Array.from(form.querySelectorAll('input[name="metrados[]"]:checked'))
+                    .map(cb => cb.value);
+                if (metradosSeleccionados.length > 0) {
+                    modulos.push(`<div class="px-4 py-2 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        Metrados (${metradosSeleccionados.join(', ')})
+                    </div>`);
+                }
             }
 
-            // Limpiar presupuestos
-            document.getElementById('check-presupuesto').checked = false;
+            if (form.querySelector('#modulo-presupuesto')?.checked) {
+                modulos.push(`<div class="px-4 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Presupuestos
+                </div>`);
+            }
 
-            // Limpiar cronogramas
-            document.getElementById('check-cronogramas-all').checked = false;
-            document.querySelectorAll('.cronograma-checkbox').forEach(cb => cb.checked = false);
+            if (form.querySelector('#modulo-cronogramas')?.checked) {
+                const cronogramasSeleccionados = Array.from(form.querySelectorAll('input[name="cronogramas[]"]:checked'))
+                    .map(cb => cb.value);
+                if (cronogramasSeleccionados.length > 0) {
+                    modulos.push(`<div class="px-4 py-2 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Cronogramas (${cronogramasSeleccionados.join(', ')})
+                    </div>`);
+                }
+            }
 
-            // Limpiar especificaciones
-            document.getElementById('check-especificaciones').checked = false;
+            if (form.querySelector('#modulo-especificaciones')?.checked) {
+                modulos.push(`<div class="px-4 py-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Especificaciones Técnicas
+                </div>`);
+            }
+
+            previewModulos.innerHTML = modulos.length > 0 ?
+                modulos.join('') :
+                '<p class="text-gray-500 dark:text-gray-400">No se seleccionaron módulos adicionales</p>';
         }
 
-        // Función loadMetradoData MEJORADA
-        function loadMetradoData(id) {
-            const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const loadingSpinner = document.getElementById('loading-spinner');
-
-            // Mostrar loading
-            submitBtn.disabled = true;
-            submitText.textContent = 'Cargando...';
-            loadingSpinner.classList.remove('hidden');
-
-            fetch(`{{ url('costos') }}/${id}/edit`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('No se pudo cargar el metrado');
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Datos cargados:', data);
-
-                    // Llenar campos básicos del formulario
-                    document.getElementById('nombre_proyecto').value = data.name || '';
-                    document.getElementById('uei').value = data.codigouei || '';
-                    document.getElementById('codigo_snip').value = data.codigosnip || '';
-                    document.getElementById('codigo_cui').value = data.codigocui || '';
-                    document.getElementById('unidad_ejecutora').value = data.unidad_ejecutora || '';
-                    document.getElementById('codigo_local').value = data.codigolocal || '';
-                    document.getElementById('fecha').value = data.fecha || '';
-                    document.getElementById('region').value = data.region || '';
-                    document.getElementById('provincia').value = data.provincia || '';
-                    document.getElementById('distrito').value = data.distrito || '';
-                    document.getElementById('centropoblado').value = data.centropoblado || '';
-
-                    // Procesar codigo_modular 
-                    if (data.codigomodular) {
-                        console.log('codigo_modular original:', data.codigomodular);
-                        let codigoModular;
-                        try {
-                            codigoModular = typeof data.codigomodular === 'string' ? JSON.parse(data.codigomodular) :
-                                data.codigomodular;
-                        } catch (e) {
-                            console.warn('Error al parsear codigo_modular:', e);
-                            codigoModular = {};
-                        }
-
-                        // Limpiar niveles antes de llenar
-                        clearNivelesEducativos();
-
-                        // Llenar niveles educativos
-                        Object.keys(codigoModular).forEach(nivel => {
-                            const checkbox = document.getElementById(`check-${nivel}`);
-                            const input = document.getElementById(`input-${nivel}`);
-
-                            if (checkbox && input) {
-                                checkbox.checked = true;
-                                toggleNivelInput(nivel);
-                                input.value = codigoModular[nivel];
-                            }
-                        });
-                    }
-
-                    // Cargar cantidad de módulos sanitarios si existe
-                    if (data.cantmodulos) {
-                        const inputSanitarias = document.getElementById('input-sanitarias');
-                        if (inputSanitarias) {
-                            inputSanitarias.value = data.cantmodulos;
-                        }
-                    }
-
-                    // Cargar plugins si existen
-                    if (data.plugins) {
-                        let plugins;
-                        try {
-                            plugins = typeof data.plugins === 'string' ? JSON.parse(data.plugins) : data.plugins;
-
-                            // Cargar metrados
-                            if (plugins.metrados && Array.isArray(plugins.metrados)) {
-                                plugins.metrados.forEach(metrado => {
-                                    const checkbox = document.getElementById(`check-metrado-${metrado}`);
-                                    if (checkbox) {
-                                        checkbox.checked = true;
-                                        // Si es sanitarias, mostrar el input
-                                        if (metrado === 'sanitarias') {
-                                            toggleModuloInput('sanitarias');
-                                        }
-                                    }
-                                });
-                            }
-
-                            // Cargar presupuesto
-                            if (plugins.presupuesto) {
-                                document.getElementById('check-presupuesto').checked = true;
-                            }
-
-                            // Cargar cronogramas (solo general disponible)
-                            if (plugins.cronogramas && Array.isArray(plugins.cronogramas)) {
-                                plugins.cronogramas.forEach(cronograma => {
-                                    if (cronograma === 'general') {
-                                        const checkbox = document.getElementById('check-cronograma-general');
-                                        if (checkbox) checkbox.checked = true;
-                                    }
-                                });
-                            }
-
-                            // Cargar especificaciones
-                            if (plugins.especificaciones) {
-                                document.getElementById('check-especificaciones').checked = true;
-                            }
-                        } catch (e) {
-                            console.warn('Error al parsear plugins:', e);
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al cargar datos:', error);
-                    showAlert('error', 'Error al cargar los datos para edición');
-                })
-                .finally(() => {
-                    submitBtn.disabled = false;
-                    submitText.textContent = 'Actualizar Costos';
-                    loadingSpinner.classList.add('hidden');
-                });
-        }
-
-        // Función handleSubmit MEJORADA
-        function handleSubmit(event) {
+        function handleWizardSubmit(event) {
             event.preventDefault();
 
             const form = event.target;
             const formData = new FormData(form);
-            const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const loadingSpinner = document.getElementById('loading-spinner');
 
-            // VALIDAR NIVELES EDUCATIVOS
-            const nivelesSeleccionados = [];
+            // Construir códigos modulares
             const codigoModular = {};
-
             ['inicial', 'primaria', 'secundaria'].forEach(nivel => {
-                const checkbox = document.getElementById(`check-${nivel}`);
-                const input = document.getElementById(`input-${nivel}`);
-
-                if (checkbox && checkbox.checked) {
-                    nivelesSeleccionados.push(nivel);
-                    const codigo = input ? input.value.trim() : '';
-                    if (codigo) {
-                        codigoModular[nivel] = codigo;
+                if (form.querySelector(`input[name="nivel_${nivel}"]`).checked) {
+                    const codigo = formData.get(`codigo_modular_${nivel}`);
+                    if (codigo && codigo.trim()) {
+                        codigoModular[nivel] = codigo.trim();
                     }
                 }
             });
 
-            if (nivelesSeleccionados.length === 0) {
-                showAlert('error', 'Debe seleccionar al menos un nivel educativo');
-                return;
-            }
-
             if (Object.keys(codigoModular).length === 0) {
-                showAlert('error', 'Debe ingresar códigos para los niveles educativos seleccionados');
+                showAlert('error', 'Debe seleccionar al menos un nivel educativo con su código modular');
                 return;
             }
 
-            for (let nivel of nivelesSeleccionados) {
-                if (!codigoModular[nivel]) {
-                    showAlert('error', `Debe ingresar el código modular para el nivel ${nivel}`);
-                    return;
-                }
-            }
-
-            // RECOPILAR PLUGINS SELECCIONADOS (OPCIONALES)
+            // Construir plugins
             const plugins = {
                 metrados: [],
                 presupuesto: false,
@@ -1026,40 +1069,39 @@
             };
 
             // Metrados
-            document.querySelectorAll('.metrado-checkbox:checked').forEach(cb => {
-                plugins.metrados.push(cb.value);
-            });
+            if (form.querySelector('#modulo-metrados')?.checked) {
+                plugins.metrados = Array.from(form.querySelectorAll('input[name="metrados[]"]:checked'))
+                    .map(cb => cb.value);
+            }
 
             // Presupuesto
-            plugins.presupuesto = document.getElementById('check-presupuesto').checked;
+            plugins.presupuesto = form.querySelector('#modulo-presupuesto')?.checked || false;
 
-            // Cronogramas (solo general disponible)
-            const generalCheckbox = document.getElementById('check-cronograma-general');
-            if (generalCheckbox && generalCheckbox.checked) {
-                plugins.cronogramas.push('general');
+            // Cronogramas
+            if (form.querySelector('#modulo-cronogramas')?.checked) {
+                plugins.cronogramas = Array.from(form.querySelectorAll('input[name="cronogramas[]"]:checked'))
+                    .map(cb => cb.value);
             }
 
             // Especificaciones
-            plugins.especificaciones = document.getElementById('check-especificaciones').checked;
+            plugins.especificaciones = form.querySelector('#modulo-especificaciones')?.checked || false;
 
-            // Obtener cantidad de módulos sanitarios
-            const cantModulosSanitarias = document.getElementById('input-sanitarias');
-            const cantModulos = cantModulosSanitarias && !cantModulosSanitarias.classList.contains('hidden') ?
-                (cantModulosSanitarias.value || '0') :
-                '0';
+            // Cantidad de módulos sanitarios (solo si está seleccionado y tiene valor)
+            let cantModulos = '0';
+            const sanitariasChecked = form.querySelector('input[name="metrados[]"][value="sanitarias"]')?.checked;
+            const sanitariasInput = form.querySelector('input[name="modulos_sanitarias"]');
 
-            // Validar cantidad de módulos si sanitarias está seleccionado
-            if (plugins.metrados.includes('sanitarias') && (cantModulos === '0' || cantModulos === '')) {
-                showAlert('error', 'Debe ingresar la cantidad de módulos sanitarios');
-                return;
+            if (sanitariasChecked && sanitariasInput && sanitariasInput.value) {
+                cantModulos = sanitariasInput.value;
+                if (cantModulos === '' || cantModulos === '0') {
+                    showAlert('error', 'Por favor, ingrese la cantidad de módulos sanitarios');
+                    currentWizardStep = 2;
+                    showStep(2);
+                    return;
+                }
             }
 
-            // Mostrar loading
-            submitBtn.disabled = true;
-            submitText.textContent = currentMode === 'create' ? 'Guardando...' : 'Actualizando...';
-            loadingSpinner.classList.remove('hidden');
-
-            // PREPARAR DATOS PARA ENVIAR
+            // Preparar datos para enviar
             const data = {
                 name: formData.get('nombre_proyecto'),
                 codigouei: formData.get('uei'),
@@ -1072,23 +1114,20 @@
                 region: formData.get('region'),
                 provincia: formData.get('provincia'),
                 distrito: formData.get('distrito'),
-                centropoblado: formData.get('centropoblado'),
+                centropoblado: formData.get('centropoblado') || '',
                 cantmodulos: cantModulos,
                 plugins: JSON.stringify(plugins)
             };
 
-            console.log('Datos a enviar:', data);
+            // Deshabilitar botón de submit
+            const submitBtn = document.getElementById('btn-submit');
+            const submitText = document.getElementById('submit-text');
+            submitBtn.disabled = true;
+            submitText.textContent = wizardMode === 'create' ? 'Guardando...' : 'Actualizando...';
 
             // Determinar URL y método
-            let url = '';
-            let method = '';
-            if (currentMode === 'create') {
-                url = "{{ route('costos.store') }}";
-                method = 'POST';
-            } else if (currentMode === 'edit') {
-                url = `{{ url('costos') }}/${currentId}`;
-                method = 'PUT';
-            }
+            let url = wizardMode === 'create' ? "{{ route('costos.store') }}" : `{{ url('costos') }}/${editId}`;
+            let method = wizardMode === 'create' ? 'POST' : 'PUT';
 
             fetch(url, {
                     method: method,
@@ -1108,13 +1147,10 @@
                     return response.json();
                 })
                 .then(responseData => {
-                    console.log('Respuesta del servidor:', responseData);
                     showAlert('success', responseData.message ||
-                        `Costos ${currentMode === 'create' ? 'creado' : 'actualizado'} exitosamente`);
-                    closeModal();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                        `Proyecto ${wizardMode === 'create' ? 'creado' : 'actualizado'} exitosamente`);
+                    closeWizard();
+                    setTimeout(() => window.location.reload(), 1500);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -1122,12 +1158,118 @@
                 })
                 .finally(() => {
                     submitBtn.disabled = false;
-                    submitText.textContent = currentMode === 'create' ? 'Guardar Costos' : 'Actualizar Costos';
-                    loadingSpinner.classList.add('hidden');
+                    submitText.textContent = wizardMode === 'create' ? 'Guardar Proyecto' : 'Actualizar Proyecto';
                 });
         }
 
-        // Función para confirmar eliminación
+        function loadProjectData(id) {
+            fetch(`{{ url('costos') }}/${id}/edit`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('No se pudo cargar el proyecto');
+                    return response.json();
+                })
+                .then(data => {
+                    const form = document.getElementById('wizard-form');
+
+                    // Llenar campos básicos
+                    form.querySelector('[name="nombre_proyecto"]').value = data.name || '';
+                    form.querySelector('[name="uei"]').value = data.codigouei || '';
+                    form.querySelector('[name="codigo_snip"]').value = data.codigosnip || '';
+                    form.querySelector('[name="codigo_cui"]').value = data.codigocui || '';
+                    form.querySelector('[name="unidad_ejecutora"]').value = data.unidad_ejecutora || '';
+                    form.querySelector('[name="codigo_local"]').value = data.codigolocal || '';
+                    form.querySelector('[name="fecha"]').value = data.fecha || '';
+                    form.querySelector('[name="region"]').value = data.region || '';
+                    form.querySelector('[name="provincia"]').value = data.provincia || '';
+                    form.querySelector('[name="distrito"]').value = data.distrito || '';
+                    form.querySelector('[name="centropoblado"]').value = data.centropoblado || '';
+
+                    // Procesar códigos modulares
+                    if (data.codigomodular) {
+                        let codigoModular;
+                        try {
+                            codigoModular = typeof data.codigomodular === 'string' ? JSON.parse(data.codigomodular) :
+                                data.codigomodular;
+                        } catch (e) {
+                            codigoModular = {};
+                        }
+
+                        Object.keys(codigoModular).forEach(nivel => {
+                            const checkbox = form.querySelector(`input[name="nivel_${nivel}"]`);
+                            const input = form.querySelector(`input[name="codigo_modular_${nivel}"]`);
+
+                            if (checkbox && input) {
+                                checkbox.checked = true;
+                                toggleCodigoModular(nivel, true);
+                                input.value = codigoModular[nivel];
+                            }
+                        });
+                    }
+
+                    // Cargar plugins
+                    if (data.plugins) {
+                        let plugins;
+                        try {
+                            plugins = typeof data.plugins === 'string' ? JSON.parse(data.plugins) : data.plugins;
+
+                            // Metrados
+                            if (plugins.metrados && plugins.metrados.length > 0) {
+                                form.querySelector('#modulo-metrados').checked = true;
+                                toggleModulo('metrados', true);
+                                plugins.metrados.forEach(metrado => {
+                                    const checkbox = form.querySelector(
+                                        `input[name="metrados[]"][value="${metrado}"]`);
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                        if (metrado === 'sanitarias') {
+                                            toggleSanitarias(true);
+                                            if (data.cantmodulos) {
+                                                form.querySelector('input[name="modulos_sanitarias"]').value =
+                                                    data.cantmodulos;
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Presupuesto
+                            if (plugins.presupuesto) {
+                                form.querySelector('#modulo-presupuesto').checked = true;
+                            }
+
+                            // Cronogramas
+                            if (plugins.cronogramas && plugins.cronogramas.length > 0) {
+                                form.querySelector('#modulo-cronogramas').checked = true;
+                                toggleModulo('cronogramas', true);
+                                plugins.cronogramas.forEach(cronograma => {
+                                    const checkbox = form.querySelector(
+                                        `input[name="cronogramas[]"][value="${cronograma}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+
+                            // Especificaciones
+                            if (plugins.especificaciones) {
+                                form.querySelector('#modulo-especificaciones').checked = true;
+                            }
+                        } catch (e) {
+                            console.warn('Error al parsear plugins:', e);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar datos:', error);
+                    showAlert('error', 'Error al cargar los datos del proyecto');
+                    closeWizard();
+                });
+        }
+
         function confirmDelete(event, form) {
             event.preventDefault();
 
@@ -1149,7 +1291,6 @@
             return false;
         }
 
-        // Función mejorada para mostrar alertas con más tipos
         function showAlert(type, message) {
             const config = {
                 success: {
@@ -1180,41 +1321,10 @@
             });
         }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cerrar modal con escape
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape') {
-                    closeModal();
-                }
-            });
-
-            // Cerrar modal al hacer clic en el fondo
-            document.getElementById('modal-backdrop')?.addEventListener('click', function() {
-                closeModal();
-            });
-
-            // Establecer fecha actual por defecto
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha').value = today;
-
-            // Agregar event listeners a los cronogramas en desarrollo
-            ['valorizado', 'materiales'].forEach(tipo => {
-                const checkbox = document.getElementById(`check-cronograma-${tipo}`);
-                if (checkbox) {
-                    checkbox.addEventListener('click', function(e) {
-                        if (!validateCronogramaSelection(tipo)) {
-                            e.preventDefault();
-                            this.checked = false;
-                        }
-                    });
-                }
-            });
-
-            // Inicializar el input de sanitarias como oculto con valor 0
-            const inputSanitarias = document.getElementById('input-sanitarias');
-            if (inputSanitarias) {
-                inputSanitarias.value = '0';
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeWizard();
             }
         });
     </script>

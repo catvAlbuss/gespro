@@ -45,7 +45,7 @@
     {{-- ======================= MAIN CONTENT ======================= --}}
     <div class="py-2">
         <div class="max-w-full mx-auto sm:px-2 lg:px-4">
-            <div id="appDetallesProyectos" class="space-y-2">
+            <div id="appDetallesProyectos" data-module="proyectos/detallesproyectos" class="space-y-2">
                 {{-- Controles de configuración --}}
                 <div
                     class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">

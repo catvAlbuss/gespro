@@ -14,7 +14,7 @@
                             {{ isset($permission) ? 'Editar Permiso' : 'Crear Permiso' }}</h3>
                         <div class="overflow-auto">
                             <form method="POST"
-                                action="{{ isset($permission) ? route('permissions.update', $permission->id) : route('permissions.store') }}">
+                                action="{{ isset($permission) ? route('admin.permissions.update', $permission->id) : route('admin.permissions.store') }}">
                                 @csrf
                                 @if (isset($permission))
                                     @method('PUT')
@@ -63,11 +63,11 @@
                                             <td class="px-6 py-4">{{ $permission->name }}</td>
                                             <td class="px-6 py-4">{{ $permission->guard_name }}</td>
                                             <td class="px-6 py-4">
-                                                <a href="{{ route('permissions.edit', $permission->id) }}"
+                                                <a href="{{ route('admin.permissions.edit', $permission->id) }}"
                                                     class="text-blue-600">Editar</a>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <form action="{{ route('permissions.destroy', $permission->id) }}"
+                                                <form action="{{ route('admin.permissions.destroy', $permission->id) }}"
                                                     method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')

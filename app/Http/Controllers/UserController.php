@@ -73,9 +73,9 @@ class UserController extends Controller
             // Asociar el usuario con las empresas
             $user->empresas()->attach($request->empresas);
 
-            return redirect()->route('users.index')->with('success', 'Usuario creado exitosamente.');
+            return redirect()->route('admin.users.index')->with('success', 'Usuario creado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('users.index')->with('error', 'Error al crear el usuario: ' . $e->getMessage());
+            return redirect()->route('admin.users.index')->with('error', 'Error al crear el usuario: ' . $e->getMessage());
         }
     }
 
@@ -112,9 +112,9 @@ class UserController extends Controller
             // Sincroniza las empresas del usuario
             $user->empresas()->sync($request->empresas);
 
-            return redirect()->route('users.index')->with('success', 'Usuario actualizado exitosamente.');
+            return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('users.index')->with('error', 'Error al actualizar el usuario: ' . $e->getMessage());
+            return redirect()->route('admin.users.index')->with('error', 'Error al actualizar el usuario: ' . $e->getMessage());
         }
     }
 
@@ -144,7 +144,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('users.index')->with('success', 'Usuario eliminado exitosamente.');
+        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado exitosamente.');
     }
 }
 // {

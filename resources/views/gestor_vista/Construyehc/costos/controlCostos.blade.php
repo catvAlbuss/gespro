@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="" id="SystemControlCostos"></div>
+    <div class="" id="SystemControlCostos" data-module="costos/main"></div>
 
     {{-- Inyectar los datos necesarios para el frontend (sin exponerlos en la URL) --}}
     <script>
@@ -14,11 +14,11 @@
 
             routes: {
                 metradoarquitectura: "{{ url('/metrados/arquitectura') }}",
-                metradoestructuras: "{{ url('/metrados/estructura') }}",
+                metradoestructuras: "{{ url('/metrados/estructuras') }}",
                 metradosanitarias: "{{ url('/metrados/sanitarias') }}",
                 metradoelectricas: "{{ url('/metrados/electricas') }}",
                 metradocomunicacion: "{{ url('/metrados/comunicacion') }}",
-                metradogas: "{{ url('/metrados.gas') }}",
+                metradogas: "{{ url('/metrados/gas') }}",
 
                 presupuestos: "{{ url('/presupuestos') }}",
 
