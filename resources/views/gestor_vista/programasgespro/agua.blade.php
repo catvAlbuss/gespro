@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- JavaScript Libraries (sin Alpine.js ya que se carga en app.js) -->
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -83,7 +83,7 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        
+
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
@@ -100,7 +100,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Sistema de agua específico */
@@ -114,23 +116,26 @@
             position: fixed;
             bottom: 10px;
             right: 10px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             color: white;
             padding: 8px;
             border-radius: 4px;
             font-size: 12px;
             z-index: 1000;
-            display: none; /* Ocultar en producción */
+            display: none;
+            /* Ocultar en producción */
         }
     </style>
 
     <!-- Contenedor principal -->
-    <div x-data="aguaSystem"  x-init="init" class="agua-system-container w-full">
+    <div id="agua-system-app" data-module="programasgespro/mainAgua" class="agua-system-container w-full">
         <!-- Debug Info (opcional, para desarrollo) -->
-        <div class="debug-info" x-show="false" x-text="`Active: ${activeTab}, Init: ${isInitialized}, Modules: ${modulesLoaded}`"></div>
-        
+        <div class="debug-info" x-show="false"
+            x-text="`Active: ${activeTab}, Init: ${isInitialized}, Modules: ${modulesLoaded}`"></div>
+
         <!-- Tab Navigation -->
-        <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg shadow-lg mb-4 overflow-hidden bg-white/80 backdrop-blur-lg border-b border-slate-200/60 shadow-lg sticky top-0 z-50">
+        <div
+            class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg shadow-lg mb-4 overflow-hidden bg-white/80 backdrop-blur-lg border-b border-slate-200/60 shadow-lg sticky top-0 z-50">
             <div class="border-b border-blue-100">
                 <div class="overflow-x-auto scrollbar-hide">
                     <nav class="flex whitespace-nowrap min-w-full">
@@ -153,7 +158,7 @@
 
         <!-- Tab Content Container -->
         <div class="bg-gradient-to-br from-white to-cyan-50/30 rounded-lg shadow-lg border border-blue-100/50 min-h-96">
-            
+
             <!-- Loading State -->
             <div x-show="!isInitialized" class="p-8 text-center">
                 <div class="flex items-center justify-center space-x-3 mb-4">
@@ -174,8 +179,8 @@
                 </div>
                 <p class="text-red-600 font-medium">Error al cargar los módulos del sistema</p>
                 <p class="text-gray-500 text-sm mt-2">Revisa la consola para más detalles</p>
-                <button @click="location.reload()" 
-                        class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
+                <button @click="location.reload()"
+                    class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
                     Recargar página
                 </button>
             </div>
@@ -183,74 +188,66 @@
             <!-- Tab Contents - Crear todos los contenedores inmediatamente -->
             <div class="relative">
                 <!-- Demanda Diaria Tab -->
-                <div x-show="activeTab === 'demandaDiaria'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'demandaDiaria'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="demandaDiaria-content" class="p-4"></div>
                 </div>
 
                 <!-- Cisterna Tab -->
-                <div x-show="activeTab === 'cisterna'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'cisterna'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="cisterna-content" class="p-4"></div>
                 </div>
 
                 <!-- Tanque Tab -->
-                <div x-show="activeTab === 'tanque'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'tanque'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="tanque-content" class="p-4"></div>
                 </div>
 
                 <!-- Red Alimentacion Tab -->
-                <div x-show="activeTab === 'redAlimentacion'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'redAlimentacion'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="red-alimentacion-content" class="p-4"></div>
                 </div>
 
                 <!-- Maxima demanda simultanea Tab -->
-                <div x-show="activeTab === 'maximademandasimultanea'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'maximademandasimultanea'"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="maximademanda-simultanea-content" class="p-4"></div>
                 </div>
 
                 <!-- Bombeo al Tanque Elevado Tab -->
-                <div x-show="activeTab === 'bombeoTanqueElevado'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'bombeoTanqueElevado'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="bombeo-tanque-elevado-content" class="p-4"></div>
                 </div>
 
                 <!-- Tuberia RD Grades Tab -->
-                <div x-show="activeTab === 'tuberiasRD'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'tuberiasRD'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="tuberias-rd-grades-content" class="p-4"></div>
                 </div>
 
                 <!-- Redes Interiores Grades Tab -->
-                <div x-show="activeTab === 'redesInteriores'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'redesInteriores'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="redes-interiores-grades-content" class="p-4"></div>
                 </div>
 
                 <!-- Red de Riego Tab -->
-                <div x-show="activeTab === 'redRiego'" 
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform translate-y-4"
-                     x-transition:enter-end="opacity-100 transform translate-y-0">
+                <div x-show="activeTab === 'redRiego'" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
                     <div id="red-griego-content" class="p-4"></div>
                 </div>
             </div>
