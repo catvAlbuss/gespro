@@ -365,14 +365,16 @@ Route::middleware(['auth', 'verified', 'check.session'])->group(function () {
     Route::prefix('personal')->name('personal.')->group(function () {
         Route::resource('trabajadores', TrabajadorController::class);
 
-        Route::get('registrar/{empresaId}', [TrabajadorController::class, 'index'])->name('registrar');
+        Route::get('registrarpersonal/{empresaId}', [TrabajadorController::class, 'index'])->name('registrar');
         Route::get('gestor/{id}', function ($id) {
             return view('gestor_vista.Administrador.Gestor_personal_general', compact('id'));
         })->name('gestor');
-        Route::post('obtener-dni', [TrabajadorController::class, 'obtenerUsuarioDNI'])->name('obtener.dni');
+        // Accept GET and POST to avoid MethodNotAllowed errors when a GET hits this URL
+        Route::match(['get', 'post'], 'obtener-dni', [TrabajadorController::class, 'obtenerUsuarioDNI'])->name('obtener.dni');
     });
 
     /*
+
     |--------------------------------------------------------------------------
     | ACTIVIDADES Y TAREAS
     |--------------------------------------------------------------------------

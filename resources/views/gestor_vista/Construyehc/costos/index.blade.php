@@ -1175,6 +1175,7 @@
                     return response.json();
                 })
                 .then(data => {
+                    console.log(data)
                     const form = document.getElementById('wizard-form');
 
                     // Llenar campos básicos

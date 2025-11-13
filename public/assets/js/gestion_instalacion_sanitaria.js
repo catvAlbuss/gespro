@@ -957,7 +957,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".diametroPulg").forEach((select) => {
     fillSelect(select, Object.keys(inch_decimal));
   });
-  fetch('/instsanitariacontroller', {
+  fetch('/construye/sanitarias/controller', {
     method: "GET",
   })
     .then((response) => response.text())
@@ -1156,7 +1156,7 @@ document.getElementById("instSanitariasPDF").addEventListener("submit", async (e
   postData.append("data[components][impulsion_l_accesorios]", lAccesoriosComponent(laccesoriosImpulsion));
 
   // Realizar la solicitud POST
-  fetch('/instalacionesScontroller', {
+  fetch('/construye/sanitarias/calcular', {
     method: "POST",
     headers: {
       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')

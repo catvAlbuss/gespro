@@ -78,23 +78,26 @@ class TrabajadorController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'surname' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'dni_user' => 'required|integer|unique:users,dni_user',
-            'phone' => 'required|integer',
-            'fecha_nac' => 'required|date',
-            'sueldo_base' => 'required|numeric',
-            'area_laboral' => 'required|string|max:255',
-            'nivel_estudio' => 'required|string|max:255',
-            'image_user' => 'nullable|image|max:2048',
-            'contratouser' => 'nullable|file|mimes:pdf|max:2048',
-            'password' => 'required|min:6',
-            'empresaId' => 'required|exists:empresas,id',
-        ]);
-
         try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'surname' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'dni_user' => 'required|integer|unique:users,dni_user',
+                'phone' => 'required|integer',
+                'fecha_nac' => 'required|date',
+                'sueldo_base' => 'required|numeric',
+                'area_laboral' => 'required|string|max:255',
+                'nivel_estudio' => 'required|string|max:255',
+                'image_user' => 'nullable|image|max:2048',
+                'contratouser' => 'nullable|file|mimes:pdf|max:2048',
+                'password' => 'required|min:6',
+                'empresaId' => 'required|exists:empresas,id',
+            ]);
+
+
+            // Crear usuario base
+
             $user = User::create([
                 'name' => $request->name,
                 'surname' => $request->surname,
@@ -105,29 +108,48 @@ class TrabajadorController extends Controller
                 'sueldo_base' => $request->sueldo_base,
                 'area_laboral' => $request->area_laboral,
                 'nivel_estudio' => $request->nivel_estudio,
-                'contratouser' => $request->hasFile('contratouser') ? $this->uploadFile($request->file('contratouser'), 'contrato') : null,
+                'contratouser' => $request->hasFile('contratouser')
+                    ? $this->uploadFile($request->file('contratouser'), 'contrato')
+                    : null,
                 'password' => Hash::make($request->password),
             ]);
 
+
+
+            // Subida de imagen
             if ($request->hasFile('image_user')) {
+
                 $imageName = time() . '.' . $request->image_user->extension();
                 $request->image_user->move(public_path('storage/profile'), $imageName);
+
                 $user->image_user = $imageName;
                 $user->save();
+            } else {
             }
 
+            // Relación con empresa
+
             $user->empresas()->attach($request->empresaId);
+
+
+            // Asignación de rol
 
             $trabajadorRole = Role::firstOrCreate(['name' => 'trabajador']);
             $user->assignRole($trabajadorRole);
 
-            return redirect()->route('personal.registrar', ['empresaId' => $request->empresaId])
+
+
+
+            return redirect()
+                ->route('personal.registrar', ['empresaId' => $request->empresaId])
                 ->with('success', 'Usuario creado exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->route('personal.registrar', ['empresaId' => $request->empresaId])
+            return redirect()
+                ->route('personal.registrar', ['empresaId' => $request->empresaId])
                 ->with('error', 'Error al crear el usuario: ' . $e->getMessage());
         }
     }
+
 
     public function edit(User $trabajadore)
     {
