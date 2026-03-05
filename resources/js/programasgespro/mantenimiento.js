@@ -2435,7 +2435,7 @@ const app = createApp({
             console.log(requestData);
             $.ajax({
                 type: 'PUT',
-                url: '/actualizarmantenimiento',
+                url: '/campo/mantenimiento/guardar',
                 data: requestData,
                 contentType: 'application/json',
                 processData: false,

@@ -87,7 +87,7 @@
                 </button>
 
                 <!-- Índices -->
-                <a href="{{ route('indices') }}" title="Índices"
+                <a href="{{ route('insumos.indices.index') }}" title="Índices"
                     class="p-2 rounded-lg text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"

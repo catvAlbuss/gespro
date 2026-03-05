@@ -970,24 +970,6 @@ export default function MetradoOptimizado() {
     showStatus('✅ Excel exportado correctamente', 2000);
   }, [rows, logo1, logo2, showStatus]);
 
-
-  // const exportToExcel = useCallback(() => {
-  //   const reportes = new reportes_metrados();
-  //   const headers = COL_NAMES.join('\t');
-  //   const data = rows.map(row =>
-  //     COL_NAMES.map((_, i) => row[i] || '').join('\t')
-  //   ).join('\n');
-
-  //   const tsv = `${headers}\n${data}`;
-  //   const blob = new Blob([tsv], { type: 'text/tab-separated-values' });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement('a');
-  //   a.href = url;
-  //   a.download = `metrado_${new Date().toISOString().split('T')[0]}.tsv`;
-  //   a.click();
-  //   URL.revokeObjectURL(url);
-  // }, [rows]);
-
   const resumenData = useMemo(() => {
     return rows
       .filter(row => row[COL.ITEM]?.trim())

@@ -46,7 +46,7 @@
                         class="guardar-detalle bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md text-white font-semibold shadow">
                         💾 Guardar
                     </button>
-                    <a href="{{ route('indices') }}"
+                    <a href="{{ route('insumos.indices.index') }}"
                         class="guardar-detalle bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-md text-white font-semibold shadow">
                         Indice
                     </a>

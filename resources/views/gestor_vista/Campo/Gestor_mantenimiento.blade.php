@@ -1,6 +1,4 @@
 <x-app-layout>
-    <div id="mantenimientoSystem" class="font-sans antialiased w-full"></div>
-
     <!-- Scripts Externos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -10,8 +8,10 @@
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="{{ asset('assets/css/tabulator_simple.min.css') }}">
 
+    <div id="mantenimientoSystem" data-module="programasgespro/mantenimiento" class="font-sans antialiased w-full"></div>
     <!-- Inicialización de datos desde Laravel -->
     <script>
+        console.log('llega');
         window.APP_INIT = {
             id_mantenimiento: @json($mantenimientos->id_mantimiento),
             datamantemiento: {
